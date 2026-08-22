@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iShares Excel .xls file to Watchlist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 sm:p-8 font-sans">
+  <div class="w-full space-y-6">
+    
+    <!-- Header -->
+    <header class="flex justify-between items-center border-b border-slate-700 pb-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white flex flex-wrap items-center gap-3">
+          iShares Excel .xls file to Watchlist
+          <span class="text-slate-400 text-sm font-normal">Upload SpreadsheetML (.xls) file from iShares Data Download</span>
+        </h1>
+      </div>
+      <span id="ticker-count" class="bg-blue-600/20 text-blue-400 text-sm font-semibold px-3.5 py-1.5 rounded-full border border-blue-500/30">
+        0 items
+      </span>
+    </header>
+
+    <!-- Consolidated Search, Tabs & Action Bar -->
+    <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-slate-800/80 p-4 rounded-xl border border-slate-700 backdrop-blur">
+      
+      <!-- Search Input (Left) -->
+      <input 
+        type="text" 
+        id="search-input" 
+        placeholder="Search across all fields..." 
+        disabled
+        class="bg-slate-900/90 text-slate-200 border border-slate-700 rounded-lg px-4 py-2 w-full lg:w-72 focus:outline-none focus:border-blue-500 text-sm placeholder-slate-500 disabled:opacity-50 disabled:cursor-not-allowed shrink-0" 
+      />
+      
+      <!-- Excel Worksheets / Tabs Bar (Centered in the middle) -->
+      <div id="tabs-bar" class="hidden flex flex-wrap items-center justify-center gap-1.5 overflow-x-auto py-1 max-w-full flex-1"></div>
+
+      <!-- Action & Upload Buttons (Right) -->
+      <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end shrink-0">
+        
+        <!-- Integrated Drag & Drop Upload Button -->
+        <div id="dropzone" class="flex items-center gap-2 border border-dashed border-slate-600 hover:border-blue-500 bg-slate-900/60 hover:bg-slate-900 transition-all rounded-lg px-3.5 py-2 cursor-pointer text-sm">
+          <input type="file" id="file-input" accept=".xls,.xlsx,.xml,.csv" class="hidden" />
+          <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <span id="dropzone-text" class="text-slate-300 font-medium">Upload / Drop .xls</span>
+        </div>
+
+        <!-- Copy Tickers Button -->
+        <button id="copy-btn" disabled class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-700">Copy Tickers</button>
+
+        <!-- Export Actions -->
+        <button id="export-csv-btn" disabled class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600">Export .csv</button>
+        <button id="export-txt-btn" disabled class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600">Export .txt</button>
+        <button id="reset-btn" disabled class="bg-rose-900/40 hover:bg-rose-800/60 text-rose-300 border border-rose-700/50 px-3 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">Clear</button>
+      </div>
+
+    </div>
+
+    <!-- Data Table Container -->
+    <div class="bg-slate-800/50 rounded-xl border border-slate-700 backdrop-blur overflow-hidden">
+      <div class="max-h-[calc(100vh-220px)] overflow-x-auto overflow-y-auto">
+        <table class="w-full text-left border-collapse whitespace-nowrap">
+          <thead id="table-head" class="bg-slate-900/95 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700 sticky top-0 z-20 backdrop-blur">
+            <tr>
+              <th class="py-3.5 px-4 w-12 text-center">#</th>
+              <th class="py-3.5 px-4">Column 1</th>
+            </tr>
+          </thead>
+          <tbody id="table-body" class="divide-y divide-slate-700/50 text-sm">
+            <tr>
+              <td colspan="10" class="py-12 text-center text-slate-500">No file loaded yet. Upload an iShares .xls file above.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- IndexedDB Wrapper ---
+    const DB_NAME = 'iSharesWatchlistDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'app_state';
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME);
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function dbSet(key, val) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).put(val, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function dbGet(key) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const req = tx.objectStore(STORE_NAME).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbClear() {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).clear();
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    // --- State ---
+    let workbookSheets = {};
+    let activeSheetName = '';
+    let currentFileName = '';
+
+    const dropzone = document.getElementById('dropzone');
+    const dropzoneText = document.getElementById('dropzone-text');
+    const fileInput = document.getElementById('file-input');
+    const tabsBar = document.getElementById('tabs-bar');
+    const tableHead = document.getElementById('table-head');
+    const tableBody = document.getElementById('table-body');
+    const tickerCount = document.getElementById('ticker-count');
+    const searchInput = document.getElementById('search-input');
+
+    const copyBtn = document.getElementById('copy-btn');
+    const exportCsvBtn = document.getElementById('export-csv-btn');
+    const exportTxtBtn = document.getElementById('export-txt-btn');
+    const resetBtn = document.getElementById('reset-btn');
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const savedWorkbook = await dbGet('workbook');
+        const savedFilename = await dbGet('filename');
+        const savedActiveTab = await dbGet('active_tab');
+
+        if (savedWorkbook) {
+          workbookSheets = savedWorkbook;
+          currentFileName = savedFilename || '';
+          const sheetNames = Object.keys(workbookSheets);
+
+          if (sheetNames.length > 0) {
+            activeSheetName = (savedActiveTab && workbookSheets[savedActiveTab]) ? savedActiveTab : getDefaultTabName(sheetNames);
+            renderTabs();
+            switchSheet(activeSheetName);
+            enableControls(currentFileName || 'Restored from cache');
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load from IndexedDB', e);
+      }
+    });
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => { 
+      e.preventDefault(); 
+      dropzone.classList.add('border-blue-500', 'bg-slate-900'); 
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('border-blue-500', 'bg-slate-900');
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('border-blue-500', 'bg-slate-900');
+      if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => { 
+      if (e.target.files.length) processFile(e.target.files[0]); 
+    });
+
+    function getDefaultTabName(sheetNames) {
+      const holdingsTab = sheetNames.find(name => /^holdings$/i.test(name.trim()));
+      return holdingsTab || sheetNames[0];
+    }
+
+    function processFile(file) {
+      currentFileName = file.name;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const xmlContent = e.target.result;
+        workbookSheets = {};
+
+        const worksheetMatches = Array.from(xmlContent.matchAll(/<ss:Worksheet\s+ss:Name="([^"]+)"[\s\S]*?>([\s\S]*?)<\/ss:Worksheet>/gi));
+
+        if (worksheetMatches.length > 0) {
+          worksheetMatches.forEach(match => {
+            const sheetName = match[1].trim();
+            const sheetXml = match[2];
+            parseSheetXml(sheetName, sheetXml);
+          });
+        } else {
+          parseSheetXml('Holdings', xmlContent);
+        }
+
+        const sheetNames = Object.keys(workbookSheets);
+        if (sheetNames.length > 0) {
+          activeSheetName = getDefaultTabName(sheetNames);
+
+          await dbSet('workbook', workbookSheets);
+          await dbSet('filename', currentFileName);
+          await dbSet('active_tab', activeSheetName);
+
+          renderTabs();
+          switchSheet(activeSheetName);
+          enableControls(currentFileName);
+        }
+      };
+
+      reader.readAsText(file);
+    }
+
+    function parseSheetXml(sheetName, sheetXml) {
+      const rowMatches = sheetXml.match(/<ss:Row[\s\S]*?<\/ss:Row>/gi) || [];
+      let rawRows = [];
+
+      rowMatches.forEach(rowXml => {
+        const dataMatches = Array.from(rowXml.matchAll(/<ss:Data[^>]*>([\s\S]*?)<\/ss:Data>/gi))
+          .map(m => m[1].trim());
+
+        // Отсекаем полностью пустые строки
+        if (dataMatches.some(v => v.length > 0)) {
+          rawRows.push(dataMatches);
+        }
+      });
+
+      if (rawRows.length === 0) {
+        workbookSheets[sheetName] = { headers: [], data: [], tickerCol: null };
+        return;
+      }
+
+      // Определяем максимальное число колонок среди всех строк вкладки
+      let maxCols = Math.max(...rawRows.map(r => r.length));
+
+      // Проверяем, есть ли явная строка с заголовком Ticker
+      let tickerRowIdx = rawRows.findIndex(r => r.some(v => /^ticker$/i.test(v)));
+      let headers = [];
+      let dataRows = [];
+
+      if (tickerRowIdx !== -1) {
+        headers = Array.from({ length: maxCols }, (_, idx) => rawRows[tickerRowIdx][idx] || `Column ${idx + 1}`);
+        dataRows = rawRows.slice(tickerRowIdx + 1);
+      } else {
+        // Если Ticker не найден (как в Performance/Distributions), пытаемся найти первую многоколоночную строку
+        let firstMultiColIdx = rawRows.findIndex(r => r.length > 1);
+        
+        if (firstMultiColIdx !== -1 && rawRows[firstMultiColIdx].some(v => isNaN(v))) {
+          headers = Array.from({ length: maxCols }, (_, idx) => rawRows[firstMultiColIdx][idx] || `Column ${idx + 1}`);
+          dataRows = rawRows.slice(firstMultiColIdx + 1);
+        } else {
+          headers = Array.from({ length: maxCols }, (_, idx) => `Column ${idx + 1}`);
+          dataRows = rawRows;
+        }
+      }
+
+      let tickerColIndex = headers.findIndex(h => /^ticker$/i.test(h));
+      let tickerCol = tickerColIndex !== -1 ? headers[tickerColIndex] : null;
+
+      let parsedData = [];
+
+      dataRows.forEach(row => {
+        const rowObj = {};
+        let hasValue = false;
+
+        headers.forEach((h, idx) => {
+          const val = row[idx] || '';
+          rowObj[h] = val;
+          if (val) hasValue = true;
+        });
+
+        if (hasValue) {
+          parsedData.push(rowObj);
+        }
+      });
+
+      // Фильтрация дедупликация тикеров выполняет только при наличии колонки Ticker
+      if (tickerCol) {
+        const seen = new Set();
+        parsedData = parsedData.filter(item => {
+          const val = item[tickerCol];
+          if (!val || !/^[A-Z0-9]+$/.test(val) || ['USD', 'XTSLA'].includes(val)) return false;
+          const duplicate = seen.has(val);
+          seen.add(val);
+          return !duplicate;
+        });
+      }
+
+      workbookSheets[sheetName] = { headers, data: parsedData, tickerCol };
+    }
+
+    function renderTabs() {
+      const sheetNames = Object.keys(workbookSheets);
+      if (sheetNames.length <= 1) {
+        tabsBar.classList.add('hidden');
+        return;
+      }
+
+      tabsBar.classList.remove('hidden');
+      tabsBar.innerHTML = sheetNames.map(name => {
+        const isActive = name === activeSheetName;
+        const activeClasses = "bg-blue-600 text-white font-medium border-blue-500 shadow-sm";
+        const inactiveClasses = "bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border-slate-700";
+
+        return `
+          <button 
+            onclick="switchSheet('${name.replace(/'/g, "\\'")}')" 
+            class="px-3.5 py-1.5 rounded-full text-xs transition border whitespace-nowrap ${isActive ? activeClasses : inactiveClasses}">
+            ${name}
+          </button>
+        `;
+      }).join('');
+    }
+
+    async function switchSheet(sheetName) {
+      if (!workbookSheets[sheetName]) return;
+      activeSheetName = sheetName;
+      await dbSet('active_tab', activeSheetName);
+
+      renderTabs();
+      
+      const currentSheet = workbookSheets[activeSheetName];
+      renderTable(currentSheet.data, currentSheet.headers);
+
+      const hasTickerCol = Boolean(currentSheet.tickerCol);
+      copyBtn.disabled = !hasTickerCol;
+
+      if (!hasTickerCol) {
+        copyBtn.title = "Current tab does not contain a Ticker column";
+      } else {
+        copyBtn.removeAttribute('title');
+      }
+
+      // Кнопки экспорта CSV/TXT остаются активными для любых вкладок с данными
+      const hasData = currentSheet.data.length > 0;
+      exportCsvBtn.disabled = !hasData;
+      exportTxtBtn.disabled = !hasData;
+    }
+
+    function enableControls(fileName) {
+      dropzoneText.textContent = fileName.length > 20 ? fileName.slice(0, 17) + '...' : fileName;
+      dropzone.classList.add('border-emerald-500/50', 'text-emerald-400');
+
+      searchInput.disabled = false;
+      resetBtn.disabled = false;
+    }
+
+    async function clearStorage() {
+      await dbClear();
+
+      workbookSheets = {};
+      activeSheetName = '';
+      currentFileName = '';
+      
+      dropzoneText.textContent = 'Upload / Drop .xls';
+      dropzone.classList.remove('border-emerald-500/50', 'text-emerald-400');
+      
+      tabsBar.classList.add('hidden');
+      tabsBar.innerHTML = '';
+
+      searchInput.value = '';
+      searchInput.disabled = true;
+      copyBtn.disabled = true;
+      exportCsvBtn.disabled = true;
+      exportTxtBtn.disabled = true;
+      resetBtn.disabled = true;
+
+      renderTable([], ['Column 1']);
+      tableBody.innerHTML = `<tr><td colspan="10" class="py-12 text-center text-slate-500">No file loaded yet. Upload an iShares .xls file above.</td></tr>`;
+    }
+
+    function renderTable(data, headers = []) {
+      const currentSheet = workbookSheets[activeSheetName];
+      const count = data.length;
+      tickerCount.textContent = `${count} ${currentSheet?.tickerCol ? 'tickers' : 'items'}`;
+
+      if (headers.length > 0) {
+        tableHead.innerHTML = `
+          <tr>
+            <th class="py-3.5 px-4 w-12 text-center">#</th>
+            ${headers.map(h => `<th class="py-3.5 px-4">${h}</th>`).join('')}
+          </tr>
+        `;
+      }
+
+      if (!data.length) {
+        tableBody.innerHTML = `<tr><td colspan="${headers.length + 1}" class="py-8 text-center text-slate-500">No matching items found.</td></tr>`;
+        return;
+      }
+
+      tableBody.innerHTML = data.map((item, idx) => `
+        <tr class="hover:bg-slate-700/30 transition border-b border-slate-700/30">
+          <td class="py-2.5 px-4 text-slate-500 text-xs text-center font-mono">${idx + 1}</td>
+          ${headers.map((h, i) => {
+            const val = item[h] || '';
+            if (i === 0 && currentSheet?.tickerCol) {
+              return `<td class="py-2.5 px-4 font-mono font-semibold text-blue-400">${val}</td>`;
+            }
+            return `<td class="py-2.5 px-4 text-slate-300 font-medium">${val}</td>`;
+          }).join('')}
+        </tr>
+      `).join('');
+    }
+
+    function getExportFileName(targetExtension) {
+      if (!currentFileName) return `iShares_Watchlist.${targetExtension}`;
+      const lastDotIndex = currentFileName.lastIndexOf('.');
+      const baseName = lastDotIndex !== -1 ? currentFileName.substring(0, lastDotIndex) : currentFileName;
+      return `${baseName}_${activeSheetName}.${targetExtension}`;
+    }
+
+    function generateFileContent() {
+      const currentSheet = workbookSheets[activeSheetName];
+      if (!currentSheet) return '';
+      
+      const csvHeaders = currentSheet.headers.join(',');
+      const csvRows = currentSheet.data.map(row => 
+        currentSheet.headers.map(h => `"${(row[h] || '').replace(/"/g, '""')}"`).join(',')
+      );
+      return [csvHeaders, ...csvRows].join("\n");
+    }
+
+    searchInput.addEventListener('input', (e) => {
+      const currentSheet = workbookSheets[activeSheetName];
+      if (!currentSheet) return;
+
+      const query = e.target.value.toLowerCase().trim();
+      const filtered = currentSheet.data.filter(d => 
+        Object.values(d).some(val => String(val).toLowerCase().includes(query))
+      );
+      renderTable(filtered, currentSheet.headers);
+    });
+
+    exportCsvBtn.addEventListener('click', () => {
+      const content = generateFileContent();
+      const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", getExportFileName('csv'));
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    exportTxtBtn.addEventListener('click', () => {
+      const content = generateFileContent();
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", getExportFileName('txt'));
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    copyBtn.addEventListener('click', () => {
+      const currentSheet = workbookSheets[activeSheetName];
+      if (!currentSheet || !currentSheet.tickerCol) return;
+
+      const tickersText = currentSheet.data.map(e => e[currentSheet.tickerCol]).filter(Boolean).join(', ');
+      navigator.clipboard.writeText(tickersText);
+      alert(`${currentSheet.data.length} tickers copied to clipboard!`);
+    });
+
+    resetBtn.addEventListener('click', clearStorage);
+  </script>
+</body>
+</html>
