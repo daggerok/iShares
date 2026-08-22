@@ -57,17 +57,21 @@
 
     <!-- Header -->
     <header class="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-8 py-3 flex flex-wrap justify-between items-center gap-3 z-40 shadow-xs shrink-0">
-      <div class="flex items-center gap-2.5">
+      <div class="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 min-w-0">
         <svg class="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 7l-8.5 8.5-5-5L2 17" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7h6v6" />
         </svg>
-        <div>
-          <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">iShares Excel .xls file to Watchlist</h1>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Upload SpreadsheetML (.xls) file from iShares Data Download</p>
-        </div>
+        <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">iShares Excel .xls file to Watchlist</h1>
+        <span class="text-sm text-slate-500 dark:text-slate-400">Upload SpreadsheetML (.xls) file from iShares Data Download</span>
+        <span class="text-slate-300 dark:text-slate-600" aria-hidden="true">&middot;</span>
+        <span class="text-sm text-slate-500 dark:text-slate-400">
+          For example
+          <a href="https://www.ishares.com/us/products/291387/" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">DIVB</a>
+          <a href="https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&amp;appSubType=ISHARES&amp;targetSite=us-ishares&amp;locale=en_US&amp;portfolioId=291387&amp;component=fundDownload&amp;userType=individual" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">Data Download</a>
+        </span>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 shrink-0">
         <span id="ticker-count" class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-semibold px-3.5 py-1.5 rounded-full border border-blue-200 dark:border-blue-500/30">
           0 items
         </span>
