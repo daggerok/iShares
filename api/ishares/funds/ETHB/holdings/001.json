@@ -1,0 +1,44 @@
+{
+  "ticker": "ETHB",
+  "page": 1,
+  "pageSize": 250,
+  "totalRows": 3,
+  "headers": [
+    "Ticker",
+    "Name",
+    "Asset Class",
+    "Market Value",
+    "Weight (%)",
+    "Notional Value",
+    "Quantity"
+  ],
+  "rows": [
+    {
+      "Ticker": "SETH",
+      "Name": "STAKED ETHER",
+      "Asset Class": "Alternative",
+      "Market Value": "575781558.01",
+      "Weight (%)": "75.1381",
+      "Notional Value": "575781558.01",
+      "Quantity": "247537.2556"
+    },
+    {
+      "Ticker": "ETH",
+      "Name": "ETHER",
+      "Asset Class": "Alternative",
+      "Market Value": "190514826.88",
+      "Weight (%)": "24.8617",
+      "Notional Value": "190514826.88",
+      "Quantity": "81905.2238"
+    },
+    {
+      "Ticker": "USD",
+      "Name": "USD CASH",
+      "Asset Class": "Cash",
+      "Market Value": "1074.05",
+      "Weight (%)": "0.00010",
+      "Notional Value": "1074.05",
+      "Quantity": "1074.05"
+    }
+  ]
+}
