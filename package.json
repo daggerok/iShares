@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "test": "bun test scripts/update-ishares-data.test.ts",
+    "update": "bun scripts/update-ishares-data.ts"
+  },
   "dependencies": {},
   "devDependencies": {
     "@types/bun": "1.4.0",
