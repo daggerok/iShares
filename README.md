@@ -118,7 +118,7 @@ A colonless value such as `5` is invalid.
 
 `TOTAL_RETURN_*` uses cumulative NAV total return for the selected period. iShares does not publish an annualized YTD value, so both `PERFORMANCE_YTD` and `TOTAL_RETURN_YTD` use cumulative YTD NAV total return. One-year annualized and one-year cumulative return are likewise mathematically equal.
 
-Metrics are derived from the official workbook's monthly NAV total-return series at its latest available quarter end. Return filters are evaluated after that workbook is downloaded. A young fund that does not yet have a requested 3Y, 5Y, or 10Y metric is retained; missing return history does not fail the filter. Missing AUM or dividend-yield data does fail an active catalog filter.
+Metrics are derived from the official workbook's monthly NAV total-return series at its latest available quarter end. **SI Ann.** is the same series compounded from the first available month through that quarter-end, then annualized. Latest **NAV** comes from the first historical-NAV row. Return filters are evaluated after that workbook is downloaded. A young fund that does not yet have a requested 3Y, 5Y, or 10Y metric is retained; missing return history does not fail the filter. Missing AUM or dividend-yield data does fail an active catalog filter. SI Ann. is catalog-only and is not a filter variable.
 
 ### Examples
 
@@ -148,7 +148,7 @@ bun scripts/update-ishares-data.ts
 - The workflow is manual. Merging updater code changes does not run a data update automatically.
 - A successful data run may commit only `api/ishares/**`. GitHub Pages then deploys that commit, but the catalog UI changes only when the generated data itself changed.
 - Catalog-only filters (`TICKERS`, `AUM`, and `DIVIDEND_YIELD`) run before `MAX_FETCHES`. Return filters run after each selected official workbook is downloaded and parsed.
-- Every successful fund update stores derived quarter-end `performance` and `totalReturn` values in `api/ishares/index.json` and under `returns` in the fund's `meta.json`.
+- Every successful fund update stores derived quarter-end `performance` and `totalReturn` values (including since-inception `SI`) plus latest `nav` in `api/ishares/index.json` and under `returns` in the fund's `meta.json`.
 - The UI fetches the first Holdings and Historical pages and appends more rows automatically as the table is scrolled; it does not show page-number controls.
 - The app keeps search and sort preferences in localStorage, reapplies them after reload, and clears the cached workbook before reloading when `Clear` is clicked.
 - GitHub Actions writes updated, unchanged, return-filtered, and failed counts to the workflow summary.

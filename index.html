@@ -459,6 +459,8 @@
           "Inception Date — The official public launch date on which the ETF began trading on the exchange.",
         Holdings:
           "Holdings Count — Total number of individual underlying securities and assets held in the ETF portfolio.",
+        "SI Ann.":
+          "SI Ann. (Since Inception Annualized) — Compound annual growth rate from the first monthly NAV return through the latest quarter-end. SI = Since Inception.",
         History:
           "Historical Records — Total number of historical daily NAV and distribution records available.",
         "As Of":
@@ -1155,6 +1157,7 @@
               "Ticker",
               "Fund Name",
               "Type",
+              "NAV",
               "Net Assets",
               "Expense",
               "Dividend Yield",
@@ -1166,6 +1169,7 @@
               "CAGR 3Y",
               "CAGR 5Y",
               "CAGR 10Y",
+              "SI Ann.",
               "Return As Of",
               "Inception",
               "Holdings",
@@ -1179,6 +1183,7 @@
                 Ticker: fund.ticker,
                 "Fund Name": fund.name,
                 Type: fund.type || "iShares ETF",
+                NAV: fund.nav || "—",
                 "Net Assets": fund.netAssets || "—",
                 Expense: fund.netExpenseRatio || fund.grossExpenseRatio || "—",
                 "Dividend Yield": fund.trailingYield || "—",
@@ -1190,6 +1195,7 @@
                 "CAGR 3Y": formatPercent(performance["3Y"]),
                 "CAGR 5Y": formatPercent(performance["5Y"]),
                 "CAGR 10Y": formatPercent(performance["10Y"]),
+                "SI Ann.": formatPercent(performance.SI),
                 "Return As Of": totalReturn.asOfDate || fund.returnAsOf || "—",
                 Inception: fund.inceptionDate || "—",
                 Holdings: fund.holdings || "—",
