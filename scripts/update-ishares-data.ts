@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /// <reference types="node" />
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 const ROOT = new URL("../api/ishares/", import.meta.url),
   RAW = new URL("../api/ishares/raw/", import.meta.url);
 const truthy = ["1", "true", "yes", "y", "on"];
@@ -8,11 +8,21 @@ const raw = truthy.includes(
   (process.env.ISHARES_STORE_RAW_DOWNLOADS || "").trim().toLowerCase(),
 );
 const limit = Number(process.env.ISHARES_LIMIT || 0);
+const HOLDINGS_PAGE_SIZE = 250;
 type Fund = {
   ticker: string;
   portfolioId: string;
   name: string;
   fundPage: string;
+  trailingYield: string;
+  yieldAsOf: string;
+  ytdReturn: string;
+  returnAsOf: string;
+  inceptionDate: string;
+  grossExpenseRatio: string;
+  netExpenseRatio: string;
+  netAssets: string;
+  type: string;
 };
 const esc = (s: string) => s.replace(/&quot;/g, '"').replace(/&amp;/g, "&");
 async function text(u: string) {
@@ -56,6 +66,15 @@ function catalog(html: string) {
       portfolioId: m[2],
       name: cells[1] || m[3],
       fundPage: `https://www.ishares.com${m[1]}`,
+      trailingYield: cells[2] || "—",
+      yieldAsOf: cells[3] || "—",
+      ytdReturn: cells[4] || "—",
+      returnAsOf: cells[5] || "—",
+      inceptionDate: cells[6] || "—",
+      grossExpenseRatio: cells[7] || "—",
+      netExpenseRatio: cells[8] || "—",
+      netAssets: cells[9] || "—",
+      type: "iShares ETF",
     });
   }
   return out;
@@ -92,28 +111,66 @@ async function one(f: Fund) {
   const body = await text(url);
   const worksheets = parse(body);
   if (!Object.keys(worksheets).length) throw Error("no worksheets");
-  const doc = {
+
+  const holdings = worksheets.Holdings || { headers: [], rows: [] };
+  const pages = [];
+  for (
+    let start = 0;
+    start < holdings.rows.length;
+    start += HOLDINGS_PAGE_SIZE
+  ) {
+    const number = pages.length + 1;
+    const file = `./holdings/${String(number).padStart(3, "0")}.json`;
+    pages.push(file);
+    await put(
+      new URL(
+        `funds/${f.ticker}/holdings/${String(number).padStart(3, "0")}.json`,
+        ROOT,
+      ),
+      JSON.stringify(
+        {
+          ticker: f.ticker,
+          page: number,
+          pageSize: HOLDINGS_PAGE_SIZE,
+          totalRows: holdings.rows.length,
+          headers: holdings.headers,
+          rows: holdings.rows.slice(start, start + HOLDINGS_PAGE_SIZE),
+        },
+        null,
+        2,
+      ) + "\n",
+    );
+  }
+  delete worksheets.Holdings;
+  const document = {
     ticker: f.ticker,
     portfolioId: f.portfolioId,
     name: f.name,
     source: { fundPage: f.fundPage, download: url },
+    holdings: {
+      totalRows: holdings.rows.length,
+      pageSize: HOLDINGS_PAGE_SIZE,
+      pageCount: pages.length,
+      pages,
+    },
     worksheets,
   };
   const changed = await put(
-    new URL(`funds/${f.ticker}.json`, ROOT),
-    JSON.stringify(doc, null, 2) + "\n",
+    new URL(`funds/${f.ticker}/meta.json`, ROOT),
+    JSON.stringify(document, null, 2) + "\n",
   );
+  await rm(new URL(`funds/${f.ticker}.json`, ROOT), { force: true });
   if (raw) {
     const u = new URL(`raw/${f.ticker}.xls`, ROOT);
-    const prev = await old(u);
-    if (prev !== body) {
+    if ((await old(u)) !== body) {
       await mkdir(RAW, { recursive: true });
       await writeFile(u, body);
     }
   }
   return {
     changed,
-    asOfDate: worksheets.Holdings?.rows?.[0]?.["As Of Date"] || "",
+    asOfDate: holdings.rows[0]?.["As Of Date"] || "",
+    holdings: holdings.rows.length,
   };
 }
 async function main() {
@@ -140,8 +197,9 @@ async function main() {
           changed ||= r.changed;
           index.push({
             ...f,
-            dataFile: `./funds/${f.ticker}.json`,
+            dataFile: `./funds/${f.ticker}/meta.json`,
             asOfDate: r.asOfDate,
+            holdings: r.holdings,
           });
         } catch (e) {
           console.warn("failed", f.ticker, String(e));

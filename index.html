@@ -126,6 +126,12 @@
 
       </div>
 
+      <div id="holdings-pager" class="hidden flex flex-wrap items-center justify-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+        <button id="holdings-prev" class="px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 disabled:opacity-40">Previous</button>
+        <span id="holdings-page-label"></span>
+        <button id="holdings-next" class="px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 disabled:opacity-40">Next</button>
+      </div>
+
       <!-- Data Table Container -->
       <div class="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur overflow-hidden">
         <div class="max-h-[calc(100vh-220px)] overflow-x-auto overflow-y-auto themed-scroll">
@@ -223,6 +229,9 @@
     let activeSheetName = '';
     let currentFileName = '';
     let staticFunds = {};
+    let staticHoldingPages = [];
+    let staticHoldingPage = 0;
+    let staticHoldingTicker = '';
     // Current table order. Data stays intact; only the displayed rows are sorted.
     let sortKey = '';
     let sortDir = 'asc';
@@ -235,6 +244,10 @@
     const tableBody = document.getElementById('table-body');
     const tickerCount = document.getElementById('ticker-count');
     const searchInput = document.getElementById('search-input');
+    const holdingsPager = document.getElementById('holdings-pager');
+    const holdingsPrev = document.getElementById('holdings-prev');
+    const holdingsNext = document.getElementById('holdings-next');
+    const holdingsPageLabel = document.getElementById('holdings-page-label');
 
     const copyBtn = document.getElementById('copy-btn');
     const exportCsvBtn = document.getElementById('export-csv-btn');
@@ -291,8 +304,8 @@
         staticFunds = Object.fromEntries((index.funds || []).map(fund => [fund.ticker, fund]));
         workbookSheets = {
           'ETF Catalog': {
-            headers: ['Ticker', 'Fund Name', 'As Of'],
-            data: (index.funds || []).map(fund => ({ Ticker: fund.ticker, 'Fund Name': fund.name, 'As Of': fund.asOfDate || '—' })),
+            headers: ['Ticker', 'Fund Name', 'Type', 'Net Assets', 'Expense', 'Dividend Yield', 'Holdings', 'As Of'],
+            data: (index.funds || []).map(fund => ({ Ticker: fund.ticker, 'Fund Name': fund.name, Type: fund.type || 'iShares ETF', 'Net Assets': fund.netAssets || '—', Expense: fund.netExpenseRatio || fund.grossExpenseRatio || '—', 'Dividend Yield': fund.trailingYield || '—', Holdings: fund.holdings || '—', 'As Of': fund.asOfDate || fund.yieldAsOf || '—' })),
             tickerCol: 'Ticker',
           },
         };
@@ -312,9 +325,15 @@
       const response = await fetch(`./api/ishares/funds/${encodeURIComponent(ticker)}.json`, { cache: 'no-cache' });
       if (!response.ok) return;
       const data = await response.json();
+      staticHoldingPages = data.holdings?.pages || [];
+      staticHoldingPage = 0;
+      staticHoldingTicker = ticker;
+      const firstHoldingPage = staticHoldingPages[0];
+      const holdings = firstHoldingPage ? await (await fetch(`./api/ishares/funds/${encodeURIComponent(ticker)}/${firstHoldingPage.replace('./', '')}`)).json() : { headers: [], rows: [] };
       workbookSheets = Object.fromEntries(Object.entries(data.worksheets || {}).map(([name, sheet]) => [name, {
         headers: sheet.headers || [], data: sheet.rows || [], tickerCol: (sheet.headers || []).find(header => /^ticker$/i.test(header)) || null,
       }]));
+      workbookSheets.Holdings = { headers: holdings.headers || [], data: holdings.rows || [], tickerCol: (holdings.headers || []).find(header => /^ticker$/i.test(header)) || null };
       activeSheetName = getDefaultTabName(Object.keys(workbookSheets));
       currentFileName = `${ticker} static data`;
       searchInput.value = '';
@@ -322,6 +341,28 @@
       await switchSheet(activeSheetName);
       enableControls(currentFileName);
     }
+
+    async function loadHoldingPage(page) {
+      if (!staticHoldingPages[page] || !staticHoldingTicker) return;
+      const response = await fetch(`./api/ishares/funds/${encodeURIComponent(staticHoldingTicker)}/${staticHoldingPages[page].replace('./', '')}`);
+      const holding = await response.json();
+      staticHoldingPage = page;
+      workbookSheets.Holdings = { headers: holding.headers || [], data: holding.rows || [], tickerCol: (holding.headers || []).find(header => /^ticker$/i.test(header)) || null };
+      renderTable(workbookSheets.Holdings.data, workbookSheets.Holdings.headers);
+      renderHoldingsPager();
+    }
+
+    function renderHoldingsPager() {
+      const visible = activeSheetName === 'Holdings' && staticHoldingPages.length > 1;
+      holdingsPager.classList.toggle('hidden', !visible);
+      if (!visible) return;
+      holdingsPrev.disabled = staticHoldingPage === 0;
+      holdingsNext.disabled = staticHoldingPage >= staticHoldingPages.length - 1;
+      holdingsPageLabel.textContent = `Page ${staticHoldingPage + 1} of ${staticHoldingPages.length}`;
+    }
+
+    holdingsPrev.addEventListener('click', () => void loadHoldingPage(staticHoldingPage - 1));
+    holdingsNext.addEventListener('click', () => void loadHoldingPage(staticHoldingPage + 1));
 
     function getDefaultTabName(sheetNames) {
       const holdingsTab = sheetNames.find(name => /^holdings$/i.test(name.trim()));
@@ -477,6 +518,7 @@
       
       const currentSheet = workbookSheets[activeSheetName];
       renderTable(currentSheet.data, currentSheet.headers);
+      renderHoldingsPager();
 
       const hasTickerCol = Boolean(currentSheet.tickerCol);
       copyBtn.disabled = !hasTickerCol;

@@ -1,0 +1,116 @@
+{
+  "ticker": "BITA",
+  "page": 1,
+  "pageSize": 250,
+  "totalRows": 8,
+  "headers": [
+    "Ticker",
+    "Name",
+    "Type",
+    "Asset Class",
+    "Market Value",
+    "Weight (%)",
+    "Notional Value",
+    "Quantity",
+    "Maturity",
+    "Strike price"
+  ],
+  "rows": [
+    {
+      "Ticker": "BTC",
+      "Name": "BITCOIN",
+      "Type": "CMDTY",
+      "Asset Class": "Alternative",
+      "Market Value": "47797065.83",
+      "Weight (%)": "70.3818",
+      "Notional Value": "47797065.83",
+      "Quantity": "659.7781",
+      "Maturity": "-",
+      "Strike price": "--"
+    },
+    {
+      "Ticker": "IBIT",
+      "Name": "ISHARES BITCOIN TRUST ETF CL1",
+      "Type": "EQUITY",
+      "Asset Class": "Alternative",
+      "Market Value": "22284585.6",
+      "Weight (%)": "32.8143",
+      "Notional Value": "22284585.6",
+      "Quantity": "540888",
+      "Maturity": "-",
+      "Strike price": "--"
+    },
+    {
+      "Ticker": "XTSLA",
+      "Name": "BLK CSH FND TREASURY SL AGENCY",
+      "Type": "FUND",
+      "Asset Class": "Money Market",
+      "Market Value": "42462.4",
+      "Weight (%)": "0.0625",
+      "Notional Value": "42462.4",
+      "Quantity": "42462.4",
+      "Maturity": "-",
+      "Strike price": "--"
+    },
+    {
+      "Ticker": "USD",
+      "Name": "USD CASH",
+      "Type": "CASH",
+      "Asset Class": "Cash",
+      "Market Value": "33030.78",
+      "Weight (%)": "0.0486",
+      "Notional Value": "33030.78",
+      "Quantity": "33030.78",
+      "Maturity": "-",
+      "Strike price": "--"
+    },
+    {
+      "Ticker": "IBIT",
+      "Name": "SEP26 IBIT C @ 41.000000",
+      "Type": "OPTION",
+      "Asset Class": "Other Derivatives",
+      "Market Value": "-252225.74",
+      "Weight (%)": "-0.3714",
+      "Notional Value": "-2898815.91",
+      "Quantity": "-1279",
+      "Maturity": "Sep 18, 2026",
+      "Strike price": "41"
+    },
+    {
+      "Ticker": "IBIT",
+      "Name": "SEP26 IBIT C @ 37.000000",
+      "Type": "OPTION",
+      "Asset Class": "Other Derivatives",
+      "Market Value": "-562370.68",
+      "Weight (%)": "-0.8281",
+      "Notional Value": "-4811960.99",
+      "Quantity": "-1279",
+      "Maturity": "Sep 04, 2026",
+      "Strike price": "37"
+    },
+    {
+      "Ticker": "IBIT",
+      "Name": "SEP26 IBIT C @ 36.000000",
+      "Type": "OPTION",
+      "Asset Class": "Other Derivatives",
+      "Market Value": "-698066.77",
+      "Weight (%)": "-1.0279",
+      "Notional Value": "-4815947.09",
+      "Quantity": "-1279",
+      "Maturity": "Sep 11, 2026",
+      "Strike price": "36"
+    },
+    {
+      "Ticker": "IBIT",
+      "Name": "AUG26 IBIT C @ 35.500000",
+      "Type": "OPTION",
+      "Asset Class": "Other Derivatives",
+      "Market Value": "-733359.05",
+      "Weight (%)": "-1.0799",
+      "Notional Value": "-5236657.96",
+      "Quantity": "-1279",
+      "Maturity": "Aug 28, 2026",
+      "Strike price": "35.5"
+    }
+  ]
+}

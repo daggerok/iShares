@@ -1,0 +1,35 @@
+{
+  "ticker": "IBIT",
+  "page": 1,
+  "pageSize": 250,
+  "totalRows": 2,
+  "headers": [
+    "Ticker",
+    "Name",
+    "Asset Class",
+    "Market Value",
+    "Weight (%)",
+    "Notional Value",
+    "Quantity"
+  ],
+  "rows": [
+    {
+      "Ticker": "BTC",
+      "Name": "BITCOIN",
+      "Asset Class": "Alternative",
+      "Market Value": "55223236415.06",
+      "Weight (%)": "100",
+      "Notional Value": "55223236415.06",
+      "Quantity": "762287.0365"
+    },
+    {
+      "Ticker": "USD",
+      "Name": "USD CASH",
+      "Asset Class": "Cash",
+      "Market Value": "13366.7",
+      "Weight (%)": "0",
+      "Notional Value": "13366.7",
+      "Quantity": "13366.7"
+    }
+  ]
+}
