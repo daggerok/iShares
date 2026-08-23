@@ -50,6 +50,10 @@
     .dz-loaded{border-color:rgba(16,185,129,.5)}
     .dz-loaded .dz-label{color:#059669}
     .dark .dz-loaded .dz-label{color:#34d399}
+
+    @keyframes tableRefresh{from{opacity:.32;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+    #table-body.table-content-enter{animation:tableRefresh .22s ease-out}
+    @media (prefers-reduced-motion:reduce){#table-body.table-content-enter{animation:none}}
   </style>
 </head>
 <body class="min-h-screen font-sans bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300">
@@ -58,11 +62,13 @@
     <!-- Header -->
     <header class="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-8 py-3 flex flex-wrap justify-between items-center gap-3 z-40 shadow-xs shrink-0">
       <div class="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 min-w-0">
-        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 7l-8.5 8.5-5-5L2 17" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7h6v6" />
-        </svg>
-        <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">iShares Excel .xls file to Watchlist</h1>
+        <div class="flex items-start gap-3 min-w-0">
+          <svg class="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 7l-8.5 8.5-5-5L2 17" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7h6v6" />
+          </svg>
+          <h1 class="min-w-0 text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">iShares Excel .xls file to Watchlist</h1>
+        </div>
         <span class="basis-full sm:basis-auto text-sm text-slate-500 dark:text-slate-400">
           <span class="block sm:inline">· Upload SpreadsheetML (.xls) file from iShares.</span>
           <span class="block sm:inline"><span class="hidden sm:inline"> · </span><span class="sm:hidden">· </span>Example: open the
@@ -476,6 +482,12 @@
       tableBody.innerHTML = `<tr><td colspan="10" class="py-12 text-center text-slate-400 dark:text-slate-500">No file loaded yet. Upload an iShares .xls file above.</td></tr>`;
     }
 
+    function animateTableUpdate() {
+      tableBody.classList.remove('table-content-enter');
+      void tableBody.offsetWidth;
+      tableBody.classList.add('table-content-enter');
+    }
+
     function renderTable(data, headers = []) {
       const currentSheet = workbookSheets[activeSheetName];
       const sortedData = sortRows(data);
@@ -494,6 +506,7 @@
 
       if (!sortedData.length) {
         tableBody.innerHTML = `<tr><td colspan="${headers.length + 1}" class="py-8 text-center text-slate-400 dark:text-slate-500">No matching items found.</td></tr>`;
+        animateTableUpdate();
         return;
       }
 
@@ -509,6 +522,7 @@
           }).join('')}
         </tr>
       `).join('');
+      animateTableUpdate();
     }
 
     function sortHeader(header) {
