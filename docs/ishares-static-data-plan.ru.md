@@ -12,9 +12,16 @@
 api/ishares/
   index.json
   funds/
-    DIVB.json
-    IVV.json
-    IWM.json
+    DIVB/
+      meta.json
+      holdings/001.json
+      history/001.json
+    IVV/
+      meta.json
+      holdings/001.json
+      history/001.json
+    IWM/
+      meta.json
 ```
 
 ### `index.json`
@@ -31,7 +38,7 @@ api/ishares/
       "portfolioId": "291387",
       "name": "iShares Core Dividend ETF",
       "fundPage": "https://www.ishares.com/us/products/291387/...",
-      "dataFile": "./funds/DIVB.json",
+      "dataFile": "./funds/DIVB/meta.json",
       "asOfDate": "2026-08-22"
     }
   ]
@@ -40,24 +47,40 @@ api/ishares/
 
 `generatedAt` обновляется только если изменился манифест или хотя бы один нормализованный файл фонда.
 
-### `funds/{ticker}.json`
+### `funds/{ticker}/meta.json`
 
-Один нормализованный документ содержит данные одного ETF:
+Один нормализованный документ содержит metadata, non-paginated worksheets и manifests
+для больших таблиц одного ETF:
 
 ```json
 {
   "ticker": "DIVB",
   "portfolioId": "291387",
   "source": { "fundPage": "...", "download": "..." },
+  "holdings": {
+    "totalRows": 1234,
+    "pageSize": 250,
+    "pageCount": 5,
+    "pages": ["./holdings/001.json", "./holdings/002.json"]
+  },
+  "history": {
+    "totalRows": 3200,
+    "pageSize": 1000,
+    "pageCount": 4,
+    "pages": ["./history/001.json", "./history/002.json"]
+  },
   "worksheets": {
-    "Holdings": { "headers": [], "rows": [] },
     "Performance": { "headers": [], "rows": [] },
     "Distributions": { "headers": [], "rows": [] }
   }
 }
 ```
 
-Нужно сохранять только полезные таблицы и их данные, а не raw SpreadsheetML/XML.
+`Holdings` и `Historical` не дублируются в `meta.json`: они хранятся в
+детерминированных numeric JSON pages. На повторном запуске updater сравнивает
+содержимое, обновляет только изменившиеся страницы и удаляет устаревшие страницы
+после успешной загрузки. Нужно сохранять только полезные таблицы и их данные, а не
+raw SpreadsheetML/XML.
 
 ## Источники и стратегия discovery
 
@@ -104,12 +127,14 @@ CSV holdings можно использовать как ускоренный fal
 
 ## Content-aware write
 
-Для каждого `funds/{ticker}.json`:
+Для каждого `funds/{ticker}/meta.json` и каждой страницы `holdings/` или `history/`:
 
 1. прочитать текущий файл, если он существует;
-2. сравнить стабильный JSON без `generatedAt`;
+2. сравнить нормализованный JSON без volatile-полей;
 3. писать файл только при реальном отличии;
-4. собрать список изменившихся тикеров.
+4. использовать стабильные numeric page names вместо timestamp-имен;
+5. удалить stale pages только после полной успешной обработки фонда;
+6. собрать список изменившихся тикеров.
 
 После этого строится `index.json`. Он меняется только при изменении universe, metadata, `asOfDate` либо списка реально обновлённых фондов. Таким образом один изменившийся ETF создаёт минимальный git diff.
 
@@ -148,7 +173,7 @@ Commit должен содержать только `api/ishares/**`; код, wo
 
 1. Сначала загрузить `api/ishares/index.json`.
 2. Показать каталог фондов и поиск без загрузки всех holdings.
-3. При выборе ETF загружать `funds/{ticker}.json`.
+3. При выборе ETF загружать `funds/{ticker}/meta.json`, затем первую страницу `holdings/` и `history/`; следующие страницы загружать по требованию.
 4. Кешировать загруженный JSON в памяти; при необходимости — в IndexedDB с ключом, зависящим от `asOfDate`.
 5. Сохранить текущую возможность загрузить локальный XLS как отдельный режим, а не сломать её.
 
@@ -278,7 +303,7 @@ Raw-файлы остаются внутри `api/`, как требуется, 
 Для каждого фонда pipeline сначала скачивает исходный response в память/временный файл, затем:
 
 1. проверяет HTTP status, content-type, минимальный размер и parser fixture;
-2. нормализует его в `funds/{TICKER}.json`;
+2. нормализует его в `funds/{TICKER}/meta.json` и детерминированные страницы в `holdings/` и `history/`;
 3. если `STORE_RAW_DOWNLOADS === true`, сравнивает байты ответа с `api/ishares/raw/{TICKER}.xls`;
 4. записывает raw-файл только если байты действительно отличаются;
 5. если режим выключен, **не трогает уже существующие raw-файлы** — не перезаписывает и не удаляет их;
@@ -331,7 +356,7 @@ Commit message можно дополнить количеством обновл
 2. Добавить строгий parser truthy-значений и unit tests для пустой строки, `false`, `true`, `YES`, `on`, `1`, неизвестного текста.
 3. Реализовать discovery + fallback catalog.
 4. Реализовать download, validation и normalizer на fixtures.
-5. Реализовать `index.json` + отдельные `funds/{ticker}.json` с content-aware write.
+5. Реализовать `index.json` + отдельные `funds/{ticker}/meta.json` и постраничные `holdings/`/`history/` с content-aware write.
 6. Реализовать raw writer в `api/ishares/raw/{ticker}.xls`, вызываемый только в enabled-режиме.
 7. Добавить staged-diff workflow и GitHub Actions Summary.
 8. Выполнить первый ручной запуск **без** raw mode и закоммитить initial JSON dataset.

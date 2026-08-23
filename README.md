@@ -29,7 +29,8 @@ The **Update iShares ETF data** GitHub Actions workflow exposes the same setting
 | `MAX_AUM` | empty | Inclusive maximum Net Assets in USD. |
 | `AUM_PRESET` | `all` | One of `nano`, `micro`, `small`, `mid`, `large`, or `all`. Applied in addition to explicit AUM bounds. |
 | `CONCURRENCY` | `4` | Number of parallel fund update workers. Request starts are still globally spaced by `REQUEST_SLEEP`. |
-| `HOLDINGS_PAGE_SIZE` | `250` | Rows in each generated holdings JSON page. |
+| `HOLDINGS_PAGE_SIZE` | `250` | Rows in each generated current-holdings JSON page. |
+| `HISTORY_PAGE_SIZE` | `1000` | Rows in each generated historical NAV JSON page. `HISTORICAL_PAGE_SIZE` remains supported as an alias. |
 | `STORE_RAW_DOWNLOADS` | off | Store the latest source XLS under `api/ishares/raw`. Values `1`, `true`, `yes`, `y`, and `on` enable it. The legacy `ISHARES_STORE_RAW_DOWNLOADS` name remains supported. |
 | `MAX_RETRIES` | `2` | Retries after the initial request. The default permits at most three attempts total. Only network errors, HTTP 408/425/429, and 5xx responses are retried with bounded exponential backoff. |
 | `TICKERS` | all | Space-, comma-, or semicolon-separated ticker allowlist, for example `IVV DGRO DVY`. |
@@ -101,4 +102,4 @@ TOTAL_RETURN_3Y=":100" \
 bun scripts/update-ishares-data.ts
 ```
 
-Every successful fund update stores the derived quarter-end `performance` and `totalReturn` values in `api/ishares/index.json` and the fund `meta.json`. GitHub Actions also writes updated, unchanged, return-filtered, and failed counts to the workflow summary.
+Every successful fund update stores the derived quarter-end `performance` and `totalReturn` values in `api/ishares/index.json` and the fund `meta.json`. Current holdings are exposed through stable numeric files under `api/ishares/funds/{TICKER}/holdings/`; historical NAV rows are exposed the same way under `history/` and are loaded lazily by the app. Page names are position-based (`001.json`, `002.json`, …), content-aware writes leave unchanged files untouched, and stale pages are removed after a successful refresh. The updater also removes obsolete flat `funds/{TICKER}.json` files and orphan fund directories after a sufficiently complete live catalog; a catalog fallback never removes fund directories. GitHub Actions also writes updated, unchanged, return-filtered, and failed counts to the workflow summary.

@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   catalogFilterReasons,
   deriveReturnMetrics,
+  paginationPaths,
   parseRange,
   readConfig,
   returnFilterReasons,
@@ -55,6 +56,24 @@ describe("configuration", () => {
     expect(config.totalReturnRanges["10Y"]).toEqual({ min: undefined, max: 300 });
     expect(config.storeRawDownloads).toBe(true);
     expect(config.maxRetries).toBe(2);
+    expect(config.historyPageSize).toBe(1000);
+    expect(readConfig({ HISTORICAL_PAGE_SIZE: "37" }).historyPageSize).toBe(37);
+  });
+});
+
+describe("pagination", () => {
+  test("uses stable numeric paths and a fixed page size", () => {
+    expect(paginationPaths("holdings", 501, 250)).toEqual([
+      "./holdings/001.json",
+      "./holdings/002.json",
+      "./holdings/003.json",
+    ]);
+    expect(paginationPaths("history", 2000, 1000)).toEqual([
+      "./history/001.json",
+      "./history/002.json",
+    ]);
+    expect(paginationPaths("history", 0, 1000)).toEqual([]);
+    expect(() => paginationPaths("history", 1, 0)).toThrow("pageSize");
   });
 });
 
