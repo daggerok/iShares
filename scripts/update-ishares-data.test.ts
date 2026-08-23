@@ -151,6 +151,8 @@ describe("return metrics and filters", () => {
     expect(metrics.totalReturn["3Y"]).toBeCloseTo((1.01 ** 36 - 1) * 100, 6);
     expect(metrics.performance["3Y"]).toBeCloseTo((1.01 ** 12 - 1) * 100, 6);
     expect(metrics.performance["10Y"]).toBeCloseTo((1.01 ** 12 - 1) * 100, 6);
+    expect(metrics.siCum).toBeCloseTo((1.01 ** 120 - 1) * 100, 6);
+    expect(metrics.siAnn).toBeCloseTo((1.01 ** 12 - 1) * 100, 6);
   });
 
   test("applies all configured ranges inclusively", () => {

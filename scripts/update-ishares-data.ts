@@ -58,6 +58,8 @@ type ReturnMetrics = {
   asOfDate: string;
   performance: MetricMap;
   totalReturn: MetricMap;
+  siAnn: number | null;
+  siCum: number | null;
 };
 
 type PageManifest = {
@@ -583,6 +585,8 @@ export function deriveReturnMetrics(performance?: Sheet): ReturnMetrics {
     asOfDate: "",
     performance: emptyMetrics(),
     totalReturn: emptyMetrics(),
+    siAnn: null,
+    siCum: null,
   };
   if (!performance || performance.headers.length < 2) return missing;
   const dateHeader = performance.headers[0];
@@ -656,10 +660,20 @@ export function deriveReturnMetrics(performance?: Sheet): ReturnMetrics {
       result.factor > 0 ? rounded((result.factor ** (1 / years) - 1) * 100) : null;
   }
 
+  const sinceInception = compound(available);
+  const sinceInceptionYears = available.length / 12;
+  const siCum = rounded(sinceInception.cumulative);
+  const siAnn =
+    sinceInceptionYears > 0 && sinceInception.factor > 0
+      ? rounded((sinceInception.factor ** (1 / sinceInceptionYears) - 1) * 100)
+      : null;
+
   return {
     asOfDate: asOf.sourceDate,
     performance: performanceMetrics,
     totalReturn: totalReturnMetrics,
+    siAnn,
+    siCum,
   };
 }
 
@@ -866,6 +880,8 @@ async function updateFund(
 
   const asOfDate =
     holdings.rows.find((row) => row["As Of Date"])?.["As Of Date"] || "";
+  const latestNavRow = history?.rows?.[0] || {};
+  const navValue = parseDataNumber(latestNavRow["NAV per Share"]);
   return {
     ticker: fund.ticker,
     status: changed ? "updated" : "unchanged",
@@ -875,8 +891,11 @@ async function updateFund(
       asOfDate,
       holdings: holdings.rows.length,
       history: history?.rows.length || 0,
-      performance: { asOfDate: returns.asOfDate, ...returns.performance },
-      totalReturn: { asOfDate: returns.asOfDate, ...returns.totalReturn },
+      nav: navValue === null ? "—" : `$${navValue.toFixed(2)}`,
+      navValue,
+      navAsOf: latestNavRow["As Of"] || "",
+      performance: { asOfDate: returns.asOfDate, ...returns.performance, SI: returns.siAnn },
+      totalReturn: { asOfDate: returns.asOfDate, ...returns.totalReturn, SI: returns.siCum },
     },
   };
 }
