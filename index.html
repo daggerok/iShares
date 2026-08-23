@@ -308,10 +308,39 @@
         staticTicker = '';
         resetStaticPaging();
         staticFunds = Object.fromEntries((index.funds || []).map(fund => [fund.ticker, fund]));
+        const formatPercent = value => {
+          if (value === null || value === undefined || value === '') return '—';
+          const number = Number(value);
+          return Number.isFinite(number) ? number.toFixed(2) : String(value);
+        };
         workbookSheets = {
           'ETF Catalog': {
-            headers: ['Ticker', 'Fund Name', 'Type', 'Net Assets', 'Expense', 'Dividend Yield', 'Holdings', 'History', 'As Of'],
-            data: (index.funds || []).map(fund => ({ Ticker: fund.ticker, 'Fund Name': fund.name, Type: fund.type || 'iShares ETF', 'Net Assets': fund.netAssets || '—', Expense: fund.netExpenseRatio || fund.grossExpenseRatio || '—', 'Dividend Yield': fund.trailingYield || '—', Holdings: fund.holdings || '—', History: fund.history || '—', 'As Of': fund.asOfDate || fund.yieldAsOf || '—' })),
+            headers: ['Ticker', 'Fund Name', 'Type', 'Net Assets', 'Expense', 'Dividend Yield', 'YTD Return', 'TR 1Y', 'TR 3Y', 'TR 5Y', 'TR 10Y', 'CAGR 3Y', 'CAGR 5Y', 'CAGR 10Y', 'Return As Of', 'Inception', 'Holdings', 'History', 'As Of'],
+            data: (index.funds || []).map(fund => {
+              const totalReturn = fund.totalReturn || {};
+              const performance = fund.performance || {};
+              return {
+                Ticker: fund.ticker,
+                'Fund Name': fund.name,
+                Type: fund.type || 'iShares ETF',
+                'Net Assets': fund.netAssets || '—',
+                Expense: fund.netExpenseRatio || fund.grossExpenseRatio || '—',
+                'Dividend Yield': fund.trailingYield || '—',
+                'YTD Return': formatPercent(totalReturn.YTD ?? fund.ytdReturn),
+                'TR 1Y': formatPercent(totalReturn['1Y']),
+                'TR 3Y': formatPercent(totalReturn['3Y']),
+                'TR 5Y': formatPercent(totalReturn['5Y']),
+                'TR 10Y': formatPercent(totalReturn['10Y']),
+                'CAGR 3Y': formatPercent(performance['3Y']),
+                'CAGR 5Y': formatPercent(performance['5Y']),
+                'CAGR 10Y': formatPercent(performance['10Y']),
+                'Return As Of': totalReturn.asOfDate || fund.returnAsOf || '—',
+                Inception: fund.inceptionDate || '—',
+                Holdings: fund.holdings || '—',
+                History: fund.history || '—',
+                'As Of': fund.asOfDate || fund.yieldAsOf || '—',
+              };
+            }),
             tickerCol: 'Ticker',
           },
         };
