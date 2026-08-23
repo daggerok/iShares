@@ -222,6 +222,7 @@
     let workbookSheets = {};
     let activeSheetName = '';
     let currentFileName = '';
+    let staticFunds = {};
     // Current table order. Data stays intact; only the displayed rows are sorted.
     let sortKey = '';
     let sortDir = 'asc';
@@ -257,6 +258,8 @@
             switchSheet(activeSheetName);
             enableControls(currentFileName || 'Restored from cache');
           }
+        } else {
+          await loadStaticCatalog();
         }
       } catch (e) {
         console.error('Failed to load from IndexedDB', e);
@@ -279,6 +282,46 @@
     fileInput.addEventListener('change', (e) => { 
       if (e.target.files.length) processFile(e.target.files[0]); 
     });
+
+    async function loadStaticCatalog() {
+      try {
+        const response = await fetch('./api/ishares/index.json', { cache: 'no-cache' });
+        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+        const index = await response.json();
+        staticFunds = Object.fromEntries((index.funds || []).map(fund => [fund.ticker, fund]));
+        workbookSheets = {
+          'ETF Catalog': {
+            headers: ['Ticker', 'Fund Name', 'As Of'],
+            data: (index.funds || []).map(fund => ({ Ticker: fund.ticker, 'Fund Name': fund.name, 'As Of': fund.asOfDate || '—' })),
+            tickerCol: 'Ticker',
+          },
+        };
+        currentFileName = 'iShares static data';
+        activeSheetName = 'ETF Catalog';
+        renderTabs();
+        await switchSheet(activeSheetName);
+        enableControls(currentFileName);
+      } catch (error) {
+        console.info('Static iShares data is unavailable; upload an .xls file to begin.', error);
+      }
+    }
+
+    async function loadStaticFund(ticker) {
+      const fund = staticFunds[ticker];
+      if (!fund) return;
+      const response = await fetch(`./api/ishares/funds/${encodeURIComponent(ticker)}.json`, { cache: 'no-cache' });
+      if (!response.ok) return;
+      const data = await response.json();
+      workbookSheets = Object.fromEntries(Object.entries(data.worksheets || {}).map(([name, sheet]) => [name, {
+        headers: sheet.headers || [], data: sheet.rows || [], tickerCol: (sheet.headers || []).find(header => /^ticker$/i.test(header)) || null,
+      }]));
+      activeSheetName = getDefaultTabName(Object.keys(workbookSheets));
+      currentFileName = `${ticker} static data`;
+      searchInput.value = '';
+      renderTabs();
+      await switchSheet(activeSheetName);
+      enableControls(currentFileName);
+    }
 
     function getDefaultTabName(sheetNames) {
       const holdingsTab = sheetNames.find(name => /^holdings$/i.test(name.trim()));
@@ -511,7 +554,7 @@
       }
 
       tableBody.innerHTML = sortedData.map((item, idx) => `
-        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition border-b border-slate-100 dark:border-slate-700/30">
+        <tr data-static-ticker="${activeSheetName === 'ETF Catalog' ? escapeHtml(item.Ticker || '') : ''}" class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition border-b border-slate-100 dark:border-slate-700/30">
           <td class="py-2.5 px-4 text-slate-400 dark:text-slate-500 text-xs text-center font-mono">${idx + 1}</td>
           ${headers.map((header, index) => {
             const value = item[header] || '';
@@ -522,6 +565,9 @@
           }).join('')}
         </tr>
       `).join('');
+      tableBody.querySelectorAll('tr[data-static-ticker]').forEach(row => {
+        row.addEventListener('click', () => { if (row.dataset.staticTicker) void loadStaticFund(row.dataset.staticTicker); });
+      });
       animateTableUpdate();
     }
 
