@@ -6,6 +6,7 @@ import {
   paginationPaths,
   parseAumRange,
   parseRange,
+  parseSecYield,
   readConfig,
   returnFilterReasons,
   selectUpdateBatch,
@@ -175,5 +176,41 @@ describe("return metrics and filters", () => {
     expect(
       returnFilterReasons(young, readConfig({ PERFORMANCE_10Y: "10:", TOTAL_RETURN_10Y: "100:" })),
     ).toEqual([]);
+  });
+});
+
+describe("sec yield", () => {
+  const header = (formattedValue?: string, asOf?: string) => ({
+    componentsByNameMap: {
+      fundHeader: {
+        containersByNameMap: {
+          yieldsAndRates: {
+            dataPointsByNameMap: {
+              thirtyDaySecYield:
+                formattedValue === undefined
+                  ? {}
+                  : {
+                      formattedValue,
+                      formattedAsOfDate: asOf ?? "",
+                    },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  test("reads the formatted 30-day SEC yield without the percent sign", () => {
+    expect(parseSecYield(header("4.68%", "Aug 20, 2026"))).toEqual({
+      value: "4.68",
+      asOf: "Aug 20, 2026",
+    });
+  });
+
+  test("returns null when the datapoint is missing or blank", () => {
+    expect(parseSecYield(header())).toBeNull();
+    expect(parseSecYield(header("—", "Aug 20, 2026"))).toBeNull();
+    expect(parseSecYield({ componentsByNameMap: {} })).toBeNull();
+    expect(parseSecYield(null)).toBeNull();
   });
 });
