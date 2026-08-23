@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+/// <reference types="node" />
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 const ROOT=new URL('../api/ishares/',import.meta.url), RAW=new URL('../api/ishares/raw/',import.meta.url);
 const truthy=['1','true','yes','y','on']; const raw=truthy.includes((process.env.ISHARES_STORE_RAW_DOWNLOADS||'').trim().toLowerCase()); const limit=Number(process.env.ISHARES_LIMIT||0);
