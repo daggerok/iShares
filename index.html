@@ -158,6 +158,7 @@
   <script>
     // --- Theme (light/dark with persistence, same UX as csv / youtube apps) ---
     const THEME_KEY = 'ishares-theme';
+    const SITE_STATE_KEY = 'ishares-site-state';
     const themeToggle = document.getElementById('theme-toggle');
 
     function applyTheme(dark) {
@@ -235,6 +236,7 @@
     // Current table order. Data stays intact; only the displayed rows are sorted.
     let sortKey = '';
     let sortDir = 'asc';
+    let restoredQuery = '';
 
     const dropzone = document.getElementById('dropzone');
     const dropzoneText = document.getElementById('dropzone-text');
@@ -255,6 +257,7 @@
     const resetBtn = document.getElementById('reset-btn');
 
     document.addEventListener('DOMContentLoaded', async () => {
+      restoreSiteState();
       try {
         const savedWorkbook = await dbGet('workbook');
         const savedFilename = await dbGet('filename');
@@ -273,6 +276,7 @@
           }
         } else {
           await loadStaticCatalog();
+          if (restoredQuery) { searchInput.value = restoredQuery; searchInput.dispatchEvent(new Event('input')); }
         }
       } catch (e) {
         console.error('Failed to load from IndexedDB', e);
@@ -363,6 +367,19 @@
 
     holdingsPrev.addEventListener('click', () => void loadHoldingPage(staticHoldingPage - 1));
     holdingsNext.addEventListener('click', () => void loadHoldingPage(staticHoldingPage + 1));
+
+    function restoreSiteState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(SITE_STATE_KEY) || '{}');
+        sortKey = typeof saved.sortKey === 'string' ? saved.sortKey : '';
+        sortDir = saved.sortDir === 'desc' ? 'desc' : 'asc';
+        restoredQuery = typeof saved.query === 'string' ? saved.query : '';
+      } catch { /* no saved state */ }
+    }
+
+    function persistSiteState() {
+      localStorage.setItem(SITE_STATE_KEY, JSON.stringify({ sortKey, sortDir, query: searchInput.value }));
+    }
 
     function getDefaultTabName(sheetNames) {
       const holdingsTab = sheetNames.find(name => /^holdings$/i.test(name.trim()));
@@ -630,6 +647,7 @@
             sortKey = key;
             sortDir = isNumericColumn(key) ? 'desc' : 'asc';
           }
+          persistSiteState();
           const currentSheet = workbookSheets[activeSheetName];
           if (currentSheet) renderTable(getFilteredRows(currentSheet), currentSheet.headers);
         });
@@ -696,6 +714,7 @@
     }
 
     searchInput.addEventListener('input', (e) => {
+      persistSiteState();
       const currentSheet = workbookSheets[activeSheetName];
       if (!currentSheet) return;
 
