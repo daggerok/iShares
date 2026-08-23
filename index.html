@@ -230,9 +230,9 @@
     let activeSheetName = '';
     let currentFileName = '';
     let staticFunds = {};
-    let staticHoldingPages = [];
-    let staticHoldingPage = 0;
-    let staticHoldingTicker = '';
+    let staticPagesBySheet = {};
+    let staticPageBySheet = {};
+    let staticTicker = '';
     // Current table order. Data stays intact; only the displayed rows are sorted.
     let sortKey = '';
     let sortDir = 'asc';
@@ -305,11 +305,14 @@
         const response = await fetch('./api/ishares/index.json', { cache: 'no-cache' });
         if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
         const index = await response.json();
+        staticTicker = '';
+        staticPagesBySheet = {};
+        staticPageBySheet = {};
         staticFunds = Object.fromEntries((index.funds || []).map(fund => [fund.ticker, fund]));
         workbookSheets = {
           'ETF Catalog': {
-            headers: ['Ticker', 'Fund Name', 'Type', 'Net Assets', 'Expense', 'Dividend Yield', 'Holdings', 'As Of'],
-            data: (index.funds || []).map(fund => ({ Ticker: fund.ticker, 'Fund Name': fund.name, Type: fund.type || 'iShares ETF', 'Net Assets': fund.netAssets || '—', Expense: fund.netExpenseRatio || fund.grossExpenseRatio || '—', 'Dividend Yield': fund.trailingYield || '—', Holdings: fund.holdings || '—', 'As Of': fund.asOfDate || fund.yieldAsOf || '—' })),
+            headers: ['Ticker', 'Fund Name', 'Type', 'Net Assets', 'Expense', 'Dividend Yield', 'Holdings', 'History', 'As Of'],
+            data: (index.funds || []).map(fund => ({ Ticker: fund.ticker, 'Fund Name': fund.name, Type: fund.type || 'iShares ETF', 'Net Assets': fund.netAssets || '—', Expense: fund.netExpenseRatio || fund.grossExpenseRatio || '—', 'Dividend Yield': fund.trailingYield || '—', Holdings: fund.holdings || '—', History: fund.history || '—', 'As Of': fund.asOfDate || fund.yieldAsOf || '—' })),
             tickerCol: 'Ticker',
           },
         };
@@ -323,21 +326,43 @@
       }
     }
 
+    async function fetchStaticPage(ticker, pagePath) {
+      const path = pagePath.replace(/^\.\//, '');
+      const response = await fetch(`./api/ishares/funds/${encodeURIComponent(ticker)}/${path}`, { cache: 'no-cache' });
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      return response.json();
+    }
+
+    function staticSheet(sheet) {
+      return {
+        headers: sheet.headers || [],
+        data: sheet.rows || [],
+        tickerCol: (sheet.headers || []).find(header => /^ticker$/i.test(header)) || null,
+      };
+    }
+
     async function loadStaticFund(ticker) {
       const fund = staticFunds[ticker];
       if (!fund) return;
-      const response = await fetch(`./api/ishares/funds/${encodeURIComponent(ticker)}.json`, { cache: 'no-cache' });
+      const response = await fetch(`./api/ishares/funds/${encodeURIComponent(ticker)}/meta.json`, { cache: 'no-cache' });
       if (!response.ok) return;
       const data = await response.json();
-      staticHoldingPages = data.holdings?.pages || [];
-      staticHoldingPage = 0;
-      staticHoldingTicker = ticker;
-      const firstHoldingPage = staticHoldingPages[0];
-      const holdings = firstHoldingPage ? await (await fetch(`./api/ishares/funds/${encodeURIComponent(ticker)}/${firstHoldingPage.replace('./', '')}`)).json() : { headers: [], rows: [] };
-      workbookSheets = Object.fromEntries(Object.entries(data.worksheets || {}).map(([name, sheet]) => [name, {
-        headers: sheet.headers || [], data: sheet.rows || [], tickerCol: (sheet.headers || []).find(header => /^ticker$/i.test(header)) || null,
-      }]));
-      workbookSheets.Holdings = { headers: holdings.headers || [], data: holdings.rows || [], tickerCol: (holdings.headers || []).find(header => /^ticker$/i.test(header)) || null };
+      staticTicker = ticker;
+      staticPagesBySheet = {};
+      staticPageBySheet = {};
+
+      workbookSheets = Object.fromEntries(Object.entries(data.worksheets || {}).map(([name, sheet]) => [name, staticSheet(sheet)]));
+      const pageManifests = {
+        Holdings: data.holdings,
+        Historical: data.history || data.historical,
+      };
+      for (const [sheetName, manifest] of Object.entries(pageManifests)) {
+        if (!manifest || !Array.isArray(manifest.pages) || !manifest.pages.length) continue;
+        staticPagesBySheet[sheetName] = manifest.pages;
+        staticPageBySheet[sheetName] = 0;
+        workbookSheets[sheetName] = staticSheet(await fetchStaticPage(ticker, manifest.pages[0]));
+      }
+
       activeSheetName = getDefaultTabName(Object.keys(workbookSheets));
       currentFileName = `${ticker} static data`;
       searchInput.value = '';
@@ -346,27 +371,38 @@
       enableControls(currentFileName);
     }
 
-    async function loadHoldingPage(page) {
-      if (!staticHoldingPages[page] || !staticHoldingTicker) return;
-      const response = await fetch(`./api/ishares/funds/${encodeURIComponent(staticHoldingTicker)}/${staticHoldingPages[page].replace('./', '')}`);
-      const holding = await response.json();
-      staticHoldingPage = page;
-      workbookSheets.Holdings = { headers: holding.headers || [], data: holding.rows || [], tickerCol: (holding.headers || []).find(header => /^ticker$/i.test(header)) || null };
-      renderTable(workbookSheets.Holdings.data, workbookSheets.Holdings.headers);
-      renderHoldingsPager();
+    async function loadStaticSheetPage(sheetName, page) {
+      const pages = staticPagesBySheet[sheetName];
+      if (!pages || !pages[page] || !staticTicker) return;
+      const sheet = await fetchStaticPage(staticTicker, pages[page]);
+      staticPageBySheet[sheetName] = page;
+      workbookSheets[sheetName] = staticSheet(sheet);
+      if (activeSheetName === sheetName) {
+        renderTable(getFilteredRows(workbookSheets[sheetName]), workbookSheets[sheetName].headers);
+        renderHoldingsPager();
+      }
     }
 
+    // The same pager is shared by current Holdings and Historical pages.
     function renderHoldingsPager() {
-      const visible = activeSheetName === 'Holdings' && staticHoldingPages.length > 1;
+      const pages = staticPagesBySheet[activeSheetName] || [];
+      const page = staticPageBySheet[activeSheetName] || 0;
+      const visible = pages.length > 1;
       holdingsPager.classList.toggle('hidden', !visible);
       if (!visible) return;
-      holdingsPrev.disabled = staticHoldingPage === 0;
-      holdingsNext.disabled = staticHoldingPage >= staticHoldingPages.length - 1;
-      holdingsPageLabel.textContent = `Page ${staticHoldingPage + 1} of ${staticHoldingPages.length}`;
+      holdingsPrev.disabled = page === 0;
+      holdingsNext.disabled = page >= pages.length - 1;
+      holdingsPageLabel.textContent = `Page ${page + 1} of ${pages.length}`;
     }
 
-    holdingsPrev.addEventListener('click', () => void loadHoldingPage(staticHoldingPage - 1));
-    holdingsNext.addEventListener('click', () => void loadHoldingPage(staticHoldingPage + 1));
+    holdingsPrev.addEventListener('click', () => {
+      const page = staticPageBySheet[activeSheetName] || 0;
+      void loadStaticSheetPage(activeSheetName, page - 1);
+    });
+    holdingsNext.addEventListener('click', () => {
+      const page = staticPageBySheet[activeSheetName] || 0;
+      void loadStaticSheetPage(activeSheetName, page + 1);
+    });
 
     function restoreSiteState() {
       try {
@@ -387,6 +423,9 @@
     }
 
     function processFile(file) {
+      staticTicker = '';
+      staticPagesBySheet = {};
+      staticPageBySheet = {};
       currentFileName = file.name;
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -566,6 +605,9 @@
       workbookSheets = {};
       activeSheetName = '';
       currentFileName = '';
+      staticTicker = '';
+      staticPagesBySheet = {};
+      staticPageBySheet = {};
       
       dropzoneText.textContent = 'Upload / Drop .xls';
       dropzone.classList.remove('dz-loaded');

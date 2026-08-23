@@ -48,6 +48,13 @@ type ReturnMetrics = {
   totalReturn: MetricMap;
 };
 
+type PageManifest = {
+  totalRows: number;
+  pageSize: number;
+  pageCount: number;
+  pages: string[];
+};
+
 export type UpdaterConfig = {
   maxFetches: number;
   requestSleepSeconds: number;
@@ -56,6 +63,7 @@ export type UpdaterConfig = {
   aumPreset: string;
   concurrency: number;
   holdingsPageSize: number;
+  historyPageSize: number;
   storeRawDownloads: boolean;
   maxRetries: number;
   tickers: string[];
@@ -196,6 +204,12 @@ export function readConfig(
       envValue(env, "HOLDINGS_PAGE_SIZE"),
       "HOLDINGS_PAGE_SIZE",
       250,
+      1,
+    ),
+    historyPageSize: parseInteger(
+      envValue(env, "HISTORY_PAGE_SIZE", ["HISTORICAL_PAGE_SIZE"]),
+      "HISTORY_PAGE_SIZE",
+      1_000,
       1,
     ),
     storeRawDownloads: TRUTHY.has(
@@ -563,18 +577,122 @@ export function deriveReturnMetrics(performance?: Sheet): ReturnMetrics {
   };
 }
 
-async function removeStaleHoldingPages(ticker: string, keep: Set<string>) {
-  const directory = new URL(`funds/${ticker}/holdings/`, ROOT);
+/**
+ * Return deterministic page paths for a row count. Page names are deliberately
+ * based on position rather than a fetch timestamp, so a repeat run rewrites
+ * existing pages (only when their content differs) instead of appending files.
+ */
+export function paginationPaths(folder: "holdings" | "history", rowCount: number, pageSize: number) {
+  if (!Number.isInteger(rowCount) || rowCount < 0) {
+    throw Error(`rowCount must be an integer >= 0; received ${rowCount}`);
+  }
+  if (!Number.isInteger(pageSize) || pageSize < 1) {
+    throw Error(`pageSize must be an integer >= 1; received ${pageSize}`);
+  }
+  return Array.from({ length: Math.ceil(rowCount / pageSize) }, (_, index) => {
+    const name = `${String(index + 1).padStart(3, "0")}.json`;
+    return `./${folder}/${name}`;
+  });
+}
+
+async function removeStalePages(
+  ticker: string,
+  folder: "holdings" | "history",
+  keep: Set<string>,
+) {
+  const directory = new URL(`funds/${ticker}/${folder}/`, ROOT);
   let changed = false;
   try {
-    for (const name of await readdir(directory)) {
-      if (/^\d{3,}\.json$/.test(name) && !keep.has(name)) {
-        await rm(new URL(name, directory), { force: true });
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      // Every JSON file in a generated page directory is owned by the
+      // updater. Remove old page names, including pages from a prior format.
+      if (entry.isFile() && entry.name.endsWith(".json") && !keep.has(entry.name)) {
+        await rm(new URL(entry.name, directory), { force: true });
         changed = true;
       }
     }
-  } catch {
-    // The directory does not exist on the first successful update.
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+  return changed;
+}
+
+async function writePagedRows(
+  ticker: string,
+  folder: "holdings" | "history",
+  headers: string[],
+  rows: Array<Record<string, string>>,
+  pageSize: number,
+): Promise<{ manifest: PageManifest; changed: boolean }> {
+  const pages = paginationPaths(folder, rows.length, pageSize);
+  const keep = new Set(pages.map((path) => path.slice(path.lastIndexOf("/") + 1)));
+  let changed = false;
+
+  for (let index = 0; index < pages.length; index++) {
+    const page = index + 1;
+    const pageName = pages[index].slice(pages[index].lastIndexOf("/") + 1);
+    changed =
+      (await put(
+        new URL(`funds/${ticker}/${folder}/${pageName}`, ROOT),
+        JSON.stringify(
+          {
+            ticker,
+            page,
+            pageSize,
+            totalRows: rows.length,
+            headers,
+            rows: rows.slice(index * pageSize, (index + 1) * pageSize),
+          },
+          null,
+          2,
+        ) + "\n",
+      )) || changed;
+  }
+
+  changed = (await removeStalePages(ticker, folder, keep)) || changed;
+  return {
+    manifest: {
+      totalRows: rows.length,
+      pageSize,
+      pageCount: pages.length,
+      pages,
+    },
+    changed,
+  };
+}
+
+async function removeLegacyFundFiles() {
+  const directory = new URL("funds/", ROOT);
+  let changed = false;
+  try {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (!entry.isFile() || !/^[A-Z0-9]+\.json$/.test(entry.name)) continue;
+      // Keep a legacy file when it is the only copy. This preserves the last
+      // good dataset during a partial migration or catalog fallback.
+      const ticker = entry.name.slice(0, -5);
+      if (!(await old(new URL(`${ticker}/meta.json`, directory)))) continue;
+      await rm(new URL(entry.name, directory), { force: true });
+      changed = true;
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+  return changed;
+}
+
+async function removeOrphanFundDirectories(keep: Set<string>, enabled: boolean) {
+  if (!enabled) return false;
+  const directory = new URL("funds/", ROOT);
+  let changed = false;
+  try {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (entry.isDirectory() && /^[A-Z0-9]+$/.test(entry.name) && !keep.has(entry.name)) {
+        await rm(new URL(`${entry.name}/`, directory), { recursive: true, force: true });
+        changed = true;
+      }
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
   }
   return changed;
 }
@@ -588,9 +706,18 @@ async function updateFund(
   const body = await requestText(download, fund.ticker, config, waitForRequest);
   const worksheets = parseWorkbook(body);
   if (!Object.keys(worksheets).length) throw Error("no worksheets");
-  if (!worksheets.Holdings?.rows.length) {
+
+  const holdingsName = Object.keys(worksheets).find(
+    (name) => name.trim().toLowerCase() === "holdings",
+  );
+  const historyName = Object.keys(worksheets).find((name) =>
+    ["historical", "history"].includes(name.trim().toLowerCase()),
+  );
+  const holdings = holdingsName ? worksheets[holdingsName] : undefined;
+  if (!holdings?.rows.length) {
     throw Error("Holdings worksheet is missing or empty");
   }
+  const history = historyName ? worksheets[historyName] : undefined;
 
   const returns = deriveReturnMetrics(worksheets.Performance);
   const returnFailures = returnFilterReasons(returns, config);
@@ -602,47 +729,31 @@ async function updateFund(
     };
   }
 
-  const holdings = worksheets.Holdings || { headers: [], rows: [] };
-  const pages: string[] = [];
-  const pageFiles = new Set<string>();
-  let changed = false;
-  for (let start = 0; start < holdings.rows.length; start += config.holdingsPageSize) {
-    const number = pages.length + 1;
-    const pageName = `${String(number).padStart(3, "0")}.json`;
-    const file = `./holdings/${pageName}`;
-    pages.push(file);
-    pageFiles.add(pageName);
-    changed =
-      (await put(
-        new URL(`funds/${fund.ticker}/holdings/${pageName}`, ROOT),
-        JSON.stringify(
-          {
-            ticker: fund.ticker,
-            page: number,
-            pageSize: config.holdingsPageSize,
-            totalRows: holdings.rows.length,
-            headers: holdings.headers,
-            rows: holdings.rows.slice(start, start + config.holdingsPageSize),
-          },
-          null,
-          2,
-        ) + "\n",
-      )) || changed;
-  }
-  changed = (await removeStaleHoldingPages(fund.ticker, pageFiles)) || changed;
+  const holdingsPages = await writePagedRows(
+    fund.ticker,
+    "holdings",
+    holdings.headers,
+    holdings.rows,
+    config.holdingsPageSize,
+  );
+  const historyPages = await writePagedRows(
+    fund.ticker,
+    "history",
+    history?.headers || [],
+    history?.rows || [],
+    config.historyPageSize,
+  );
+  let changed = holdingsPages.changed || historyPages.changed;
 
-  delete worksheets.Holdings;
+  if (holdingsName) delete worksheets[holdingsName];
+  if (historyName) delete worksheets[historyName];
   const document = {
     ticker: fund.ticker,
     portfolioId: fund.portfolioId,
     name: fund.name,
     source: { fundPage: fund.fundPage, download },
-    holdings: {
-      totalRows: holdings.rows.length,
-      pageSize: config.holdingsPageSize,
-      pageCount: pages.length,
-      pages,
-    },
+    holdings: holdingsPages.manifest,
+    history: historyPages.manifest,
     returns,
     worksheets,
   };
@@ -677,6 +788,7 @@ async function updateFund(
       dataFile: `./funds/${fund.ticker}/meta.json`,
       asOfDate,
       holdings: holdings.rows.length,
+      history: history?.rows.length || 0,
       performance: { asOfDate: returns.asOfDate, ...returns.performance },
       totalReturn: { asOfDate: returns.asOfDate, ...returns.totalReturn },
     },
@@ -715,6 +827,7 @@ function configLines(config: UpdaterConfig) {
     `AUM_PRESET=${config.aumPreset}`,
     `CONCURRENCY=${config.concurrency}`,
     `HOLDINGS_PAGE_SIZE=${config.holdingsPageSize}`,
+    `HISTORY_PAGE_SIZE=${config.historyPageSize}`,
     `STORE_RAW_DOWNLOADS=${config.storeRawDownloads}`,
     `MAX_RETRIES=${config.maxRetries}`,
     `TICKERS=${config.tickers.join(" ") || "all"}`,
@@ -794,6 +907,7 @@ async function main() {
   const previousByTicker = new Map(previousFunds.map((fund) => [fund.ticker, fund]));
 
   let discovered: Fund[] = [];
+  let usedCatalogFallback = false;
   try {
     discovered = parseCatalog(
       await requestText(
@@ -804,6 +918,7 @@ async function main() {
       ),
     );
   } catch (error) {
+    usedCatalogFallback = true;
     console.warn(`[catalog] live discovery failed; using previous manifest: ${String(error)}`);
     discovered = previousFunds;
   }
@@ -870,13 +985,29 @@ async function main() {
   });
   index.sort((left, right) => left.ticker.localeCompare(right.ticker));
 
+  // Remove obsolete flat fund files on every successful run. Removing whole
+  // fund directories is more destructive, so only do that after a live catalog
+  // that is not suspiciously smaller than the previous one.
+  const catalogSafeForCleanup =
+    !usedCatalogFallback &&
+    (previousFunds.length === 0 || discovered.length >= Math.ceil(previousFunds.length * 0.7));
+  if (!catalogSafeForCleanup && previousFunds.length) {
+    console.warn("[cleanup] keeping orphan fund directories because catalog is incomplete");
+  }
+  const legacyFilesChanged = await removeLegacyFundFiles();
+  const orphanDirectoriesChanged = await removeOrphanFundDirectories(
+    new Set(index.map((fund) => fund.ticker)),
+    catalogSafeForCleanup,
+  );
+  const cleanupChanged = legacyFilesChanged || orphanDirectoriesChanged;
+
   const stable = {
     source: { provider: "iShares", market: "us" },
     funds: index,
   };
   const priorStable = { ...previous };
   delete priorStable.generatedAt;
-  const dataChanged = results.some((result) => result.changed);
+  const dataChanged = results.some((result) => result.changed) || cleanupChanged;
   const manifestChanged = JSON.stringify(priorStable) !== JSON.stringify(stable);
   const next = {
     generatedAt:
@@ -893,7 +1024,7 @@ async function main() {
   const count = (status: UpdateResult["status"]) =>
     results.filter((result) => result.status === status).length;
   console.log(
-    `[summary] discovered=${discovered.length} attempted=${candidates.length} updated=${count("updated")} unchanged=${count("unchanged")} filtered=${count("filtered")} failed=${count("failed")} raw=${config.storeRawDownloads} manifestChanged=${indexChanged}`,
+    `[summary] discovered=${discovered.length} attempted=${candidates.length} updated=${count("updated")} unchanged=${count("unchanged")} filtered=${count("filtered")} failed=${count("failed")} raw=${config.storeRawDownloads} cleanup=${cleanupChanged} manifestChanged=${indexChanged}`,
   );
   await writeSummary(config, discovered.length, candidates.length, results, indexChanged);
 }

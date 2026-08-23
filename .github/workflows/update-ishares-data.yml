@@ -40,9 +40,14 @@ on:
         default: "4"
         type: string
       holdings_page_size:
-        description: "Rows in each generated holdings JSON page"
+        description: "Rows in each generated current-holdings JSON page"
         required: false
         default: "250"
+        type: string
+      history_page_size:
+        description: "Rows in each generated historical NAV JSON page"
+        required: false
+        default: "1000"
         type: string
       store_raw_downloads:
         description: "Store source XLS files (true/yes/on/1)"
@@ -132,6 +137,7 @@ jobs:
       AUM_PRESET: ${{ inputs.aum_preset || 'all' }}
       CONCURRENCY: ${{ inputs.concurrency || '4' }}
       HOLDINGS_PAGE_SIZE: ${{ inputs.holdings_page_size || '250' }}
+      HISTORY_PAGE_SIZE: ${{ inputs.history_page_size || '1000' }}
       STORE_RAW_DOWNLOADS: ${{ inputs.store_raw_downloads || '' }}
       MAX_RETRIES: ${{ inputs.max_retries || '2' }}
       TICKERS: ${{ inputs.tickers || '' }}
