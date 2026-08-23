@@ -12,11 +12,22 @@ import {
 const ROOT = new URL("../api/ishares/", import.meta.url);
 const RAW = new URL("../api/ishares/raw/", import.meta.url);
 const TRUTHY = new Set(["1", "true", "yes", "y", "on"]);
-const AUM_PRESETS = new Set(["all", "nano", "micro", "small", "mid", "large"]);
+const AUM_PRESET_BOUNDS = {
+  nano: { min: 0, max: 10_000_000 },
+  micro: { min: 10_000_000, max: 300_000_000 },
+  small: { min: 300_000_000, max: 2_000_000_000 },
+  mid: { min: 2_000_000_000, max: 10_000_000_000 },
+  large: { min: 10_000_000_000, max: undefined },
+} as const;
+type AumPreset = keyof typeof AUM_PRESET_BOUNDS;
 export const RETURN_PERIODS = ["YTD", "1Y", "3Y", "5Y", "10Y"] as const;
 type ReturnPeriod = (typeof RETURN_PERIODS)[number];
 
 type Range = { min?: number; max?: number };
+type AumRange = Range & {
+  maxExclusive?: boolean;
+  source: string;
+};
 type RangeMap = Partial<Record<ReturnPeriod, Range>>;
 type MetricMap = Record<ReturnPeriod, number | null>;
 
@@ -51,16 +62,13 @@ type ReturnMetrics = {
 export type UpdaterConfig = {
   maxFetches: number;
   requestSleepSeconds: number;
-  minAum?: number;
-  maxAum?: number;
-  aumPreset: string;
+  aumRange?: AumRange;
   concurrency: number;
   holdingsPageSize: number;
   storeRawDownloads: boolean;
   maxRetries: number;
   tickers: string[];
-  minDividendYield?: number;
-  maxDividendYield?: number;
+  dividendYieldRange?: Range;
   performanceRanges: RangeMap;
   totalReturnRanges: RangeMap;
 };
@@ -132,26 +140,73 @@ function parseInteger(value: string, name: string, fallback: number, minimum: nu
 }
 
 /**
- * Parse an inclusive percentage range. A single number is a minimum.
- * Examples: "5:20", "5:", ":20", "5".
+ * Parse an inclusive numeric range. Every non-empty value must contain exactly
+ * one colon. Empty input and ":" both mean no restriction.
  */
 export function parseRange(value: string, name = "range"): Range | undefined {
   const input = value.trim();
   if (!input) return undefined;
   const parts = input.split(":");
-  if (parts.length > 2) {
-    throw Error(`${name} must use min:max syntax; received ${JSON.stringify(value)}`);
+  if (parts.length !== 2) {
+    throw Error(
+      `${name} must contain exactly one colon using min:max syntax; received ${JSON.stringify(value)}`,
+    );
   }
-  if (parts.length === 1) return { min: parseConfigNumber(parts[0], name) };
   const min = parts[0].trim() ? parseConfigNumber(parts[0], name) : undefined;
   const max = parts[1].trim() ? parseConfigNumber(parts[1], name) : undefined;
-  if (min === undefined && max === undefined) {
-    throw Error(`${name} must provide a minimum, a maximum, or both`);
-  }
+  if (min === undefined && max === undefined) return undefined;
   if (min !== undefined && max !== undefined && min > max) {
     throw Error(`${name} minimum cannot exceed its maximum`);
   }
   return { min, max };
+}
+
+function isAumPreset(value: string): value is AumPreset {
+  return Object.hasOwn(AUM_PRESET_BOUNDS, value);
+}
+
+/**
+ * Parse an AUM range. A bound can be a USD amount or an AUM preset. Presets on
+ * the left contribute their lower boundary; presets on the right contribute
+ * their exclusive upper boundary.
+ */
+export function parseAumRange(value: string, name = "AUM"): AumRange | undefined {
+  const input = value.trim();
+  if (!input) return undefined;
+  const parts = input.split(":");
+  if (parts.length !== 2) {
+    throw Error(
+      `${name} must contain exactly one colon using min:max syntax; received ${JSON.stringify(value)}`,
+    );
+  }
+  const [rawMin, rawMax] = parts.map((part) => part.trim());
+  if (!rawMin && !rawMax) return undefined;
+
+  const parseBound = (bound: string, side: "min" | "max") => {
+    if (!bound) return { value: undefined, preset: false };
+    const preset = bound.toLowerCase();
+    if (isAumPreset(preset)) {
+      return {
+        value: AUM_PRESET_BOUNDS[preset][side],
+        preset: true,
+      };
+    }
+    return { value: parseAum(bound, name), preset: false };
+  };
+
+  const minBound = parseBound(rawMin, "min");
+  const maxBound = parseBound(rawMax, "max");
+  const min = minBound.value;
+  const max = maxBound.value;
+  const maxExclusive = maxBound.preset && max !== undefined;
+  if (
+    min !== undefined &&
+    max !== undefined &&
+    (min > max || (maxExclusive && min >= max))
+  ) {
+    throw Error(`${name} minimum cannot reach or exceed its maximum`);
+  }
+  return { min, max, maxExclusive, source: input };
 }
 
 function parseRanges(
@@ -169,15 +224,6 @@ function parseRanges(
 export function readConfig(
   env: Record<string, string | undefined> = process.env,
 ): UpdaterConfig {
-  const minAumValue = envValue(env, "MIN_AUM");
-  const maxAumValue = envValue(env, "MAX_AUM");
-  const minYieldValue = envValue(env, "MIN_DIVIDEND_YIELD");
-  const maxYieldValue = envValue(env, "MAX_DIVIDEND_YIELD");
-  const aumPreset = (envValue(env, "AUM_PRESET") || "all").toLowerCase();
-  if (!AUM_PRESETS.has(aumPreset)) {
-    throw Error(`AUM_PRESET must be one of ${[...AUM_PRESETS].join(", ")}; received ${JSON.stringify(aumPreset)}`);
-  }
-
   const config: UpdaterConfig = {
     maxFetches: parseInteger(
       envValue(env, "MAX_FETCHES", ["ISHARES_LIMIT"]),
@@ -188,9 +234,7 @@ export function readConfig(
     requestSleepSeconds: envValue(env, "REQUEST_SLEEP")
       ? parseConfigNumber(envValue(env, "REQUEST_SLEEP"), "REQUEST_SLEEP")
       : 0,
-    minAum: minAumValue ? parseAum(minAumValue, "MIN_AUM") : undefined,
-    maxAum: maxAumValue ? parseAum(maxAumValue, "MAX_AUM") : undefined,
-    aumPreset,
+    aumRange: parseAumRange(envValue(env, "AUM"), "AUM"),
     concurrency: parseInteger(envValue(env, "CONCURRENCY"), "CONCURRENCY", 4, 1),
     holdingsPageSize: parseInteger(
       envValue(env, "HOLDINGS_PAGE_SIZE"),
@@ -211,27 +255,15 @@ export function readConfig(
           .filter(Boolean),
       ),
     ],
-    minDividendYield: minYieldValue
-      ? parseConfigNumber(minYieldValue, "MIN_DIVIDEND_YIELD")
-      : undefined,
-    maxDividendYield: maxYieldValue
-      ? parseConfigNumber(maxYieldValue, "MAX_DIVIDEND_YIELD")
-      : undefined,
+    dividendYieldRange: parseRange(
+      envValue(env, "DIVIDEND_YIELD"),
+      "DIVIDEND_YIELD",
+    ),
     performanceRanges: parseRanges(env, "PERFORMANCE"),
     totalReturnRanges: parseRanges(env, "TOTAL_RETURN"),
   };
 
   if (config.requestSleepSeconds < 0) throw Error("REQUEST_SLEEP must be >= 0");
-  if (config.minAum !== undefined && config.maxAum !== undefined && config.minAum > config.maxAum) {
-    throw Error("MIN_AUM cannot exceed MAX_AUM");
-  }
-  if (
-    config.minDividendYield !== undefined &&
-    config.maxDividendYield !== undefined &&
-    config.minDividendYield > config.maxDividendYield
-  ) {
-    throw Error("MIN_DIVIDEND_YIELD cannot exceed MAX_DIVIDEND_YIELD");
-  }
   return config;
 }
 
@@ -242,15 +274,6 @@ function inRange(value: number, range: Range) {
   );
 }
 
-function presetMatches(aum: number, preset: string) {
-  if (preset === "nano") return aum < 10_000_000;
-  if (preset === "micro") return aum >= 10_000_000 && aum < 300_000_000;
-  if (preset === "small") return aum >= 300_000_000 && aum < 2_000_000_000;
-  if (preset === "mid") return aum >= 2_000_000_000 && aum < 10_000_000_000;
-  if (preset === "large") return aum >= 10_000_000_000;
-  return true;
-}
-
 /** Return all catalog-only reasons why a fund is not eligible. */
 export function catalogFilterReasons(fund: Fund, config: UpdaterConfig) {
   const reasons: string[] = [];
@@ -258,36 +281,29 @@ export function catalogFilterReasons(fund: Fund, config: UpdaterConfig) {
     reasons.push("ticker");
   }
 
-  const hasAumFilter =
-    config.aumPreset !== "all" || config.minAum !== undefined || config.maxAum !== undefined;
-  if (hasAumFilter) {
+  if (config.aumRange) {
     const aum = parseDataNumber(fund.netAssets);
     if (aum === null) reasons.push("AUM unavailable");
     else {
-      if (!presetMatches(aum, config.aumPreset)) reasons.push(`AUM preset ${config.aumPreset}`);
-      if (config.minAum !== undefined && aum < config.minAum) reasons.push("minimum AUM");
-      if (config.maxAum !== undefined && aum > config.maxAum) reasons.push("maximum AUM");
+      if (config.aumRange.min !== undefined && aum < config.aumRange.min) {
+        reasons.push("minimum AUM");
+      }
+      if (
+        config.aumRange.max !== undefined &&
+        (config.aumRange.maxExclusive
+          ? aum >= config.aumRange.max
+          : aum > config.aumRange.max)
+      ) {
+        reasons.push("maximum AUM");
+      }
     }
   }
 
-  const hasYieldFilter =
-    config.minDividendYield !== undefined || config.maxDividendYield !== undefined;
-  if (hasYieldFilter) {
+  if (config.dividendYieldRange) {
     const dividendYield = parseDataNumber(fund.trailingYield);
     if (dividendYield === null) reasons.push("dividend yield unavailable");
-    else {
-      if (
-        config.minDividendYield !== undefined &&
-        dividendYield < config.minDividendYield
-      ) {
-        reasons.push("minimum dividend yield");
-      }
-      if (
-        config.maxDividendYield !== undefined &&
-        dividendYield > config.maxDividendYield
-      ) {
-        reasons.push("maximum dividend yield");
-      }
+    else if (!inRange(dividendYield, config.dividendYieldRange)) {
+      reasons.push("dividend yield range");
     }
   }
   return reasons;
@@ -702,7 +718,7 @@ async function mapWithConcurrency<T, R>(
 }
 
 function rangeLabel(range?: Range) {
-  if (!range) return "—";
+  if (!range) return ":";
   return `${range.min ?? ""}:${range.max ?? ""}`;
 }
 
@@ -710,16 +726,13 @@ function configLines(config: UpdaterConfig) {
   const lines = [
     `MAX_FETCHES=${config.maxFetches || "all"}`,
     `REQUEST_SLEEP=${config.requestSleepSeconds}`,
-    `MIN_AUM=${config.minAum ?? "—"}`,
-    `MAX_AUM=${config.maxAum ?? "—"}`,
-    `AUM_PRESET=${config.aumPreset}`,
+    `AUM=${config.aumRange?.source || ":"}`,
     `CONCURRENCY=${config.concurrency}`,
     `HOLDINGS_PAGE_SIZE=${config.holdingsPageSize}`,
     `STORE_RAW_DOWNLOADS=${config.storeRawDownloads}`,
     `MAX_RETRIES=${config.maxRetries}`,
     `TICKERS=${config.tickers.join(" ") || "all"}`,
-    `MIN_DIVIDEND_YIELD=${config.minDividendYield ?? "—"}`,
-    `MAX_DIVIDEND_YIELD=${config.maxDividendYield ?? "—"}`,
+    `DIVIDEND_YIELD=${rangeLabel(config.dividendYieldRange)}`,
   ];
   for (const period of RETURN_PERIODS) {
     lines.push(`PERFORMANCE_${period}=${rangeLabel(config.performanceRanges[period])}`);
