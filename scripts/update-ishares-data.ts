@@ -11,6 +11,7 @@ import {
 
 const ROOT = new URL("../api/ishares/", import.meta.url);
 const RAW = new URL("../api/ishares/raw/", import.meta.url);
+const UPDATE_STATE = new URL("update-state.json", ROOT);
 const TRUTHY = new Set(["1", "true", "yes", "y", "on"]);
 const AUM_PRESET_BOUNDS = {
   nano: { min: 0, max: 10_000_000 },
@@ -59,12 +60,34 @@ type ReturnMetrics = {
   totalReturn: MetricMap;
 };
 
+type PageManifest = {
+  totalRows: number;
+  pageSize: number;
+  pageCount: number;
+  pages: string[];
+};
+
+type UpdateScope = {
+  tickers: string[];
+  aumRange: AumRange | null;
+  dividendYieldRange: Range | null;
+  performanceRanges: RangeMap;
+  totalReturnRanges: RangeMap;
+};
+
+type UpdateProgress = {
+  version: 1;
+  scope: UpdateScope;
+  lastProcessedTicker: string;
+};
+
 export type UpdaterConfig = {
   maxFetches: number;
   requestSleepSeconds: number;
   aumRange?: AumRange;
   concurrency: number;
   holdingsPageSize: number;
+  historyPageSize: number;
   storeRawDownloads: boolean;
   maxRetries: number;
   tickers: string[];
@@ -165,8 +188,7 @@ function isAumPreset(value: string): value is AumPreset {
   return Object.hasOwn(AUM_PRESET_BOUNDS, value);
 }
 
-/**  PARSEAUMRANGE,
-
+/**
  * Parse an AUM range. A bound can be a USD amount or an AUM preset. Presets on
  * the left contribute their lower boundary; presets on the right contribute
  * their exclusive upper boundary.
@@ -241,6 +263,12 @@ export function readConfig(
       envValue(env, "HOLDINGS_PAGE_SIZE"),
       "HOLDINGS_PAGE_SIZE",
       250,
+      1,
+    ),
+    historyPageSize: parseInteger(
+      envValue(env, "HISTORY_PAGE_SIZE", ["HISTORICAL_PAGE_SIZE"]),
+      "HISTORY_PAGE_SIZE",
+      1_000,
       1,
     ),
     storeRawDownloads: TRUTHY.has(
@@ -421,6 +449,61 @@ async function put(url: URL, contents: string) {
   return true;
 }
 
+function updateScope(config: UpdaterConfig): UpdateScope {
+  return {
+    tickers: [...config.tickers],
+    aumRange: config.aumRange ?? null,
+    dividendYieldRange: config.dividendYieldRange ?? null,
+    performanceRanges: config.performanceRanges,
+    totalReturnRanges: config.totalReturnRanges,
+  };
+}
+
+async function readUpdateProgress() {
+  const contents = await old(UPDATE_STATE);
+  if (!contents) return null;
+  try {
+    const parsed = JSON.parse(contents) as Partial<UpdateProgress>;
+    if (
+      parsed.version === 1 &&
+      typeof parsed.lastProcessedTicker === "string" &&
+      parsed.scope &&
+      typeof parsed.scope === "object"
+    ) {
+      return parsed as UpdateProgress;
+    }
+  } catch {
+    // Treat a malformed local state file as an uninitialized cursor.
+  }
+  console.warn(`[progress] ignoring invalid ${UPDATE_STATE.pathname}`);
+  return null;
+}
+
+/**
+ * Select a bounded round-robin batch after the previous ticker. The input is
+ * already ordered by the caller; this function never mutates it and never
+ * duplicates a fund within one batch.
+ */
+export function selectUpdateBatch<T extends { ticker: string }>(
+  values: T[],
+  maxFetches: number,
+  lastProcessedTicker = "",
+) {
+  if (!Number.isInteger(maxFetches) || maxFetches < 0) {
+    throw Error(`maxFetches must be an integer >= 0; received ${maxFetches}`);
+  }
+  if (!maxFetches || maxFetches >= values.length) return values.slice();
+
+  const previousIndex = values.findIndex(
+    (value) => value.ticker.toUpperCase() === lastProcessedTicker.toUpperCase(),
+  );
+  const start = previousIndex < 0 ? 0 : (previousIndex + 1) % values.length;
+  return Array.from(
+    { length: Math.min(maxFetches, values.length) },
+    (_, offset) => values[(start + offset) % values.length],
+  );
+}
+
 export function parseCatalog(html: string) {
   const output: Fund[] = [];
   const rows = html.match(/<tr>[\s\S]*?<\/tr>/g) || [];
@@ -580,18 +663,122 @@ export function deriveReturnMetrics(performance?: Sheet): ReturnMetrics {
   };
 }
 
-async function removeStaleHoldingPages(ticker: string, keep: Set<string>) {
-  const directory = new URL(`funds/${ticker}/holdings/`, ROOT);
+/**
+ * Return deterministic page paths for a row count. Page names are deliberately
+ * based on position rather than a fetch timestamp, so a repeat run rewrites
+ * existing pages (only when their content differs) instead of appending files.
+ */
+export function paginationPaths(folder: "holdings" | "history", rowCount: number, pageSize: number) {
+  if (!Number.isInteger(rowCount) || rowCount < 0) {
+    throw Error(`rowCount must be an integer >= 0; received ${rowCount}`);
+  }
+  if (!Number.isInteger(pageSize) || pageSize < 1) {
+    throw Error(`pageSize must be an integer >= 1; received ${pageSize}`);
+  }
+  return Array.from({ length: Math.ceil(rowCount / pageSize) }, (_, index) => {
+    const name = `${String(index + 1).padStart(3, "0")}.json`;
+    return `./${folder}/${name}`;
+  });
+}
+
+async function removeStalePages(
+  ticker: string,
+  folder: "holdings" | "history",
+  keep: Set<string>,
+) {
+  const directory = new URL(`funds/${ticker}/${folder}/`, ROOT);
   let changed = false;
   try {
-    for (const name of await readdir(directory)) {
-      if (/^\d{3,}\.json$/.test(name) && !keep.has(name)) {
-        await rm(new URL(name, directory), { force: true });
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      // Every JSON file in a generated page directory is owned by the
+      // updater. Remove old page names, including pages from a prior format.
+      if (entry.isFile() && entry.name.endsWith(".json") && !keep.has(entry.name)) {
+        await rm(new URL(entry.name, directory), { force: true });
         changed = true;
       }
     }
-  } catch {
-    // The directory does not exist on the first successful update.
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+  return changed;
+}
+
+async function writePagedRows(
+  ticker: string,
+  folder: "holdings" | "history",
+  headers: string[],
+  rows: Array<Record<string, string>>,
+  pageSize: number,
+): Promise<{ manifest: PageManifest; changed: boolean }> {
+  const pages = paginationPaths(folder, rows.length, pageSize);
+  const keep = new Set(pages.map((path) => path.slice(path.lastIndexOf("/") + 1)));
+  let changed = false;
+
+  for (let index = 0; index < pages.length; index++) {
+    const page = index + 1;
+    const pageName = pages[index].slice(pages[index].lastIndexOf("/") + 1);
+    changed =
+      (await put(
+        new URL(`funds/${ticker}/${folder}/${pageName}`, ROOT),
+        JSON.stringify(
+          {
+            ticker,
+            page,
+            pageSize,
+            totalRows: rows.length,
+            headers,
+            rows: rows.slice(index * pageSize, (index + 1) * pageSize),
+          },
+          null,
+          2,
+        ) + "\n",
+      )) || changed;
+  }
+
+  changed = (await removeStalePages(ticker, folder, keep)) || changed;
+  return {
+    manifest: {
+      totalRows: rows.length,
+      pageSize,
+      pageCount: pages.length,
+      pages,
+    },
+    changed,
+  };
+}
+
+async function removeLegacyFundFiles() {
+  const directory = new URL("funds/", ROOT);
+  let changed = false;
+  try {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (!entry.isFile() || !/^[A-Z0-9]+\.json$/.test(entry.name)) continue;
+      // Keep a legacy file when it is the only copy. This preserves the last
+      // good dataset during a partial migration or catalog fallback.
+      const ticker = entry.name.slice(0, -5);
+      if (!(await old(new URL(`${ticker}/meta.json`, directory)))) continue;
+      await rm(new URL(entry.name, directory), { force: true });
+      changed = true;
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+  return changed;
+}
+
+async function removeOrphanFundDirectories(keep: Set<string>, enabled: boolean) {
+  if (!enabled) return false;
+  const directory = new URL("funds/", ROOT);
+  let changed = false;
+  try {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (entry.isDirectory() && /^[A-Z0-9]+$/.test(entry.name) && !keep.has(entry.name)) {
+        await rm(new URL(`${entry.name}/`, directory), { recursive: true, force: true });
+        changed = true;
+      }
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
   }
   return changed;
 }
@@ -605,9 +792,18 @@ async function updateFund(
   const body = await requestText(download, fund.ticker, config, waitForRequest);
   const worksheets = parseWorkbook(body);
   if (!Object.keys(worksheets).length) throw Error("no worksheets");
-  if (!worksheets.Holdings?.rows.length) {
+
+  const holdingsName = Object.keys(worksheets).find(
+    (name) => name.trim().toLowerCase() === "holdings",
+  );
+  const historyName = Object.keys(worksheets).find((name) =>
+    ["historical", "history"].includes(name.trim().toLowerCase()),
+  );
+  const holdings = holdingsName ? worksheets[holdingsName] : undefined;
+  if (!holdings?.rows.length) {
     throw Error("Holdings worksheet is missing or empty");
   }
+  const history = historyName ? worksheets[historyName] : undefined;
 
   const returns = deriveReturnMetrics(worksheets.Performance);
   const returnFailures = returnFilterReasons(returns, config);
@@ -619,47 +815,31 @@ async function updateFund(
     };
   }
 
-  const holdings = worksheets.Holdings || { headers: [], rows: [] };
-  const pages: string[] = [];
-  const pageFiles = new Set<string>();
-  let changed = false;
-  for (let start = 0; start < holdings.rows.length; start += config.holdingsPageSize) {
-    const number = pages.length + 1;
-    const pageName = `${String(number).padStart(3, "0")}.json`;
-    const file = `./holdings/${pageName}`;
-    pages.push(file);
-    pageFiles.add(pageName);
-    changed =
-      (await put(
-        new URL(`funds/${fund.ticker}/holdings/${pageName}`, ROOT),
-        JSON.stringify(
-          {
-            ticker: fund.ticker,
-            page: number,
-            pageSize: config.holdingsPageSize,
-            totalRows: holdings.rows.length,
-            headers: holdings.headers,
-            rows: holdings.rows.slice(start, start + config.holdingsPageSize),
-          },
-          null,
-          2,
-        ) + "\n",
-      )) || changed;
-  }
-  changed = (await removeStaleHoldingPages(fund.ticker, pageFiles)) || changed;
+  const holdingsPages = await writePagedRows(
+    fund.ticker,
+    "holdings",
+    holdings.headers,
+    holdings.rows,
+    config.holdingsPageSize,
+  );
+  const historyPages = await writePagedRows(
+    fund.ticker,
+    "history",
+    history?.headers || [],
+    history?.rows || [],
+    config.historyPageSize,
+  );
+  let changed = holdingsPages.changed || historyPages.changed;
 
-  delete worksheets.Holdings;
+  if (holdingsName) delete worksheets[holdingsName];
+  if (historyName) delete worksheets[historyName];
   const document = {
     ticker: fund.ticker,
     portfolioId: fund.portfolioId,
     name: fund.name,
     source: { fundPage: fund.fundPage, download },
-    holdings: {
-      totalRows: holdings.rows.length,
-      pageSize: config.holdingsPageSize,
-      pageCount: pages.length,
-      pages,
-    },
+    holdings: holdingsPages.manifest,
+    history: historyPages.manifest,
     returns,
     worksheets,
   };
@@ -694,6 +874,7 @@ async function updateFund(
       dataFile: `./funds/${fund.ticker}/meta.json`,
       asOfDate,
       holdings: holdings.rows.length,
+      history: history?.rows.length || 0,
       performance: { asOfDate: returns.asOfDate, ...returns.performance },
       totalReturn: { asOfDate: returns.asOfDate, ...returns.totalReturn },
     },
@@ -727,9 +908,10 @@ function configLines(config: UpdaterConfig) {
   const lines = [
     `MAX_FETCHES=${config.maxFetches || "all"}`,
     `REQUEST_SLEEP=${config.requestSleepSeconds}`,
-    `AUM=${config.aumRange?.source || ":"}`,
+    `AUM=${config.aumRange?.source ?? ":"}`,
     `CONCURRENCY=${config.concurrency}`,
     `HOLDINGS_PAGE_SIZE=${config.holdingsPageSize}`,
+    `HISTORY_PAGE_SIZE=${config.historyPageSize}`,
     `STORE_RAW_DOWNLOADS=${config.storeRawDownloads}`,
     `MAX_RETRIES=${config.maxRetries}`,
     `TICKERS=${config.tickers.join(" ") || "all"}`,
@@ -750,6 +932,8 @@ async function writeSummary(
   candidates: number,
   results: UpdateResult[],
   manifestChanged: boolean,
+  progressChanged: boolean,
+  processedThrough: string,
 ) {
   const summaryPath = process.env.GITHUB_STEP_SUMMARY;
   if (!summaryPath) return;
@@ -769,6 +953,8 @@ async function writeSummary(
     `| Return-filtered | ${counts("filtered")} |`,
     `| Failed | ${counts("failed")} |`,
     `| Manifest changed | ${manifestChanged ? "yes" : "no"} |`,
+    `| Progress state changed | ${progressChanged ? "yes" : "no"} |`,
+    `| Processed through | ${processedThrough || "—"} |`,
     "",
     "<details><summary>Configuration</summary>",
     "",
@@ -808,6 +994,7 @@ async function main() {
   const previousByTicker = new Map(previousFunds.map((fund) => [fund.ticker, fund]));
 
   let discovered: Fund[] = [];
+  let usedCatalogFallback = false;
   try {
     discovered = parseCatalog(
       await requestText(
@@ -818,6 +1005,7 @@ async function main() {
       ),
     );
   } catch (error) {
+    usedCatalogFallback = true;
     console.warn(`[catalog] live discovery failed; using previous manifest: ${String(error)}`);
     discovered = previousFunds;
   }
@@ -838,22 +1026,28 @@ async function main() {
       }
       return left.ticker.localeCompare(right.ticker);
     });
+  const scope = updateScope(config);
+  const progress = config.maxFetches ? await readUpdateProgress() : null;
+  const lastProcessedTicker =
+    progress && JSON.stringify(progress.scope) === JSON.stringify(scope)
+      ? progress.lastProcessedTicker
+      : "";
   const candidates = config.maxFetches
-    ? catalogEligible.slice(0, config.maxFetches)
+    ? selectUpdateBatch(catalogEligible, config.maxFetches, lastProcessedTicker)
     : catalogEligible;
   console.log(
-    `[filter] catalogEligible=${catalogEligible.length} selectedForUpdate=${candidates.length}`,
+    `[filter] catalogEligible=${catalogEligible.length} selectedForUpdate=${candidates.length}${config.maxFetches ? ` startingAfter=${lastProcessedTicker || "start"}` : ""}`,
   );
 
   const results = await mapWithConcurrency(
     candidates,
     config.concurrency,
     async (fund, index): Promise<UpdateResult> => {
-      console.log(`[fund ] ticker=${fund.ticker} ${index + 1}/${candidates.length} start`);
+      console.log(`[fund] ${index + 1}/${candidates.length} ticker=${fund.ticker} start`);
       try {
         const result = await updateFund(fund, config, waitForRequest);
         console.log(
-          `[fund ] ticker=${fund.ticker} ${index + 1}/${candidates.length} status=${result.status}${result.reason ? ` reason=${result.reason}` : ""}`,
+          `[fund] ${index + 1}/${candidates.length} ticker=${fund.ticker} status=${result.status}${result.reason ? ` reason=${result.reason}` : ""}`,
         );
         return result;
       } catch (error) {
@@ -863,7 +1057,7 @@ async function main() {
           reason: String(error),
         };
         console.warn(
-          `[fund ] ticker=${fund.ticker} ${index + 1}/${candidates.length} status=failed reason=${result.reason}`,
+          `[fund] ${index + 1}/${candidates.length} ticker=${fund.ticker} status=failed reason=${result.reason}`,
         );
         return result;
       }
@@ -884,13 +1078,29 @@ async function main() {
   });
   index.sort((left, right) => left.ticker.localeCompare(right.ticker));
 
+  // Remove obsolete flat fund files on every successful run. Removing whole
+  // fund directories is more destructive, so only do that after a live catalog
+  // that is not suspiciously smaller than the previous one.
+  const catalogSafeForCleanup =
+    !usedCatalogFallback &&
+    (previousFunds.length === 0 || discovered.length >= Math.ceil(previousFunds.length * 0.7));
+  if (!catalogSafeForCleanup && previousFunds.length) {
+    console.warn("[cleanup] keeping orphan fund directories because catalog is incomplete");
+  }
+  const legacyFilesChanged = await removeLegacyFundFiles();
+  const orphanDirectoriesChanged = await removeOrphanFundDirectories(
+    new Set(index.map((fund) => fund.ticker)),
+    catalogSafeForCleanup,
+  );
+  const cleanupChanged = legacyFilesChanged || orphanDirectoriesChanged;
+
   const stable = {
     source: { provider: "iShares", market: "us" },
     funds: index,
   };
   const priorStable = { ...previous };
   delete priorStable.generatedAt;
-  const dataChanged = results.some((result) => result.changed);
+  const dataChanged = results.some((result) => result.changed) || cleanupChanged;
   const manifestChanged = JSON.stringify(priorStable) !== JSON.stringify(stable);
   const next = {
     generatedAt:
@@ -904,12 +1114,41 @@ async function main() {
     JSON.stringify(next, null, 2) + "\n",
   );
 
+  let progressChanged = false;
+  let processedThrough = "";
+  if (config.maxFetches && candidates.length) {
+    processedThrough = candidates[candidates.length - 1].ticker;
+    progressChanged = await put(
+      UPDATE_STATE,
+      JSON.stringify(
+        {
+          version: 1,
+          scope,
+          lastProcessedTicker: processedThrough,
+        } satisfies UpdateProgress,
+        null,
+        2,
+      ) + "\n",
+    );
+    console.log(
+      `[progress] lastProcessed=${processedThrough} stateChanged=${progressChanged}`,
+    );
+  }
+
   const count = (status: UpdateResult["status"]) =>
     results.filter((result) => result.status === status).length;
   console.log(
-    `[summary] discovered=${discovered.length} attempted=${candidates.length} updated=${count("updated")} unchanged=${count("unchanged")} filtered=${count("filtered")} failed=${count("failed")} raw=${config.storeRawDownloads} manifestChanged=${indexChanged}`,
+    `[summary] discovered=${discovered.length} attempted=${candidates.length} updated=${count("updated")} unchanged=${count("unchanged")} filtered=${count("filtered")} failed=${count("failed")} raw=${config.storeRawDownloads} cleanup=${cleanupChanged} manifestChanged=${indexChanged} progressChanged=${progressChanged} processedThrough=${processedThrough || "—"}`,
   );
-  await writeSummary(config, discovered.length, candidates.length, results, indexChanged);
+  await writeSummary(
+    config,
+    discovered.length,
+    candidates.length,
+    results,
+    indexChanged,
+    progressChanged,
+    processedThrough,
+  );
 }
 
 if (import.meta.main) {
