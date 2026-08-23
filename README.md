@@ -16,7 +16,7 @@ Run the updater with Bun:
 
 ```bash
 bun test scripts/update-ishares-data.test.ts
-bun scripts/update-ishares-data.ts
+./scripts/update-ishares-data.ts
 ```
 
 The **Update iShares ETF data** GitHub Actions workflow exposes the same settings as manual inputs. All supplied filters use **AND** logic.
