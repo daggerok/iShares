@@ -25,17 +25,24 @@ The **Update iShares ETF data** GitHub Actions workflow exposes the same setting
 
 | Environment variable | Default | Meaning |
 |---|---:|---|
-| `MAX_FETCHES` | all | Maximum eligible fund update attempts. Empty or `0` means all. The legacy `ISHARES_LIMIT` name remains supported. |
+| `MAX_FETCHES` | all | Maximum eligible fund update attempts per run. With a positive value, the updater continues after the committed cursor in `api/ishares/update-state.json`; empty or `0` means all. The legacy `ISHARES_LIMIT` name remains supported. |
 | `REQUEST_SLEEP` | `0` | Minimum delay in seconds between outgoing request starts, including retries. Decimal values are accepted. |
 | `AUM` | `:` | Net Assets range. Each bound may be a USD amount or `nano`, `micro`, `small`, `mid`, or `large`. |
 | `CONCURRENCY` | `4` | Number of parallel fund update workers. Request starts are still globally spaced by `REQUEST_SLEEP`. |
-| `HOLDINGS_PAGE_SIZE` | `250` | Rows in each generated holdings JSON page. |
+| `HOLDINGS_PAGE_SIZE` | `250` | Rows in each generated current-holdings JSON page. |
+| `HISTORY_PAGE_SIZE` | `1000` | Rows in each generated historical NAV JSON page. `HISTORICAL_PAGE_SIZE` remains supported as an alias. |
 | `STORE_RAW_DOWNLOADS` | off | Store the latest source XLS under `api/ishares/raw`. Values `1`, `true`, `yes`, `y`, and `on` enable it. The legacy `ISHARES_STORE_RAW_DOWNLOADS` name remains supported. |
 | `MAX_RETRIES` | `2` | Retries after the initial request. The default permits at most three attempts total. Only network errors, HTTP 408/425/429, and 5xx responses are retried with bounded exponential backoff. |
 | `TICKERS` | all | Space-, comma-, or semicolon-separated ticker allowlist, for example `IVV DGRO DVY`. |
 | `DIVIDEND_YIELD` | `:` | Inclusive 12-month trailing dividend-yield percentage range. |
 
 `TICKERS` combines with AUM, dividend-yield, and return filters using AND logic; it does not override them. Funds not selected for a successful update keep their prior published metadata and data files.
+
+### Resuming bounded runs
+
+A positive `MAX_FETCHES` is a batch size, not a permanent first-page limit. Eligible funds are kept in deterministic ticker order and the updater starts after `lastProcessedTicker` in `api/ishares/update-state.json`, wrapping to the beginning when it reaches the end. The state file is updated only for a bounded run that had candidates, so committing it lets the next run continue with the next batch. Delete that file to restart from the first eligible ticker. `MAX_FETCHES=0` still processes every eligible fund and does not move the bounded-run cursor.
+
+The committed cursor currently ends at `BEMB`, matching the 20-fund batch already present in the catalog; therefore the next default `MAX_FETCHES=20` run starts at the next ticker. A batch may still change up to 20 metadata files when those funds have new source data or have not yet received the fixed-size derived `returns` block. The `returns` block is replaced in place, never appended. Historical and distribution rows grow only when iShares publishes new rows, and paginated files grow only when a page-size boundary is crossed.
 
 ### Strict range syntax
 
@@ -142,6 +149,8 @@ bun scripts/update-ishares-data.ts
 - A successful data run may commit only `api/ishares/**`. GitHub Pages then deploys that commit, but the catalog UI changes only when the generated data itself changed.
 - Catalog-only filters (`TICKERS`, `AUM`, and `DIVIDEND_YIELD`) run before `MAX_FETCHES`. Return filters run after each selected official workbook is downloaded and parsed.
 - Every successful fund update stores derived quarter-end `performance` and `totalReturn` values in `api/ishares/index.json` and under `returns` in the fund's `meta.json`.
+- The UI fetches the first Holdings and Historical pages and appends more rows automatically as the table is scrolled; it does not show page-number controls.
+- The app keeps search and sort preferences in localStorage, reapplies them after reload, and clears the cached workbook before reloading when `Clear` is clicked.
 - GitHub Actions writes updated, unchanged, return-filtered, and failed counts to the workflow summary.
 - Range validation is centralized in `parseRange`; AUM's numeric/preset validation is centralized in `parseAumRange`. Add or change syntax there and update `scripts/update-ishares-data.test.ts` in the same PR.
 

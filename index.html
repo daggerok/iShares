@@ -126,15 +126,9 @@
 
       </div>
 
-      <div id="holdings-pager" class="hidden flex flex-wrap items-center justify-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-        <button id="holdings-prev" class="px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 disabled:opacity-40">Previous</button>
-        <span id="holdings-page-label"></span>
-        <button id="holdings-next" class="px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 disabled:opacity-40">Next</button>
-      </div>
-
       <!-- Data Table Container -->
       <div class="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur overflow-hidden">
-        <div class="max-h-[calc(100vh-220px)] overflow-x-auto overflow-y-auto themed-scroll">
+        <div id="table-scroll" class="max-h-[calc(100vh-220px)] overflow-x-auto overflow-y-auto themed-scroll">
           <table class="w-full text-left border-collapse whitespace-nowrap">
             <thead id="table-head" class="bg-slate-50 dark:bg-slate-900/95 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 sticky top-0 z-20 backdrop-blur">
               <tr>
@@ -148,6 +142,9 @@
               </tr>
             </tbody>
           </table>
+          <div id="static-load-sentinel" class="hidden py-3 text-center text-xs text-slate-500 dark:text-slate-400" aria-live="polite">
+            <span id="static-load-status"></span>
+          </div>
         </div>
       </div>
 
@@ -156,7 +153,7 @@
   </div>
 
   <script>
-    // --- Theme (light/dark with persistence, same UX as csv / youtube apps) ---
+    // --- Theme and table preferences (persisted, same UX as csv / youtube apps) ---
     const THEME_KEY = 'ishares-theme';
     const SITE_STATE_KEY = 'ishares-site-state';
     const themeToggle = document.getElementById('theme-toggle');
@@ -231,8 +228,12 @@
     let currentFileName = '';
     let staticFunds = {};
     let staticPagesBySheet = {};
-    let staticPageBySheet = {};
+    let staticNextPageBySheet = {};
+    let staticLoadingSheets = new Set();
+    let staticPagingGeneration = 0;
     let staticTicker = '';
+    let restoredSortKey = '';
+    let restoredSortDir = 'asc';
     // Current table order. Data stays intact; only the displayed rows are sorted.
     let sortKey = '';
     let sortDir = 'asc';
@@ -246,10 +247,9 @@
     const tableBody = document.getElementById('table-body');
     const tickerCount = document.getElementById('ticker-count');
     const searchInput = document.getElementById('search-input');
-    const holdingsPager = document.getElementById('holdings-pager');
-    const holdingsPrev = document.getElementById('holdings-prev');
-    const holdingsNext = document.getElementById('holdings-next');
-    const holdingsPageLabel = document.getElementById('holdings-page-label');
+    const tableScroll = document.getElementById('table-scroll');
+    const staticLoadSentinel = document.getElementById('static-load-sentinel');
+    const staticLoadStatus = document.getElementById('static-load-status');
 
     const copyBtn = document.getElementById('copy-btn');
     const exportCsvBtn = document.getElementById('export-csv-btn');
@@ -271,12 +271,12 @@
           if (sheetNames.length > 0) {
             activeSheetName = (savedActiveTab && workbookSheets[savedActiveTab]) ? savedActiveTab : getDefaultTabName(sheetNames);
             renderTabs();
-            switchSheet(activeSheetName);
+            await switchSheet(activeSheetName);
+            applyRestoredSiteState();
             enableControls(currentFileName || 'Restored from cache');
           }
         } else {
           await loadStaticCatalog();
-          if (restoredQuery) { searchInput.value = restoredQuery; searchInput.dispatchEvent(new Event('input')); }
         }
       } catch (e) {
         console.error('Failed to load from IndexedDB', e);
@@ -306,8 +306,7 @@
         if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
         const index = await response.json();
         staticTicker = '';
-        staticPagesBySheet = {};
-        staticPageBySheet = {};
+        resetStaticPaging();
         staticFunds = Object.fromEntries((index.funds || []).map(fund => [fund.ticker, fund]));
         workbookSheets = {
           'ETF Catalog': {
@@ -320,6 +319,7 @@
         activeSheetName = 'ETF Catalog';
         renderTabs();
         await switchSheet(activeSheetName);
+        applyRestoredSiteState();
         enableControls(currentFileName);
       } catch (error) {
         console.info('Static iShares data is unavailable; upload an .xls file to begin.', error);
@@ -327,18 +327,79 @@
     }
 
     async function fetchStaticPage(ticker, pagePath) {
-      const path = pagePath.replace(/^\.\//, '');
+      const path = String(pagePath).replace(/^\.\/+/, '');
       const response = await fetch(`./api/ishares/funds/${encodeURIComponent(ticker)}/${path}`, { cache: 'no-cache' });
       if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
       return response.json();
     }
 
     function staticSheet(sheet) {
+      const headers = Array.isArray(sheet?.headers) ? sheet.headers : [];
+      const data = Array.isArray(sheet?.rows) ? sheet.rows : [];
       return {
-        headers: sheet.headers || [],
-        data: sheet.rows || [],
-        tickerCol: (sheet.headers || []).find(header => /^ticker$/i.test(header)) || null,
+        headers,
+        data,
+        tickerCol: headers.find(header => /^ticker$/i.test(header)) || null,
       };
+    }
+
+    function resetStaticPaging() {
+      staticPagingGeneration += 1;
+      staticPagesBySheet = {};
+      staticNextPageBySheet = {};
+      staticLoadingSheets = new Set();
+    }
+
+    function renderStaticLoadSentinel() {
+      const pages = staticPagesBySheet[activeSheetName] || [];
+      const nextPage = staticNextPageBySheet[activeSheetName] || 0;
+      const loading = staticLoadingSheets.has(activeSheetName);
+      const visible = loading || nextPage < pages.length;
+      staticLoadSentinel.classList.toggle('hidden', !visible);
+      staticLoadStatus.textContent = loading ? 'Loading more rows…' : '';
+    }
+
+    async function loadNextStaticSheetPage(sheetName) {
+      const pages = staticPagesBySheet[sheetName];
+      const nextPage = staticNextPageBySheet[sheetName] || 0;
+      if (!staticTicker || !pages || !pages[nextPage] || staticLoadingSheets.has(sheetName)) {
+        if (sheetName === activeSheetName) renderStaticLoadSentinel();
+        return;
+      }
+
+      const generation = staticPagingGeneration;
+      const ticker = staticTicker;
+      staticLoadingSheets.add(sheetName);
+      if (sheetName === activeSheetName) renderStaticLoadSentinel();
+      try {
+        const loaded = staticSheet(await fetchStaticPage(ticker, pages[nextPage]));
+        if (generation !== staticPagingGeneration || ticker !== staticTicker) return;
+        const current = workbookSheets[sheetName] || staticSheet(loaded);
+        current.data = current.data.concat(loaded.data);
+        if (!current.headers.length) current.headers = loaded.headers;
+        if (!current.tickerCol) current.tickerCol = loaded.tickerCol;
+        workbookSheets[sheetName] = current;
+        staticNextPageBySheet[sheetName] = nextPage + 1;
+        if (sheetName === activeSheetName) {
+          renderTable(getFilteredRows(current), current.headers);
+        }
+      } catch (error) {
+        if (generation === staticPagingGeneration) {
+          console.error(`Failed to load ${sheetName} page ${nextPage + 1}`, error);
+        }
+      } finally {
+        if (generation !== staticPagingGeneration) return;
+        staticLoadingSheets.delete(sheetName);
+        if (sheetName === activeSheetName) renderStaticLoadSentinel();
+      }
+    }
+
+    function maybeLoadMoreStaticRows() {
+      const pages = staticPagesBySheet[activeSheetName] || [];
+      const nextPage = staticNextPageBySheet[activeSheetName] || 0;
+      if (!tableScroll || !pages[nextPage] || staticLoadingSheets.has(activeSheetName)) return;
+      const distanceToBottom = tableScroll.scrollHeight - tableScroll.scrollTop - tableScroll.clientHeight;
+      if (distanceToBottom < 600) void loadNextStaticSheetPage(activeSheetName);
     }
 
     async function loadStaticFund(ticker) {
@@ -348,8 +409,7 @@
       if (!response.ok) return;
       const data = await response.json();
       staticTicker = ticker;
-      staticPagesBySheet = {};
-      staticPageBySheet = {};
+      resetStaticPaging();
 
       workbookSheets = Object.fromEntries(Object.entries(data.worksheets || {}).map(([name, sheet]) => [name, staticSheet(sheet)]));
       const pageManifests = {
@@ -359,8 +419,9 @@
       for (const [sheetName, manifest] of Object.entries(pageManifests)) {
         if (!manifest || !Array.isArray(manifest.pages) || !manifest.pages.length) continue;
         staticPagesBySheet[sheetName] = manifest.pages;
-        staticPageBySheet[sheetName] = 0;
+        staticNextPageBySheet[sheetName] = 0;
         workbookSheets[sheetName] = staticSheet(await fetchStaticPage(ticker, manifest.pages[0]));
+        staticNextPageBySheet[sheetName] = 1;
       }
 
       activeSheetName = getDefaultTabName(Object.keys(workbookSheets));
@@ -368,49 +429,40 @@
       searchInput.value = '';
       renderTabs();
       await switchSheet(activeSheetName);
+      renderStaticLoadSentinel();
       enableControls(currentFileName);
     }
 
-    async function loadStaticSheetPage(sheetName, page) {
-      const pages = staticPagesBySheet[sheetName];
-      if (!pages || !pages[page] || !staticTicker) return;
-      const sheet = await fetchStaticPage(staticTicker, pages[page]);
-      staticPageBySheet[sheetName] = page;
-      workbookSheets[sheetName] = staticSheet(sheet);
-      if (activeSheetName === sheetName) {
-        renderTable(getFilteredRows(workbookSheets[sheetName]), workbookSheets[sheetName].headers);
-        renderHoldingsPager();
-      }
-    }
-
-    // The same pager is shared by current Holdings and Historical pages.
-    function renderHoldingsPager() {
-      const pages = staticPagesBySheet[activeSheetName] || [];
-      const page = staticPageBySheet[activeSheetName] || 0;
-      const visible = pages.length > 1;
-      holdingsPager.classList.toggle('hidden', !visible);
-      if (!visible) return;
-      holdingsPrev.disabled = page === 0;
-      holdingsNext.disabled = page >= pages.length - 1;
-      holdingsPageLabel.textContent = `Page ${page + 1} of ${pages.length}`;
-    }
-
-    holdingsPrev.addEventListener('click', () => {
-      const page = staticPageBySheet[activeSheetName] || 0;
-      void loadStaticSheetPage(activeSheetName, page - 1);
-    });
-    holdingsNext.addEventListener('click', () => {
-      const page = staticPageBySheet[activeSheetName] || 0;
-      void loadStaticSheetPage(activeSheetName, page + 1);
-    });
+    const staticLoadObserver = typeof IntersectionObserver === 'function'
+      ? new IntersectionObserver((entries) => {
+          if (entries.some(entry => entry.isIntersecting)) void loadNextStaticSheetPage(activeSheetName);
+        }, { root: tableScroll, rootMargin: '600px 0px' })
+      : null;
+    staticLoadObserver?.observe(staticLoadSentinel);
+    tableScroll.addEventListener('scroll', maybeLoadMoreStaticRows, { passive: true });
+    staticLoadSentinel.addEventListener('click', () => void loadNextStaticSheetPage(activeSheetName));
 
     function restoreSiteState() {
       try {
         const saved = JSON.parse(localStorage.getItem(SITE_STATE_KEY) || '{}');
-        sortKey = typeof saved.sortKey === 'string' ? saved.sortKey : '';
-        sortDir = saved.sortDir === 'desc' ? 'desc' : 'asc';
+        restoredSortKey = typeof saved.sortKey === 'string' ? saved.sortKey : '';
+        restoredSortDir = saved.sortDir === 'desc' ? 'desc' : 'asc';
         restoredQuery = typeof saved.query === 'string' ? saved.query : '';
       } catch { /* no saved state */ }
+    }
+
+    function applyRestoredSiteState() {
+      const currentSheet = workbookSheets[activeSheetName];
+      sortKey = restoredSortKey;
+      sortDir = restoredSortDir;
+      searchInput.value = restoredQuery;
+      if (!currentSheet) return;
+      if (sortKey && !currentSheet.headers.includes(sortKey)) {
+        sortKey = '';
+        sortDir = 'asc';
+      }
+      renderTable(getFilteredRows(currentSheet), currentSheet.headers);
+      renderStaticLoadSentinel();
     }
 
     function persistSiteState() {
@@ -424,8 +476,7 @@
 
     function processFile(file) {
       staticTicker = '';
-      staticPagesBySheet = {};
-      staticPageBySheet = {};
+      resetStaticPaging();
       currentFileName = file.name;
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -573,8 +624,8 @@
       renderTabs();
       
       const currentSheet = workbookSheets[activeSheetName];
-      renderTable(currentSheet.data, currentSheet.headers);
-      renderHoldingsPager();
+      renderTable(getFilteredRows(currentSheet), currentSheet.headers);
+      renderStaticLoadSentinel();
 
       const hasTickerCol = Boolean(currentSheet.tickerCol);
       copyBtn.disabled = !hasTickerCol;
@@ -600,30 +651,16 @@
     }
 
     async function clearStorage() {
-      await dbClear();
-
-      workbookSheets = {};
-      activeSheetName = '';
-      currentFileName = '';
-      staticTicker = '';
-      staticPagesBySheet = {};
-      staticPageBySheet = {};
-      
-      dropzoneText.textContent = 'Upload / Drop .xls';
-      dropzone.classList.remove('dz-loaded');
-      
-      tabsBar.classList.add('hidden');
-      tabsBar.innerHTML = '';
-
-      searchInput.value = '';
-      searchInput.disabled = true;
-      copyBtn.disabled = true;
-      exportCsvBtn.disabled = true;
-      exportTxtBtn.disabled = true;
       resetBtn.disabled = true;
-
-      renderTable([], ['Column 1']);
-      tableBody.innerHTML = `<tr><td colspan="10" class="py-12 text-center text-slate-400 dark:text-slate-500">No file loaded yet. Upload an iShares .xls file above.</td></tr>`;
+      try {
+        await dbClear();
+      } catch (error) {
+        console.error('Failed to clear cached workbook', error);
+      } finally {
+        // Reload so the catalog is initialized again and the controls are
+        // immediately usable after Clear; the theme and sort preferences stay.
+        window.location.reload();
+      }
     }
 
     function animateTableUpdate() {
