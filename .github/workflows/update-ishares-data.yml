@@ -1,0 +1,27 @@
+name: Update iShares ETF data
+on:
+  workflow_dispatch:
+    inputs:
+      store_raw_downloads:
+        description: Store source XLS files (true/yes/on/1)
+        required: false
+        default: ''
+        type: string
+permissions: { contents: write }
+concurrency: { group: update-ishares-data, cancel-in-progress: false }
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      ISHARES_STORE_RAW_DOWNLOADS: ${{ inputs.store_raw_downloads || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun scripts/update-ishares-data.ts
+      - run: |
+          git add api/ishares
+          git diff --cached --quiet && exit 0
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m 'Update iShares ETF data'
+          git push

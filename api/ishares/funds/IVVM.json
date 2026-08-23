@@ -1,0 +1,5236 @@
+{
+  "ticker": "IVVM",
+  "portfolioId": "332306",
+  "name": "iShares Large Cap Moderate Quarterly Laddered ETF",
+  "source": {
+    "fundPage": "https://www.ishares.com/us/products/332306/ishares-large-cap-moderate-quarterly-laddered-etf",
+    "download": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=332306&component=fundDownload&userType=individual"
+  },
+  "worksheets": {
+    "Holdings": {
+      "headers": [
+        "Ticker",
+        "Name",
+        "Type",
+        "Sector",
+        "Asset Class",
+        "Market Value",
+        "Weight (%)",
+        "Notional Value",
+        "Quantity",
+        "Location",
+        "Exchange",
+        "Currency",
+        "FX Rate",
+        "Accrual Date",
+        "Strike price"
+      ],
+      "rows": [
+        {
+          "Ticker": "IVV",
+          "Name": "ISHARES CORE S&P ETF TRUST",
+          "Type": "EQUITY",
+          "Sector": "Financials",
+          "Asset Class": "Equity",
+          "Market Value": "172234915",
+          "Weight (%)": "99.53938",
+          "Notional Value": "172234915",
+          "Quantity": "224750",
+          "Location": "United States",
+          "Exchange": "NYSE Arca",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "--"
+        },
+        {
+          "Ticker": "IVV US FLEX",
+          "Name": "NOV26 IVV US P @ 750.32",
+          "Type": "OPTION",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Other Derivatives",
+          "Market Value": "942680.96",
+          "Weight (%)": "0.5448",
+          "Notional Value": "-19397858.65",
+          "Quantity": "754",
+          "Location": "United States",
+          "Exchange": "FLEX",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "750.32"
+        },
+        {
+          "Ticker": "XTSLA",
+          "Name": "BLK CSH FND TREASURY SL AGENCY",
+          "Type": "FUND",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Money Market",
+          "Market Value": "745652.99",
+          "Weight (%)": "0.43093",
+          "Notional Value": "745652.99",
+          "Quantity": "745653",
+          "Location": "United States",
+          "Exchange": "--",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "--"
+        },
+        {
+          "Ticker": "IVV US.FLEX",
+          "Name": "OCT26 IVV US P @ 748.89",
+          "Type": "OPTION",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Other Derivatives",
+          "Market Value": "588097.38",
+          "Weight (%)": "0.33988",
+          "Notional Value": "-17411122.62",
+          "Quantity": "754",
+          "Location": "United States",
+          "Exchange": "FLEX",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "748.89"
+        },
+        {
+          "Ticker": "IVV US.FLEX",
+          "Name": "SEP26 IVV US P @ 760.05",
+          "Type": "OPTION",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Other Derivatives",
+          "Market Value": "311854.4",
+          "Weight (%)": "0.18023",
+          "Notional Value": "-20058264.63",
+          "Quantity": "754",
+          "Location": "United States",
+          "Exchange": "FLEX",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "760.05"
+        },
+        {
+          "Ticker": "GSCFT",
+          "Name": "CASH COLLATERAL USD GSCFT",
+          "Type": "CASH",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Cash Collateral and Margins",
+          "Market Value": "84000",
+          "Weight (%)": "0.04855",
+          "Notional Value": "84000",
+          "Quantity": "84000",
+          "Location": "United States",
+          "Exchange": "--",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "Feb 01, 2009",
+          "Strike price": "--"
+        },
+        {
+          "Ticker": "HWAU6",
+          "Name": "MICRO EMINI S&P 500 SEP 26",
+          "Type": "FUTURE",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Futures",
+          "Market Value": "0",
+          "Weight (%)": "0",
+          "Notional Value": "1111062.5",
+          "Quantity": "29",
+          "Location": "--",
+          "Exchange": "Index And Options Market",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "--"
+        },
+        {
+          "Ticker": "IVV US.FLEX",
+          "Name": "SEP26 IVV US C @ 800.64",
+          "Type": "OPTION",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Other Derivatives",
+          "Market Value": "-4584.32",
+          "Weight (%)": "-0.00265",
+          "Notional Value": "-697095.05",
+          "Quantity": "-754",
+          "Location": "United States",
+          "Exchange": "FLEX",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "800.64"
+        },
+        {
+          "Ticker": "USD",
+          "Name": "USD CASH",
+          "Type": "CASH",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Cash",
+          "Market Value": "-29948.43",
+          "Weight (%)": "-0.01731",
+          "Notional Value": "-29948.43",
+          "Quantity": "-29948",
+          "Location": "United States",
+          "Exchange": "--",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "--"
+        },
+        {
+          "Ticker": "IVV US.FLEX",
+          "Name": "SEP26 IVV US P @ 722.05",
+          "Type": "OPTION",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Other Derivatives",
+          "Market Value": "-39245.7",
+          "Weight (%)": "-0.02268",
+          "Notional Value": "2623147.18",
+          "Quantity": "-754",
+          "Location": "United States",
+          "Exchange": "FLEX",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "722.05"
+        },
+        {
+          "Ticker": "IVV US.FLEX",
+          "Name": "OCT26 IVV US P @ 711.45",
+          "Type": "OPTION",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Other Derivatives",
+          "Market Value": "-236167.88",
+          "Weight (%)": "-0.13649",
+          "Notional Value": "6926812.43",
+          "Quantity": "-754",
+          "Location": "United States",
+          "Exchange": "FLEX",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "711.45"
+        },
+        {
+          "Ticker": "IVV US.FLEX",
+          "Name": "OCT26 IVV US C @ 789.33",
+          "Type": "OPTION",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Other Derivatives",
+          "Market Value": "-313249.3",
+          "Weight (%)": "-0.18104",
+          "Notional Value": "-14113795.08",
+          "Quantity": "-754",
+          "Location": "United States",
+          "Exchange": "FLEX",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "789.33"
+        },
+        {
+          "Ticker": "IVV US FLEX",
+          "Name": "NOV26 IVV US P @ 712.8",
+          "Type": "OPTION",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Other Derivatives",
+          "Market Value": "-485530.76",
+          "Weight (%)": "-0.2806",
+          "Notional Value": "9951841.86",
+          "Quantity": "-754",
+          "Location": "United States",
+          "Exchange": "FLEX",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "712.8"
+        },
+        {
+          "Ticker": "IVV US FLEX",
+          "Name": "NOV26 IVV US C @ 788.96",
+          "Type": "OPTION",
+          "Sector": "Cash and/or Derivatives",
+          "Asset Class": "Other Derivatives",
+          "Market Value": "-766531.48",
+          "Weight (%)": "-0.443",
+          "Notional Value": "-20479879.33",
+          "Quantity": "-754",
+          "Location": "United States",
+          "Exchange": "FLEX",
+          "Currency": "USD",
+          "FX Rate": "1",
+          "Accrual Date": "--",
+          "Strike price": "788.96"
+        }
+      ]
+    },
+    "Historical": {
+      "headers": [
+        "As Of",
+        "NAV per Share",
+        "Ex-Dividends",
+        "Shares Outstanding"
+      ],
+      "rows": [
+        {
+          "As Of": "Aug 21, 2026",
+          "NAV per Share": "37.701651",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4600000"
+        },
+        {
+          "As Of": "Aug 20, 2026",
+          "NAV per Share": "37.615499",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4600000"
+        },
+        {
+          "As Of": "Aug 19, 2026",
+          "NAV per Share": "37.795605",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4600000"
+        },
+        {
+          "As Of": "Aug 18, 2026",
+          "NAV per Share": "37.73715",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4600000"
+        },
+        {
+          "As Of": "Aug 17, 2026",
+          "NAV per Share": "37.823917",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Aug 14, 2026",
+          "NAV per Share": "37.966055",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Aug 13, 2026",
+          "NAV per Share": "37.985869",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Aug 12, 2026",
+          "NAV per Share": "37.854928",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Aug 11, 2026",
+          "NAV per Share": "37.789965",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Aug 10, 2026",
+          "NAV per Share": "37.839483",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Aug 07, 2026",
+          "NAV per Share": "37.836144",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Aug 06, 2026",
+          "NAV per Share": "37.720513",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Aug 05, 2026",
+          "NAV per Share": "37.733292",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Aug 04, 2026",
+          "NAV per Share": "37.740807",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Aug 03, 2026",
+          "NAV per Share": "37.422617",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Jul 31, 2026",
+          "NAV per Share": "37.128277",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4720000"
+        },
+        {
+          "As Of": "Jul 30, 2026",
+          "NAV per Share": "36.943274",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4720000"
+        },
+        {
+          "As Of": "Jul 29, 2026",
+          "NAV per Share": "36.527653",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Jul 28, 2026",
+          "NAV per Share": "36.906276",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Jul 27, 2026",
+          "NAV per Share": "36.849736",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Jul 24, 2026",
+          "NAV per Share": "36.841373",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Jul 23, 2026",
+          "NAV per Share": "36.811565",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Jul 22, 2026",
+          "NAV per Share": "37.110817",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4560000"
+        },
+        {
+          "As Of": "Jul 21, 2026",
+          "NAV per Share": "37.133821",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4560000"
+        },
+        {
+          "As Of": "Jul 20, 2026",
+          "NAV per Share": "36.927781",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jul 17, 2026",
+          "NAV per Share": "36.952976",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jul 16, 2026",
+          "NAV per Share": "37.174152",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jul 15, 2026",
+          "NAV per Share": "37.281714",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jul 14, 2026",
+          "NAV per Share": "37.179706",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jul 13, 2026",
+          "NAV per Share": "37.099871",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jul 10, 2026",
+          "NAV per Share": "37.247088",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jul 09, 2026",
+          "NAV per Share": "37.15474",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jul 08, 2026",
+          "NAV per Share": "36.989021",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jul 07, 2026",
+          "NAV per Share": "37.035863",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jul 06, 2026",
+          "NAV per Share": "37.121189",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jul 02, 2026",
+          "NAV per Share": "36.937667",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jul 01, 2026",
+          "NAV per Share": "36.939401",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 30, 2026",
+          "NAV per Share": "36.930818",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4560000"
+        },
+        {
+          "As Of": "Jun 29, 2026",
+          "NAV per Share": "36.825778",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4560000"
+        },
+        {
+          "As Of": "Jun 26, 2026",
+          "NAV per Share": "36.536342",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 25, 2026",
+          "NAV per Share": "36.646897",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 24, 2026",
+          "NAV per Share": "36.638956",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 23, 2026",
+          "NAV per Share": "36.637424",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 22, 2026",
+          "NAV per Share": "36.84953",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 18, 2026",
+          "NAV per Share": "36.875678",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 17, 2026",
+          "NAV per Share": "36.718268",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 16, 2026",
+          "NAV per Share": "36.892192",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 15, 2026",
+          "NAV per Share": "36.953866",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 12, 2026",
+          "NAV per Share": "36.699079",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 11, 2026",
+          "NAV per Share": "36.590083",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 10, 2026",
+          "NAV per Share": "36.30133",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 09, 2026",
+          "NAV per Share": "36.566677",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 08, 2026",
+          "NAV per Share": "36.612408",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 05, 2026",
+          "NAV per Share": "36.542545",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "Jun 04, 2026",
+          "NAV per Share": "36.923002",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4480000"
+        },
+        {
+          "As Of": "Jun 03, 2026",
+          "NAV per Share": "36.839263",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4480000"
+        },
+        {
+          "As Of": "Jun 02, 2026",
+          "NAV per Share": "36.926265",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4480000"
+        },
+        {
+          "As Of": "Jun 01, 2026",
+          "NAV per Share": "36.9058",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4480000"
+        },
+        {
+          "As Of": "May 29, 2026",
+          "NAV per Share": "36.881562",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "May 28, 2026",
+          "NAV per Share": "36.840684",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4520000"
+        },
+        {
+          "As Of": "May 27, 2026",
+          "NAV per Share": "36.805393",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4480000"
+        },
+        {
+          "As Of": "May 26, 2026",
+          "NAV per Share": "36.792839",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4480000"
+        },
+        {
+          "As Of": "May 22, 2026",
+          "NAV per Share": "36.730554",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4480000"
+        },
+        {
+          "As Of": "May 21, 2026",
+          "NAV per Share": "36.757892",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 20, 2026",
+          "NAV per Share": "36.648698",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 19, 2026",
+          "NAV per Share": "36.534848",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 18, 2026",
+          "NAV per Share": "36.590581",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 15, 2026",
+          "NAV per Share": "36.55989",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 14, 2026",
+          "NAV per Share": "36.649777",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 13, 2026",
+          "NAV per Share": "36.569686",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 12, 2026",
+          "NAV per Share": "36.5204",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 11, 2026",
+          "NAV per Share": "36.516918",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 08, 2026",
+          "NAV per Share": "36.503702",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 07, 2026",
+          "NAV per Share": "36.413783",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 06, 2026",
+          "NAV per Share": "36.433023",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 05, 2026",
+          "NAV per Share": "36.272345",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 04, 2026",
+          "NAV per Share": "36.163777",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4440000"
+        },
+        {
+          "As Of": "May 01, 2026",
+          "NAV per Share": "36.137299",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 30, 2026",
+          "NAV per Share": "36.169585",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Apr 29, 2026",
+          "NAV per Share": "35.956147",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Apr 28, 2026",
+          "NAV per Share": "35.939741",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 27, 2026",
+          "NAV per Share": "36.043888",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 24, 2026",
+          "NAV per Share": "36.000549",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 23, 2026",
+          "NAV per Share": "35.859674",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 22, 2026",
+          "NAV per Share": "35.926971",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 21, 2026",
+          "NAV per Share": "35.729521",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 20, 2026",
+          "NAV per Share": "35.847603",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 17, 2026",
+          "NAV per Share": "35.881085",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 16, 2026",
+          "NAV per Share": "35.673907",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 15, 2026",
+          "NAV per Share": "35.629152",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 14, 2026",
+          "NAV per Share": "35.489759",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 13, 2026",
+          "NAV per Share": "35.262161",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 10, 2026",
+          "NAV per Share": "35.058827",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4640000"
+        },
+        {
+          "As Of": "Apr 09, 2026",
+          "NAV per Share": "35.033604",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Apr 08, 2026",
+          "NAV per Share": "34.933296",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Apr 07, 2026",
+          "NAV per Share": "34.403849",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Apr 06, 2026",
+          "NAV per Share": "34.398772",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4760000"
+        },
+        {
+          "As Of": "Apr 02, 2026",
+          "NAV per Share": "34.299865",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4760000"
+        },
+        {
+          "As Of": "Apr 01, 2026",
+          "NAV per Share": "34.248689",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4680000"
+        },
+        {
+          "As Of": "Mar 31, 2026",
+          "NAV per Share": "34.093594",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4760000"
+        },
+        {
+          "As Of": "Mar 30, 2026",
+          "NAV per Share": "33.380324",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4880000"
+        },
+        {
+          "As Of": "Mar 27, 2026",
+          "NAV per Share": "33.434972",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4800000"
+        },
+        {
+          "As Of": "Mar 26, 2026",
+          "NAV per Share": "33.810897",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4360000"
+        },
+        {
+          "As Of": "Mar 25, 2026",
+          "NAV per Share": "34.142656",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4360000"
+        },
+        {
+          "As Of": "Mar 24, 2026",
+          "NAV per Share": "34.015215",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4360000"
+        },
+        {
+          "As Of": "Mar 23, 2026",
+          "NAV per Share": "34.069685",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4360000"
+        },
+        {
+          "As Of": "Mar 20, 2026",
+          "NAV per Share": "33.828756",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4360000"
+        },
+        {
+          "As Of": "Mar 19, 2026",
+          "NAV per Share": "34.266121",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 18, 2026",
+          "NAV per Share": "34.18288",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 17, 2026",
+          "NAV per Share": "34.468292",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 16, 2026",
+          "NAV per Share": "34.408929",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 13, 2026",
+          "NAV per Share": "34.166652",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 12, 2026",
+          "NAV per Share": "34.268966",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 11, 2026",
+          "NAV per Share": "34.63411",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 10, 2026",
+          "NAV per Share": "34.754906",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 09, 2026",
+          "NAV per Share": "34.685197",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 06, 2026",
+          "NAV per Share": "34.448109",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 05, 2026",
+          "NAV per Share": "34.779353",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 04, 2026",
+          "NAV per Share": "34.906666",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 03, 2026",
+          "NAV per Share": "34.73682",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Mar 02, 2026",
+          "NAV per Share": "34.932966",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Feb 27, 2026",
+          "NAV per Share": "34.925923",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4320000"
+        },
+        {
+          "As Of": "Feb 26, 2026",
+          "NAV per Share": "35.027896",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4320000"
+        },
+        {
+          "As Of": "Feb 25, 2026",
+          "NAV per Share": "35.163752",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Feb 24, 2026",
+          "NAV per Share": "34.982724",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Feb 23, 2026",
+          "NAV per Share": "34.831881",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Feb 20, 2026",
+          "NAV per Share": "35.050163",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4280000"
+        },
+        {
+          "As Of": "Feb 19, 2026",
+          "NAV per Share": "34.906971",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Feb 18, 2026",
+          "NAV per Share": "34.95169",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Feb 17, 2026",
+          "NAV per Share": "34.828465",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Feb 13, 2026",
+          "NAV per Share": "34.802622",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Feb 12, 2026",
+          "NAV per Share": "34.793924",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4160000"
+        },
+        {
+          "As Of": "Feb 11, 2026",
+          "NAV per Share": "35.122028",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4160000"
+        },
+        {
+          "As Of": "Feb 10, 2026",
+          "NAV per Share": "35.120357",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4160000"
+        },
+        {
+          "As Of": "Feb 09, 2026",
+          "NAV per Share": "35.177893",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4160000"
+        },
+        {
+          "As Of": "Feb 06, 2026",
+          "NAV per Share": "35.070531",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4160000"
+        },
+        {
+          "As Of": "Feb 05, 2026",
+          "NAV per Share": "34.63711",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4120000"
+        },
+        {
+          "As Of": "Feb 04, 2026",
+          "NAV per Share": "34.919011",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4120000"
+        },
+        {
+          "As Of": "Feb 03, 2026",
+          "NAV per Share": "35.017599",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4120000"
+        },
+        {
+          "As Of": "Feb 02, 2026",
+          "NAV per Share": "35.1918",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4120000"
+        },
+        {
+          "As Of": "Jan 30, 2026",
+          "NAV per Share": "35.071074",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4160000"
+        },
+        {
+          "As Of": "Jan 29, 2026",
+          "NAV per Share": "35.145292",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4160000"
+        },
+        {
+          "As Of": "Jan 28, 2026",
+          "NAV per Share": "35.203625",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4120000"
+        },
+        {
+          "As Of": "Jan 27, 2026",
+          "NAV per Share": "35.198025",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4120000"
+        },
+        {
+          "As Of": "Jan 26, 2026",
+          "NAV per Share": "35.110859",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4120000"
+        },
+        {
+          "As Of": "Jan 23, 2026",
+          "NAV per Share": "34.997376",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4120000"
+        },
+        {
+          "As Of": "Jan 22, 2026",
+          "NAV per Share": "34.986316",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Jan 21, 2026",
+          "NAV per Share": "34.870755",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Jan 20, 2026",
+          "NAV per Share": "34.63312",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Jan 16, 2026",
+          "NAV per Share": "35.072356",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Jan 15, 2026",
+          "NAV per Share": "35.091992",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Jan 14, 2026",
+          "NAV per Share": "35.02997",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Jan 13, 2026",
+          "NAV per Share": "35.132391",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Jan 12, 2026",
+          "NAV per Share": "35.172656",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Jan 09, 2026",
+          "NAV per Share": "35.134521",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Jan 08, 2026",
+          "NAV per Share": "34.989254",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Jan 07, 2026",
+          "NAV per Share": "34.985326",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Jan 06, 2026",
+          "NAV per Share": "35.051885",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Jan 05, 2026",
+          "NAV per Share": "34.932895",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Jan 02, 2026",
+          "NAV per Share": "34.792161",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 31, 2025",
+          "NAV per Share": "34.745107",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Dec 30, 2025",
+          "NAV per Share": "34.934839",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Dec 29, 2025",
+          "NAV per Share": "34.983321",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 26, 2025",
+          "NAV per Share": "35.057964",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 24, 2025",
+          "NAV per Share": "35.057831",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 23, 2025",
+          "NAV per Share": "34.968078",
+          "Ex-Dividends": "0.237761",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Dec 22, 2025",
+          "NAV per Share": "35.087427",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Dec 19, 2025",
+          "NAV per Share": "34.92923",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Dec 18, 2025",
+          "NAV per Share": "34.720736",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Dec 17, 2025",
+          "NAV per Share": "34.556539",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Dec 16, 2025",
+          "NAV per Share": "34.806758",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 15, 2025",
+          "NAV per Share": "34.854136",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 12, 2025",
+          "NAV per Share": "34.89092",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 11, 2025",
+          "NAV per Share": "35.129935",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 10, 2025",
+          "NAV per Share": "35.06454",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 09, 2025",
+          "NAV per Share": "34.913513",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 08, 2025",
+          "NAV per Share": "34.92694",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 05, 2025",
+          "NAV per Share": "34.987098",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 04, 2025",
+          "NAV per Share": "34.941258",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 03, 2025",
+          "NAV per Share": "34.911406",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 02, 2025",
+          "NAV per Share": "34.835111",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Dec 01, 2025",
+          "NAV per Share": "34.786061",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Nov 28, 2025",
+          "NAV per Share": "34.884051",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Nov 26, 2025",
+          "NAV per Share": "34.735122",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4240000"
+        },
+        {
+          "As Of": "Nov 25, 2025",
+          "NAV per Share": "34.570234",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Nov 24, 2025",
+          "NAV per Share": "34.356976",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4200000"
+        },
+        {
+          "As Of": "Nov 21, 2025",
+          "NAV per Share": "34.050954",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Nov 20, 2025",
+          "NAV per Share": "33.852453",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Nov 19, 2025",
+          "NAV per Share": "34.168415",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Nov 18, 2025",
+          "NAV per Share": "34.086647",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Nov 17, 2025",
+          "NAV per Share": "34.253473",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Nov 14, 2025",
+          "NAV per Share": "34.439681",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Nov 13, 2025",
+          "NAV per Share": "34.429552",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Nov 12, 2025",
+          "NAV per Share": "34.732637",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Nov 11, 2025",
+          "NAV per Share": "34.716492",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Nov 10, 2025",
+          "NAV per Share": "34.678044",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Nov 07, 2025",
+          "NAV per Share": "34.382566",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4080000"
+        },
+        {
+          "As Of": "Nov 06, 2025",
+          "NAV per Share": "34.327449",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4040000"
+        },
+        {
+          "As Of": "Nov 05, 2025",
+          "NAV per Share": "34.542753",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4040000"
+        },
+        {
+          "As Of": "Nov 04, 2025",
+          "NAV per Share": "34.469343",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4040000"
+        },
+        {
+          "As Of": "Nov 03, 2025",
+          "NAV per Share": "34.664674",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 31, 2025",
+          "NAV per Share": "34.61137",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4040000"
+        },
+        {
+          "As Of": "Oct 30, 2025",
+          "NAV per Share": "34.561864",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4040000"
+        },
+        {
+          "As Of": "Oct 29, 2025",
+          "NAV per Share": "34.672868",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 28, 2025",
+          "NAV per Share": "34.662573",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 27, 2025",
+          "NAV per Share": "34.649984",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 24, 2025",
+          "NAV per Share": "34.503538",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 23, 2025",
+          "NAV per Share": "34.377948",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 22, 2025",
+          "NAV per Share": "34.267949",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 21, 2025",
+          "NAV per Share": "34.342422",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 20, 2025",
+          "NAV per Share": "34.33249",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 17, 2025",
+          "NAV per Share": "34.137688",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 16, 2025",
+          "NAV per Share": "33.988244",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 15, 2025",
+          "NAV per Share": "34.132929",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 14, 2025",
+          "NAV per Share": "34.06773",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 13, 2025",
+          "NAV per Share": "34.095227",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 10, 2025",
+          "NAV per Share": "33.800592",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 09, 2025",
+          "NAV per Share": "34.276321",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 08, 2025",
+          "NAV per Share": "34.304211",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 07, 2025",
+          "NAV per Share": "34.207689",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 06, 2025",
+          "NAV per Share": "34.259269",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 03, 2025",
+          "NAV per Share": "34.196866",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "4000000"
+        },
+        {
+          "As Of": "Oct 02, 2025",
+          "NAV per Share": "34.190365",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3880000"
+        },
+        {
+          "As Of": "Oct 01, 2025",
+          "NAV per Share": "34.176707",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3600000"
+        },
+        {
+          "As Of": "Sep 30, 2025",
+          "NAV per Share": "34.11937",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3640000"
+        },
+        {
+          "As Of": "Sep 29, 2025",
+          "NAV per Share": "34.107279",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3640000"
+        },
+        {
+          "As Of": "Sep 26, 2025",
+          "NAV per Share": "34.077742",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3600000"
+        },
+        {
+          "As Of": "Sep 25, 2025",
+          "NAV per Share": "34.014056",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3600000"
+        },
+        {
+          "As Of": "Sep 24, 2025",
+          "NAV per Share": "34.039093",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3560000"
+        },
+        {
+          "As Of": "Sep 23, 2025",
+          "NAV per Share": "34.029478",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3560000"
+        },
+        {
+          "As Of": "Sep 22, 2025",
+          "NAV per Share": "34.045734",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3560000"
+        },
+        {
+          "As Of": "Sep 19, 2025",
+          "NAV per Share": "34.012207",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3560000"
+        },
+        {
+          "As Of": "Sep 18, 2025",
+          "NAV per Share": "33.944751",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3560000"
+        },
+        {
+          "As Of": "Sep 17, 2025",
+          "NAV per Share": "33.889196",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3560000"
+        },
+        {
+          "As Of": "Sep 16, 2025",
+          "NAV per Share": "33.877819",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3560000"
+        },
+        {
+          "As Of": "Sep 15, 2025",
+          "NAV per Share": "33.903148",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3560000"
+        },
+        {
+          "As Of": "Sep 12, 2025",
+          "NAV per Share": "33.844439",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3560000"
+        },
+        {
+          "As Of": "Sep 11, 2025",
+          "NAV per Share": "33.835482",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3560000"
+        },
+        {
+          "As Of": "Sep 10, 2025",
+          "NAV per Share": "33.75179",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3520000"
+        },
+        {
+          "As Of": "Sep 09, 2025",
+          "NAV per Share": "33.689071",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3520000"
+        },
+        {
+          "As Of": "Sep 08, 2025",
+          "NAV per Share": "33.658881",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3480000"
+        },
+        {
+          "As Of": "Sep 05, 2025",
+          "NAV per Share": "33.584919",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3480000"
+        },
+        {
+          "As Of": "Sep 04, 2025",
+          "NAV per Share": "33.621767",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3480000"
+        },
+        {
+          "As Of": "Sep 03, 2025",
+          "NAV per Share": "33.470397",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3480000"
+        },
+        {
+          "As Of": "Sep 02, 2025",
+          "NAV per Share": "33.35731",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3480000"
+        },
+        {
+          "As Of": "Aug 29, 2025",
+          "NAV per Share": "33.485559",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3480000"
+        },
+        {
+          "As Of": "Aug 28, 2025",
+          "NAV per Share": "33.577715",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3480000"
+        },
+        {
+          "As Of": "Aug 27, 2025",
+          "NAV per Share": "33.506096",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3480000"
+        },
+        {
+          "As Of": "Aug 26, 2025",
+          "NAV per Share": "33.465062",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3480000"
+        },
+        {
+          "As Of": "Aug 25, 2025",
+          "NAV per Share": "33.406179",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3440000"
+        },
+        {
+          "As Of": "Aug 22, 2025",
+          "NAV per Share": "33.448644",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3440000"
+        },
+        {
+          "As Of": "Aug 21, 2025",
+          "NAV per Share": "33.148083",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3440000"
+        },
+        {
+          "As Of": "Aug 20, 2025",
+          "NAV per Share": "33.244177",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3400000"
+        },
+        {
+          "As Of": "Aug 19, 2025",
+          "NAV per Share": "33.274631",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3400000"
+        },
+        {
+          "As Of": "Aug 18, 2025",
+          "NAV per Share": "33.362618",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3400000"
+        },
+        {
+          "As Of": "Aug 15, 2025",
+          "NAV per Share": "33.365762",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3360000"
+        },
+        {
+          "As Of": "Aug 14, 2025",
+          "NAV per Share": "33.378053",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3360000"
+        },
+        {
+          "As Of": "Aug 13, 2025",
+          "NAV per Share": "33.374772",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3360000"
+        },
+        {
+          "As Of": "Aug 12, 2025",
+          "NAV per Share": "33.311872",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3360000"
+        },
+        {
+          "As Of": "Aug 11, 2025",
+          "NAV per Share": "33.127379",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3320000"
+        },
+        {
+          "As Of": "Aug 08, 2025",
+          "NAV per Share": "33.145761",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3320000"
+        },
+        {
+          "As Of": "Aug 07, 2025",
+          "NAV per Share": "32.986904",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Aug 06, 2025",
+          "NAV per Share": "32.997988",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Aug 05, 2025",
+          "NAV per Share": "32.843784",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Aug 04, 2025",
+          "NAV per Share": "32.940932",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Aug 01, 2025",
+          "NAV per Share": "32.586664",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Jul 31, 2025",
+          "NAV per Share": "32.955674",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3240000"
+        },
+        {
+          "As Of": "Jul 30, 2025",
+          "NAV per Share": "33.00464",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3240000"
+        },
+        {
+          "As Of": "Jul 29, 2025",
+          "NAV per Share": "33.028022",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3240000"
+        },
+        {
+          "As Of": "Jul 28, 2025",
+          "NAV per Share": "33.064318",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3240000"
+        },
+        {
+          "As Of": "Jul 25, 2025",
+          "NAV per Share": "33.0549",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3240000"
+        },
+        {
+          "As Of": "Jul 24, 2025",
+          "NAV per Share": "32.974635",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3240000"
+        },
+        {
+          "As Of": "Jul 23, 2025",
+          "NAV per Share": "32.962614",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3240000"
+        },
+        {
+          "As Of": "Jul 22, 2025",
+          "NAV per Share": "32.796886",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Jul 21, 2025",
+          "NAV per Share": "32.785104",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Jul 18, 2025",
+          "NAV per Share": "32.751581",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Jul 17, 2025",
+          "NAV per Share": "32.741967",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Jul 16, 2025",
+          "NAV per Share": "32.633411",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Jul 15, 2025",
+          "NAV per Share": "32.55377",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Jul 14, 2025",
+          "NAV per Share": "32.627312",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Jul 11, 2025",
+          "NAV per Share": "32.583823",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Jul 10, 2025",
+          "NAV per Share": "32.662745",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Jul 09, 2025",
+          "NAV per Share": "32.597044",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3280000"
+        },
+        {
+          "As Of": "Jul 08, 2025",
+          "NAV per Share": "32.494853",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3240000"
+        },
+        {
+          "As Of": "Jul 07, 2025",
+          "NAV per Share": "32.471374",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3160000"
+        },
+        {
+          "As Of": "Jul 03, 2025",
+          "NAV per Share": "32.575154",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3160000"
+        },
+        {
+          "As Of": "Jul 02, 2025",
+          "NAV per Share": "32.468612",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2600000"
+        },
+        {
+          "As Of": "Jul 01, 2025",
+          "NAV per Share": "32.376782",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Jun 30, 2025",
+          "NAV per Share": "32.383928",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "Jun 27, 2025",
+          "NAV per Share": "32.372477",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "Jun 26, 2025",
+          "NAV per Share": "32.355765",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Jun 25, 2025",
+          "NAV per Share": "32.326706",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Jun 24, 2025",
+          "NAV per Share": "32.302468",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Jun 23, 2025",
+          "NAV per Share": "32.207904",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Jun 20, 2025",
+          "NAV per Share": "32.056225",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Jun 18, 2025",
+          "NAV per Share": "32.062834",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Jun 17, 2025",
+          "NAV per Share": "32.036912",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Jun 16, 2025",
+          "NAV per Share": "32.146821",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Jun 13, 2025",
+          "NAV per Share": "31.985379",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Jun 12, 2025",
+          "NAV per Share": "32.107964",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Jun 11, 2025",
+          "NAV per Share": "32.072441",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Jun 10, 2025",
+          "NAV per Share": "32.104565",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Jun 09, 2025",
+          "NAV per Share": "32.040186",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Jun 06, 2025",
+          "NAV per Share": "32.002416",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Jun 05, 2025",
+          "NAV per Share": "31.845882",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Jun 04, 2025",
+          "NAV per Share": "31.897439",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Jun 03, 2025",
+          "NAV per Share": "31.900459",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Jun 02, 2025",
+          "NAV per Share": "31.810527",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "May 30, 2025",
+          "NAV per Share": "31.697595",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "May 29, 2025",
+          "NAV per Share": "31.698495",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "May 28, 2025",
+          "NAV per Share": "31.650034",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "May 27, 2025",
+          "NAV per Share": "31.737822",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "May 23, 2025",
+          "NAV per Share": "31.369638",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "May 22, 2025",
+          "NAV per Share": "31.450002",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "May 21, 2025",
+          "NAV per Share": "31.463169",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "May 20, 2025",
+          "NAV per Share": "31.710965",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "May 19, 2025",
+          "NAV per Share": "31.723392",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "May 16, 2025",
+          "NAV per Share": "31.755801",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "May 15, 2025",
+          "NAV per Share": "31.664456",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "May 14, 2025",
+          "NAV per Share": "31.547734",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "May 13, 2025",
+          "NAV per Share": "31.576883",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "May 12, 2025",
+          "NAV per Share": "31.452703",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "May 09, 2025",
+          "NAV per Share": "30.827727",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "May 08, 2025",
+          "NAV per Share": "30.851747",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "May 07, 2025",
+          "NAV per Share": "30.689748",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "May 06, 2025",
+          "NAV per Share": "30.616737",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "May 05, 2025",
+          "NAV per Share": "30.765084",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "May 02, 2025",
+          "NAV per Share": "30.860914",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "May 01, 2025",
+          "NAV per Share": "30.563475",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "Apr 30, 2025",
+          "NAV per Share": "30.441402",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "Apr 29, 2025",
+          "NAV per Share": "30.453306",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "Apr 28, 2025",
+          "NAV per Share": "30.363019",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Apr 25, 2025",
+          "NAV per Share": "30.292321",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Apr 24, 2025",
+          "NAV per Share": "30.127561",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Apr 23, 2025",
+          "NAV per Share": "29.698732",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "Apr 22, 2025",
+          "NAV per Share": "29.378581",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "Apr 21, 2025",
+          "NAV per Share": "28.84208",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "Apr 17, 2025",
+          "NAV per Share": "29.304954",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Apr 16, 2025",
+          "NAV per Share": "29.277562",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Apr 15, 2025",
+          "NAV per Share": "29.762209",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Apr 14, 2025",
+          "NAV per Share": "29.820661",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Apr 11, 2025",
+          "NAV per Share": "29.513006",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Apr 10, 2025",
+          "NAV per Share": "29.089929",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Apr 09, 2025",
+          "NAV per Share": "29.917847",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Apr 08, 2025",
+          "NAV per Share": "27.886756",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Apr 07, 2025",
+          "NAV per Share": "28.280538",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Apr 04, 2025",
+          "NAV per Share": "28.308041",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Apr 03, 2025",
+          "NAV per Share": "29.801314",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Apr 02, 2025",
+          "NAV per Share": "30.704963",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Apr 01, 2025",
+          "NAV per Share": "30.647007",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Mar 31, 2025",
+          "NAV per Share": "30.553296",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Mar 28, 2025",
+          "NAV per Share": "30.289509",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2800000"
+        },
+        {
+          "As Of": "Mar 27, 2025",
+          "NAV per Share": "30.55467",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Mar 26, 2025",
+          "NAV per Share": "30.537756",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Mar 25, 2025",
+          "NAV per Share": "30.621844",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Mar 24, 2025",
+          "NAV per Share": "30.60659",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Mar 21, 2025",
+          "NAV per Share": "30.417871",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Mar 20, 2025",
+          "NAV per Share": "30.400033",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Mar 19, 2025",
+          "NAV per Share": "30.403534",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Mar 18, 2025",
+          "NAV per Share": "30.238349",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Mar 17, 2025",
+          "NAV per Share": "30.361018",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Mar 14, 2025",
+          "NAV per Share": "30.255235",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Mar 13, 2025",
+          "NAV per Share": "29.86173",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Mar 12, 2025",
+          "NAV per Share": "30.080222",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Mar 11, 2025",
+          "NAV per Share": "29.944941",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Mar 10, 2025",
+          "NAV per Share": "30.081601",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Mar 07, 2025",
+          "NAV per Share": "30.572926",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2640000"
+        },
+        {
+          "As Of": "Mar 06, 2025",
+          "NAV per Share": "30.445321",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2640000"
+        },
+        {
+          "As Of": "Mar 05, 2025",
+          "NAV per Share": "30.815697",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2600000"
+        },
+        {
+          "As Of": "Mar 04, 2025",
+          "NAV per Share": "30.566209",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2600000"
+        },
+        {
+          "As Of": "Mar 03, 2025",
+          "NAV per Share": "30.789154",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2600000"
+        },
+        {
+          "As Of": "Feb 28, 2025",
+          "NAV per Share": "31.127118",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2600000"
+        },
+        {
+          "As Of": "Feb 27, 2025",
+          "NAV per Share": "30.851055",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Feb 26, 2025",
+          "NAV per Share": "31.112568",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Feb 25, 2025",
+          "NAV per Share": "31.129778",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3040000"
+        },
+        {
+          "As Of": "Feb 24, 2025",
+          "NAV per Share": "31.191154",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3040000"
+        },
+        {
+          "As Of": "Feb 21, 2025",
+          "NAV per Share": "31.258578",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3040000"
+        },
+        {
+          "As Of": "Feb 20, 2025",
+          "NAV per Share": "31.568688",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3040000"
+        },
+        {
+          "As Of": "Feb 19, 2025",
+          "NAV per Share": "31.615521",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3040000"
+        },
+        {
+          "As Of": "Feb 18, 2025",
+          "NAV per Share": "31.588091",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3040000"
+        },
+        {
+          "As Of": "Feb 14, 2025",
+          "NAV per Share": "31.512506",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3040000"
+        },
+        {
+          "As Of": "Feb 13, 2025",
+          "NAV per Share": "31.493548",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3040000"
+        },
+        {
+          "As Of": "Feb 12, 2025",
+          "NAV per Share": "31.34101",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3040000"
+        },
+        {
+          "As Of": "Feb 11, 2025",
+          "NAV per Share": "31.39174",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3040000"
+        },
+        {
+          "As Of": "Feb 10, 2025",
+          "NAV per Share": "31.365531",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "3000000"
+        },
+        {
+          "As Of": "Feb 07, 2025",
+          "NAV per Share": "31.082471",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2960000"
+        },
+        {
+          "As Of": "Feb 06, 2025",
+          "NAV per Share": "31.380173",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Feb 05, 2025",
+          "NAV per Share": "31.319245",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Feb 04, 2025",
+          "NAV per Share": "31.241065",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Feb 03, 2025",
+          "NAV per Share": "31.113316",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Jan 31, 2025",
+          "NAV per Share": "31.204341",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Jan 30, 2025",
+          "NAV per Share": "31.299446",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Jan 29, 2025",
+          "NAV per Share": "31.20365",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Jan 28, 2025",
+          "NAV per Share": "31.247821",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Jan 27, 2025",
+          "NAV per Share": "31.120744",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Jan 24, 2025",
+          "NAV per Share": "31.328706",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Jan 23, 2025",
+          "NAV per Share": "31.375984",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Jan 22, 2025",
+          "NAV per Share": "31.285529",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "Jan 21, 2025",
+          "NAV per Share": "31.209583",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "Jan 17, 2025",
+          "NAV per Share": "31.045122",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "Jan 16, 2025",
+          "NAV per Share": "30.898667",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2840000"
+        },
+        {
+          "As Of": "Jan 15, 2025",
+          "NAV per Share": "30.912412",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Jan 14, 2025",
+          "NAV per Share": "30.581515",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2880000"
+        },
+        {
+          "As Of": "Jan 13, 2025",
+          "NAV per Share": "30.570638",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2640000"
+        },
+        {
+          "As Of": "Jan 10, 2025",
+          "NAV per Share": "30.51642",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2640000"
+        },
+        {
+          "As Of": "Jan 08, 2025",
+          "NAV per Share": "30.762414",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2640000"
+        },
+        {
+          "As Of": "Jan 07, 2025",
+          "NAV per Share": "30.747769",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2640000"
+        },
+        {
+          "As Of": "Jan 06, 2025",
+          "NAV per Share": "30.942233",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Jan 03, 2025",
+          "NAV per Share": "30.846248",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Jan 02, 2025",
+          "NAV per Share": "30.630553",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Dec 31, 2024",
+          "NAV per Share": "30.670471",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Dec 30, 2024",
+          "NAV per Share": "30.806229",
+          "Ex-Dividends": "0.189812",
+          "Shares Outstanding": "2760000"
+        },
+        {
+          "As Of": "Dec 27, 2024",
+          "NAV per Share": "31.293869",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Dec 26, 2024",
+          "NAV per Share": "31.594566",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Dec 24, 2024",
+          "NAV per Share": "31.608982",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Dec 23, 2024",
+          "NAV per Share": "31.320305",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Dec 20, 2024",
+          "NAV per Share": "31.117283",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2720000"
+        },
+        {
+          "As Of": "Dec 19, 2024",
+          "NAV per Share": "30.882319",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Dec 18, 2024",
+          "NAV per Share": "30.791791",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Dec 17, 2024",
+          "NAV per Share": "31.53179",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Dec 16, 2024",
+          "NAV per Share": "31.60035",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Dec 13, 2024",
+          "NAV per Share": "31.533612",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Dec 12, 2024",
+          "NAV per Share": "31.513049",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Dec 11, 2024",
+          "NAV per Share": "31.585579",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Dec 10, 2024",
+          "NAV per Share": "31.447299",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Dec 09, 2024",
+          "NAV per Share": "31.472177",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Dec 06, 2024",
+          "NAV per Share": "31.547458",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2680000"
+        },
+        {
+          "As Of": "Dec 05, 2024",
+          "NAV per Share": "31.517013",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2640000"
+        },
+        {
+          "As Of": "Dec 04, 2024",
+          "NAV per Share": "31.532397",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2640000"
+        },
+        {
+          "As Of": "Dec 03, 2024",
+          "NAV per Share": "31.430193",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2640000"
+        },
+        {
+          "As Of": "Dec 02, 2024",
+          "NAV per Share": "31.406193",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2640000"
+        },
+        {
+          "As Of": "Nov 29, 2024",
+          "NAV per Share": "31.371229",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2640000"
+        },
+        {
+          "As Of": "Nov 27, 2024",
+          "NAV per Share": "31.25932",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2600000"
+        },
+        {
+          "As Of": "Nov 26, 2024",
+          "NAV per Share": "31.299279",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2600000"
+        },
+        {
+          "As Of": "Nov 25, 2024",
+          "NAV per Share": "31.181787",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2600000"
+        },
+        {
+          "As Of": "Nov 22, 2024",
+          "NAV per Share": "31.122368",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2600000"
+        },
+        {
+          "As Of": "Nov 21, 2024",
+          "NAV per Share": "31.022996",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2600000"
+        },
+        {
+          "As Of": "Nov 20, 2024",
+          "NAV per Share": "30.947228",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Nov 19, 2024",
+          "NAV per Share": "30.929969",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Nov 18, 2024",
+          "NAV per Share": "30.873091",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Nov 15, 2024",
+          "NAV per Share": "30.77136",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Nov 14, 2024",
+          "NAV per Share": "30.989604",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Nov 13, 2024",
+          "NAV per Share": "31.093417",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Nov 12, 2024",
+          "NAV per Share": "31.071896",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Nov 11, 2024",
+          "NAV per Share": "31.112505",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Nov 08, 2024",
+          "NAV per Share": "31.110233",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Nov 07, 2024",
+          "NAV per Share": "31.014363",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Nov 06, 2024",
+          "NAV per Share": "30.882558",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2560000"
+        },
+        {
+          "As Of": "Nov 05, 2024",
+          "NAV per Share": "30.4582",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2520000"
+        },
+        {
+          "As Of": "Nov 04, 2024",
+          "NAV per Share": "30.235851",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2480000"
+        },
+        {
+          "As Of": "Nov 01, 2024",
+          "NAV per Share": "30.261836",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2400000"
+        },
+        {
+          "As Of": "Oct 31, 2024",
+          "NAV per Share": "30.171736",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2360000"
+        },
+        {
+          "As Of": "Oct 30, 2024",
+          "NAV per Share": "30.511302",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2360000"
+        },
+        {
+          "As Of": "Oct 29, 2024",
+          "NAV per Share": "30.568824",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2360000"
+        },
+        {
+          "As Of": "Oct 28, 2024",
+          "NAV per Share": "30.533958",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2360000"
+        },
+        {
+          "As Of": "Oct 25, 2024",
+          "NAV per Share": "30.467903",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2360000"
+        },
+        {
+          "As Of": "Oct 24, 2024",
+          "NAV per Share": "30.523062",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2320000"
+        },
+        {
+          "As Of": "Oct 23, 2024",
+          "NAV per Share": "30.444336",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2320000"
+        },
+        {
+          "As Of": "Oct 22, 2024",
+          "NAV per Share": "30.596843",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2320000"
+        },
+        {
+          "As Of": "Oct 21, 2024",
+          "NAV per Share": "30.611535",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2320000"
+        },
+        {
+          "As Of": "Oct 18, 2024",
+          "NAV per Share": "30.62617",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2320000"
+        },
+        {
+          "As Of": "Oct 17, 2024",
+          "NAV per Share": "30.538319",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2320000"
+        },
+        {
+          "As Of": "Oct 16, 2024",
+          "NAV per Share": "30.513549",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2320000"
+        },
+        {
+          "As Of": "Oct 15, 2024",
+          "NAV per Share": "30.422709",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2320000"
+        },
+        {
+          "As Of": "Oct 14, 2024",
+          "NAV per Share": "30.586627",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2240000"
+        },
+        {
+          "As Of": "Oct 11, 2024",
+          "NAV per Share": "30.428494",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2240000"
+        },
+        {
+          "As Of": "Oct 10, 2024",
+          "NAV per Share": "30.32323",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2240000"
+        },
+        {
+          "As Of": "Oct 09, 2024",
+          "NAV per Share": "30.350988",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2240000"
+        },
+        {
+          "As Of": "Oct 08, 2024",
+          "NAV per Share": "30.230398",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2240000"
+        },
+        {
+          "As Of": "Oct 07, 2024",
+          "NAV per Share": "30.04722",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "2240000"
+        },
+        {
+          "As Of": "Oct 04, 2024",
+          "NAV per Share": "30.232944",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1720000"
+        },
+        {
+          "As Of": "Oct 03, 2024",
+          "NAV per Share": "30.070544",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1720000"
+        },
+        {
+          "As Of": "Oct 02, 2024",
+          "NAV per Share": "30.083087",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Oct 01, 2024",
+          "NAV per Share": "30.079509",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 30, 2024",
+          "NAV per Share": "30.253237",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1720000"
+        },
+        {
+          "As Of": "Sep 27, 2024",
+          "NAV per Share": "30.121399",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1720000"
+        },
+        {
+          "As Of": "Sep 26, 2024",
+          "NAV per Share": "30.167483",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 25, 2024",
+          "NAV per Share": "30.058531",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 24, 2024",
+          "NAV per Share": "30.085309",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 23, 2024",
+          "NAV per Share": "30.028763",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 20, 2024",
+          "NAV per Share": "29.984586",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 19, 2024",
+          "NAV per Share": "29.976574",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 18, 2024",
+          "NAV per Share": "29.639",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 17, 2024",
+          "NAV per Share": "29.690458",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 16, 2024",
+          "NAV per Share": "29.690778",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 13, 2024",
+          "NAV per Share": "29.66024",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 12, 2024",
+          "NAV per Share": "29.554447",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 11, 2024",
+          "NAV per Share": "29.393637",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1680000"
+        },
+        {
+          "As Of": "Sep 10, 2024",
+          "NAV per Share": "29.220858",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Sep 09, 2024",
+          "NAV per Share": "29.113521",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Sep 06, 2024",
+          "NAV per Share": "28.908257",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Sep 05, 2024",
+          "NAV per Share": "29.198145",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Sep 04, 2024",
+          "NAV per Share": "29.244754",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Sep 03, 2024",
+          "NAV per Share": "29.276825",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 30, 2024",
+          "NAV per Share": "29.665347",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 29, 2024",
+          "NAV per Share": "29.480294",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 28, 2024",
+          "NAV per Share": "29.47184",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 27, 2024",
+          "NAV per Share": "29.566458",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 26, 2024",
+          "NAV per Share": "29.523534",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 23, 2024",
+          "NAV per Share": "29.57282",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 22, 2024",
+          "NAV per Share": "29.371453",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 21, 2024",
+          "NAV per Share": "29.512546",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 20, 2024",
+          "NAV per Share": "29.454569",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 19, 2024",
+          "NAV per Share": "29.493024",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 16, 2024",
+          "NAV per Share": "29.32828",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 15, 2024",
+          "NAV per Share": "29.279985",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 14, 2024",
+          "NAV per Share": "28.980428",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 13, 2024",
+          "NAV per Share": "28.922952",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 12, 2024",
+          "NAV per Share": "28.618581",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 09, 2024",
+          "NAV per Share": "28.616859",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 08, 2024",
+          "NAV per Share": "28.489799",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 07, 2024",
+          "NAV per Share": "28.057772",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 06, 2024",
+          "NAV per Share": "28.185534",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 05, 2024",
+          "NAV per Share": "27.89714",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 02, 2024",
+          "NAV per Share": "28.52612",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Aug 01, 2024",
+          "NAV per Share": "28.894348",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Jul 31, 2024",
+          "NAV per Share": "29.096743",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Jul 30, 2024",
+          "NAV per Share": "28.860112",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Jul 29, 2024",
+          "NAV per Share": "28.944431",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Jul 26, 2024",
+          "NAV per Share": "28.915284",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1600000"
+        },
+        {
+          "As Of": "Jul 25, 2024",
+          "NAV per Share": "28.720446",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1560000"
+        },
+        {
+          "As Of": "Jul 24, 2024",
+          "NAV per Share": "28.815823",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1560000"
+        },
+        {
+          "As Of": "Jul 23, 2024",
+          "NAV per Share": "29.180263",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1560000"
+        },
+        {
+          "As Of": "Jul 22, 2024",
+          "NAV per Share": "29.202894",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1560000"
+        },
+        {
+          "As Of": "Jul 19, 2024",
+          "NAV per Share": "29.030077",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1560000"
+        },
+        {
+          "As Of": "Jul 18, 2024",
+          "NAV per Share": "29.114954",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1560000"
+        },
+        {
+          "As Of": "Jul 17, 2024",
+          "NAV per Share": "29.230257",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1560000"
+        },
+        {
+          "As Of": "Jul 16, 2024",
+          "NAV per Share": "29.42203",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1560000"
+        },
+        {
+          "As Of": "Jul 15, 2024",
+          "NAV per Share": "29.354017",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1560000"
+        },
+        {
+          "As Of": "Jul 12, 2024",
+          "NAV per Share": "29.354132",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1560000"
+        },
+        {
+          "As Of": "Jul 11, 2024",
+          "NAV per Share": "29.225138",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1520000"
+        },
+        {
+          "As Of": "Jul 10, 2024",
+          "NAV per Share": "29.322778",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1520000"
+        },
+        {
+          "As Of": "Jul 09, 2024",
+          "NAV per Share": "29.21484",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1520000"
+        },
+        {
+          "As Of": "Jul 08, 2024",
+          "NAV per Share": "29.203443",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1520000"
+        },
+        {
+          "As Of": "Jul 05, 2024",
+          "NAV per Share": "29.176453",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1520000"
+        },
+        {
+          "As Of": "Jul 03, 2024",
+          "NAV per Share": "29.088762",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1520000"
+        },
+        {
+          "As Of": "Jul 02, 2024",
+          "NAV per Share": "29.014693",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1520000"
+        },
+        {
+          "As Of": "Jul 01, 2024",
+          "NAV per Share": "28.913659",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1520000"
+        },
+        {
+          "As Of": "Jun 28, 2024",
+          "NAV per Share": "28.885188",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1520000"
+        },
+        {
+          "As Of": "Jun 27, 2024",
+          "NAV per Share": "28.977297",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1520000"
+        },
+        {
+          "As Of": "Jun 26, 2024",
+          "NAV per Share": "28.931872",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 25, 2024",
+          "NAV per Share": "28.89459",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 24, 2024",
+          "NAV per Share": "28.808791",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 21, 2024",
+          "NAV per Share": "28.845289",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 20, 2024",
+          "NAV per Share": "28.844601",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 18, 2024",
+          "NAV per Share": "28.904347",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 17, 2024",
+          "NAV per Share": "28.857059",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 14, 2024",
+          "NAV per Share": "28.711092",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 13, 2024",
+          "NAV per Share": "28.701",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 12, 2024",
+          "NAV per Share": "28.643287",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 11, 2024",
+          "NAV per Share": "28.480771",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 10, 2024",
+          "NAV per Share": "28.420616",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 07, 2024",
+          "NAV per Share": "28.353705",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 06, 2024",
+          "NAV per Share": "28.380134",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 05, 2024",
+          "NAV per Share": "28.393547",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 04, 2024",
+          "NAV per Share": "28.183372",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "Jun 03, 2024",
+          "NAV per Share": "28.156785",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "May 31, 2024",
+          "NAV per Share": "28.142112",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "May 30, 2024",
+          "NAV per Share": "27.963452",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1480000"
+        },
+        {
+          "As Of": "May 29, 2024",
+          "NAV per Share": "28.095526",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1440000"
+        },
+        {
+          "As Of": "May 28, 2024",
+          "NAV per Share": "28.21864",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1440000"
+        },
+        {
+          "As Of": "May 24, 2024",
+          "NAV per Share": "28.186259",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1440000"
+        },
+        {
+          "As Of": "May 23, 2024",
+          "NAV per Share": "28.067842",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1400000"
+        },
+        {
+          "As Of": "May 22, 2024",
+          "NAV per Share": "28.195823",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1400000"
+        },
+        {
+          "As Of": "May 21, 2024",
+          "NAV per Share": "28.241975",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1400000"
+        },
+        {
+          "As Of": "May 20, 2024",
+          "NAV per Share": "28.193719",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1400000"
+        },
+        {
+          "As Of": "May 17, 2024",
+          "NAV per Share": "28.176736",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1400000"
+        },
+        {
+          "As Of": "May 16, 2024",
+          "NAV per Share": "28.142905",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1400000"
+        },
+        {
+          "As Of": "May 15, 2024",
+          "NAV per Share": "28.182158",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1400000"
+        },
+        {
+          "As Of": "May 14, 2024",
+          "NAV per Share": "27.974324",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1400000"
+        },
+        {
+          "As Of": "May 13, 2024",
+          "NAV per Share": "27.904815",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "May 10, 2024",
+          "NAV per Share": "27.898137",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "May 09, 2024",
+          "NAV per Share": "27.894014",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "May 08, 2024",
+          "NAV per Share": "27.781693",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "May 07, 2024",
+          "NAV per Share": "27.7809",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "May 06, 2024",
+          "NAV per Share": "27.762049",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "May 03, 2024",
+          "NAV per Share": "27.605186",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "May 02, 2024",
+          "NAV per Share": "27.413761",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "May 01, 2024",
+          "NAV per Share": "27.277429",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 30, 2024",
+          "NAV per Share": "27.301187",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 29, 2024",
+          "NAV per Share": "27.548869",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 26, 2024",
+          "NAV per Share": "27.487367",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 25, 2024",
+          "NAV per Share": "27.335205",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 24, 2024",
+          "NAV per Share": "27.39",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 23, 2024",
+          "NAV per Share": "27.396102",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 22, 2024",
+          "NAV per Share": "27.198049",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 19, 2024",
+          "NAV per Share": "27.018012",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 18, 2024",
+          "NAV per Share": "27.154713",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 17, 2024",
+          "NAV per Share": "27.184063",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 16, 2024",
+          "NAV per Share": "27.273172",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 15, 2024",
+          "NAV per Share": "27.291786",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 12, 2024",
+          "NAV per Share": "27.488661",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 11, 2024",
+          "NAV per Share": "27.713925",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 10, 2024",
+          "NAV per Share": "27.591395",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 09, 2024",
+          "NAV per Share": "27.738447",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1360000"
+        },
+        {
+          "As Of": "Apr 08, 2024",
+          "NAV per Share": "27.713407",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1320000"
+        },
+        {
+          "As Of": "Apr 05, 2024",
+          "NAV per Share": "27.684966",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1320000"
+        },
+        {
+          "As Of": "Apr 04, 2024",
+          "NAV per Share": "27.534604",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1320000"
+        },
+        {
+          "As Of": "Apr 03, 2024",
+          "NAV per Share": "27.717141",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Apr 02, 2024",
+          "NAV per Share": "27.708373",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Apr 01, 2024",
+          "NAV per Share": "27.800519",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 31, 2024",
+          "NAV per Share": "27.825543",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "--"
+        },
+        {
+          "As Of": "Mar 29, 2024",
+          "NAV per Share": "27.825543",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "--"
+        },
+        {
+          "As Of": "Mar 28, 2024",
+          "NAV per Share": "27.825543",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1280000"
+        },
+        {
+          "As Of": "Mar 27, 2024",
+          "NAV per Share": "27.846729",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1280000"
+        },
+        {
+          "As Of": "Mar 26, 2024",
+          "NAV per Share": "27.802477",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 25, 2024",
+          "NAV per Share": "27.781036",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 22, 2024",
+          "NAV per Share": "27.799418",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 21, 2024",
+          "NAV per Share": "27.787413",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 20, 2024",
+          "NAV per Share": "27.794611",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 19, 2024",
+          "NAV per Share": "27.746453",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 18, 2024",
+          "NAV per Share": "27.701675",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 15, 2024",
+          "NAV per Share": "27.645745",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 14, 2024",
+          "NAV per Share": "27.71154",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 13, 2024",
+          "NAV per Share": "27.69744",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 12, 2024",
+          "NAV per Share": "27.695485",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 11, 2024",
+          "NAV per Share": "27.651011",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 08, 2024",
+          "NAV per Share": "27.626147",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 07, 2024",
+          "NAV per Share": "27.637986",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 06, 2024",
+          "NAV per Share": "27.589473",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 05, 2024",
+          "NAV per Share": "27.550949",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 04, 2024",
+          "NAV per Share": "27.615507",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Mar 01, 2024",
+          "NAV per Share": "27.612358",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 29, 2024",
+          "NAV per Share": "27.533633",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 28, 2024",
+          "NAV per Share": "27.535256",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 27, 2024",
+          "NAV per Share": "27.530523",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 26, 2024",
+          "NAV per Share": "27.503181",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 23, 2024",
+          "NAV per Share": "27.509883",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 22, 2024",
+          "NAV per Share": "27.497561",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 21, 2024",
+          "NAV per Share": "27.310658",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 20, 2024",
+          "NAV per Share": "27.293017",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 16, 2024",
+          "NAV per Share": "27.345264",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 15, 2024",
+          "NAV per Share": "27.380203",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 14, 2024",
+          "NAV per Share": "27.297438",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 13, 2024",
+          "NAV per Share": "27.195209",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 12, 2024",
+          "NAV per Share": "27.340372",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 09, 2024",
+          "NAV per Share": "27.350785",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 08, 2024",
+          "NAV per Share": "27.289508",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 07, 2024",
+          "NAV per Share": "27.273251",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 06, 2024",
+          "NAV per Share": "27.183273",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 05, 2024",
+          "NAV per Share": "27.137827",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 02, 2024",
+          "NAV per Share": "27.158909",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Feb 01, 2024",
+          "NAV per Share": "27.054725",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Jan 31, 2024",
+          "NAV per Share": "26.834848",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Jan 30, 2024",
+          "NAV per Share": "27.065352",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Jan 29, 2024",
+          "NAV per Share": "27.076773",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Jan 26, 2024",
+          "NAV per Share": "26.977939",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Jan 25, 2024",
+          "NAV per Share": "26.990565",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Jan 24, 2024",
+          "NAV per Share": "26.904523",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1240000"
+        },
+        {
+          "As Of": "Jan 23, 2024",
+          "NAV per Share": "26.906542",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 22, 2024",
+          "NAV per Share": "26.850564",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 19, 2024",
+          "NAV per Share": "26.820338",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 18, 2024",
+          "NAV per Share": "26.630655",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 17, 2024",
+          "NAV per Share": "26.499996",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 16, 2024",
+          "NAV per Share": "26.578758",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 12, 2024",
+          "NAV per Share": "26.63519",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 11, 2024",
+          "NAV per Share": "26.621922",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 10, 2024",
+          "NAV per Share": "26.617871",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 09, 2024",
+          "NAV per Share": "26.532649",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 08, 2024",
+          "NAV per Share": "26.537237",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 05, 2024",
+          "NAV per Share": "26.326675",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 04, 2024",
+          "NAV per Share": "26.295407",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "1200000"
+        },
+        {
+          "As Of": "Jan 03, 2024",
+          "NAV per Share": "26.33174",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Jan 02, 2024",
+          "NAV per Share": "26.468941",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 29, 2023",
+          "NAV per Share": "26.530213",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 28, 2023",
+          "NAV per Share": "26.565412",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "920000"
+        },
+        {
+          "As Of": "Dec 27, 2023",
+          "NAV per Share": "26.555586",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "920000"
+        },
+        {
+          "As Of": "Dec 26, 2023",
+          "NAV per Share": "26.537334",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 22, 2023",
+          "NAV per Share": "26.517781",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 21, 2023",
+          "NAV per Share": "26.503428",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 20, 2023",
+          "NAV per Share": "26.487",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 19, 2023",
+          "NAV per Share": "26.499309",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 18, 2023",
+          "NAV per Share": "26.483404",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 15, 2023",
+          "NAV per Share": "26.471249",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 14, 2023",
+          "NAV per Share": "26.472578",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 13, 2023",
+          "NAV per Share": "26.459375",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 12, 2023",
+          "NAV per Share": "26.428851",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 11, 2023",
+          "NAV per Share": "26.38995",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 08, 2023",
+          "NAV per Share": "26.345249",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "480000"
+        },
+        {
+          "As Of": "Dec 07, 2023",
+          "NAV per Share": "26.285827",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Dec 06, 2023",
+          "NAV per Share": "26.212435",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Dec 05, 2023",
+          "NAV per Share": "26.245539",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Dec 04, 2023",
+          "NAV per Share": "26.239011",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Dec 01, 2023",
+          "NAV per Share": "26.267896",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 30, 2023",
+          "NAV per Share": "26.215727",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 29, 2023",
+          "NAV per Share": "26.177655",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 28, 2023",
+          "NAV per Share": "26.184476",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 27, 2023",
+          "NAV per Share": "26.170462",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 24, 2023",
+          "NAV per Share": "26.156498",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 22, 2023",
+          "NAV per Share": "26.138761",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 21, 2023",
+          "NAV per Share": "26.090727",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 20, 2023",
+          "NAV per Share": "26.107642",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 17, 2023",
+          "NAV per Share": "25.995349",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 16, 2023",
+          "NAV per Share": "25.974013",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 15, 2023",
+          "NAV per Share": "25.951775",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 14, 2023",
+          "NAV per Share": "25.92572",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 13, 2023",
+          "NAV per Share": "25.641776",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 10, 2023",
+          "NAV per Share": "25.640631",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 09, 2023",
+          "NAV per Share": "25.378734",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 08, 2023",
+          "NAV per Share": "25.514154",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 07, 2023",
+          "NAV per Share": "25.49449",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 06, 2023",
+          "NAV per Share": "25.442453",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 03, 2023",
+          "NAV per Share": "25.400885",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 02, 2023",
+          "NAV per Share": "25.244186",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Nov 01, 2023",
+          "NAV per Share": "24.943421",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 31, 2023",
+          "NAV per Share": "24.767853",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 30, 2023",
+          "NAV per Share": "24.67386",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 27, 2023",
+          "NAV per Share": "24.444854",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 26, 2023",
+          "NAV per Share": "24.528291",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 25, 2023",
+          "NAV per Share": "24.717952",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 24, 2023",
+          "NAV per Share": "24.948787",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 23, 2023",
+          "NAV per Share": "24.827579",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 20, 2023",
+          "NAV per Share": "24.830647",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 19, 2023",
+          "NAV per Share": "25.024007",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 18, 2023",
+          "NAV per Share": "25.1506",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 17, 2023",
+          "NAV per Share": "25.357865",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 16, 2023",
+          "NAV per Share": "25.359742",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 13, 2023",
+          "NAV per Share": "25.183927",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 12, 2023",
+          "NAV per Share": "25.27503",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 11, 2023",
+          "NAV per Share": "25.348448",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 10, 2023",
+          "NAV per Share": "25.297449",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 09, 2023",
+          "NAV per Share": "25.203953",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 06, 2023",
+          "NAV per Share": "25.110373",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 05, 2023",
+          "NAV per Share": "24.917981",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 04, 2023",
+          "NAV per Share": "24.933554",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 03, 2023",
+          "NAV per Share": "24.792857",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Oct 02, 2023",
+          "NAV per Share": "25.013088",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 29, 2023",
+          "NAV per Share": "25.006875",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 28, 2023",
+          "NAV per Share": "25.048779",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 27, 2023",
+          "NAV per Share": "24.952906",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 26, 2023",
+          "NAV per Share": "24.946131",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 25, 2023",
+          "NAV per Share": "25.005513",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 22, 2023",
+          "NAV per Share": "24.99582",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 21, 2023",
+          "NAV per Share": "24.987223",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 20, 2023",
+          "NAV per Share": "25.177177",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 19, 2023",
+          "NAV per Share": "25.378229",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 18, 2023",
+          "NAV per Share": "25.38695",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 15, 2023",
+          "NAV per Share": "25.362344",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 14, 2023",
+          "NAV per Share": "25.63478",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 13, 2023",
+          "NAV per Share": "25.450479",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 12, 2023",
+          "NAV per Share": "25.443297",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 11, 2023",
+          "NAV per Share": "25.55262",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 08, 2023",
+          "NAV per Share": "25.414258",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 07, 2023",
+          "NAV per Share": "25.408044",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 06, 2023",
+          "NAV per Share": "25.463282",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 05, 2023",
+          "NAV per Share": "25.607031",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Sep 01, 2023",
+          "NAV per Share": "25.654165",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 31, 2023",
+          "NAV per Share": "25.645213",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 30, 2023",
+          "NAV per Share": "25.662707",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 29, 2023",
+          "NAV per Share": "25.59752",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 28, 2023",
+          "NAV per Share": "25.340815",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 25, 2023",
+          "NAV per Share": "25.235593",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 24, 2023",
+          "NAV per Share": "25.110249",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 23, 2023",
+          "NAV per Share": "25.35064",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 22, 2023",
+          "NAV per Share": "25.162952",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 21, 2023",
+          "NAV per Share": "25.217671",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 18, 2023",
+          "NAV per Share": "25.092252",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 17, 2023",
+          "NAV per Share": "25.092313",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 16, 2023",
+          "NAV per Share": "25.229847",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 15, 2023",
+          "NAV per Share": "25.335641",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 14, 2023",
+          "NAV per Share": "25.514931",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 11, 2023",
+          "NAV per Share": "25.416542",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 10, 2023",
+          "NAV per Share": "25.414101",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 09, 2023",
+          "NAV per Share": "25.417975",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 08, 2023",
+          "NAV per Share": "25.514309",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 07, 2023",
+          "NAV per Share": "25.566786",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 04, 2023",
+          "NAV per Share": "25.424028",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 03, 2023",
+          "NAV per Share": "25.505473",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 02, 2023",
+          "NAV per Share": "25.525441",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Aug 01, 2023",
+          "NAV per Share": "25.723039",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 31, 2023",
+          "NAV per Share": "25.744318",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 28, 2023",
+          "NAV per Share": "25.719988",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 27, 2023",
+          "NAV per Share": "25.590382",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 26, 2023",
+          "NAV per Share": "25.675049",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 25, 2023",
+          "NAV per Share": "25.661599",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 24, 2023",
+          "NAV per Share": "25.63936",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 21, 2023",
+          "NAV per Share": "25.575418",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 20, 2023",
+          "NAV per Share": "25.56359",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 19, 2023",
+          "NAV per Share": "25.627058",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 18, 2023",
+          "NAV per Share": "25.611439",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 17, 2023",
+          "NAV per Share": "25.526677",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 14, 2023",
+          "NAV per Share": "25.465881",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "440000"
+        },
+        {
+          "As Of": "Jul 13, 2023",
+          "NAV per Share": "25.470478",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "400000"
+        },
+        {
+          "As Of": "Jul 12, 2023",
+          "NAV per Share": "25.361635",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "400000"
+        },
+        {
+          "As Of": "Jul 11, 2023",
+          "NAV per Share": "25.233432",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "400000"
+        },
+        {
+          "As Of": "Jul 10, 2023",
+          "NAV per Share": "25.135015",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "400000"
+        },
+        {
+          "As Of": "Jul 07, 2023",
+          "NAV per Share": "25.096532",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "400000"
+        },
+        {
+          "As Of": "Jul 06, 2023",
+          "NAV per Share": "25.119195",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "400000"
+        },
+        {
+          "As Of": "Jul 05, 2023",
+          "NAV per Share": "25.23883",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "400000"
+        },
+        {
+          "As Of": "Jul 03, 2023",
+          "NAV per Share": "25.266581",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "400000"
+        },
+        {
+          "As Of": "Jun 30, 2023",
+          "NAV per Share": "25.23117",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "400000"
+        },
+        {
+          "As Of": "Jun 29, 2023",
+          "NAV per Share": "25.029657",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "400000"
+        },
+        {
+          "As Of": "Jun 28, 2023",
+          "NAV per Share": "25.03",
+          "Ex-Dividends": "--",
+          "Shares Outstanding": "400000"
+        }
+      ]
+    },
+    "Performance": {
+      "headers": [
+        "Fund Inception",
+        "06/28/2023"
+      ],
+      "rows": [
+        {
+          "Fund Inception": "Month End Date",
+          "06/28/2023": "Monthly Total (NAV) Return"
+        },
+        {
+          "Fund Inception": "Jun 30, 2023",
+          "06/28/2023": "--"
+        },
+        {
+          "Fund Inception": "Jul 31, 2023",
+          "06/28/2023": "2.034"
+        },
+        {
+          "Fund Inception": "Aug 31, 2023",
+          "06/28/2023": "-0.385"
+        },
+        {
+          "Fund Inception": "Sep 30, 2023",
+          "06/28/2023": "-2.489"
+        },
+        {
+          "Fund Inception": "Oct 31, 2023",
+          "06/28/2023": "-0.956"
+        },
+        {
+          "Fund Inception": "Nov 30, 2023",
+          "06/28/2023": "5.846"
+        },
+        {
+          "Fund Inception": "Dec 31, 2023",
+          "06/28/2023": "1.199"
+        },
+        {
+          "Fund Inception": "Jan 31, 2024",
+          "06/28/2023": "1.148"
+        },
+        {
+          "Fund Inception": "Feb 29, 2024",
+          "06/28/2023": "2.604"
+        },
+        {
+          "Fund Inception": "Mar 31, 2024",
+          "06/28/2023": "1.06"
+        },
+        {
+          "Fund Inception": "Apr 30, 2024",
+          "06/28/2023": "-1.884"
+        },
+        {
+          "Fund Inception": "May 31, 2024",
+          "06/28/2023": "3.08"
+        },
+        {
+          "Fund Inception": "Jun 30, 2024",
+          "06/28/2023": "2.64"
+        },
+        {
+          "Fund Inception": "Jul 31, 2024",
+          "06/28/2023": "0.732"
+        },
+        {
+          "Fund Inception": "Aug 31, 2024",
+          "06/28/2023": "1.954"
+        },
+        {
+          "Fund Inception": "Sep 30, 2024",
+          "06/28/2023": "1.982"
+        },
+        {
+          "Fund Inception": "Oct 31, 2024",
+          "06/28/2023": "-0.269"
+        },
+        {
+          "Fund Inception": "Nov 30, 2024",
+          "06/28/2023": "3.976"
+        },
+        {
+          "Fund Inception": "Dec 31, 2024",
+          "06/28/2023": "-1.632"
+        },
+        {
+          "Fund Inception": "Jan 31, 2025",
+          "06/28/2023": "1.741"
+        },
+        {
+          "Fund Inception": "Feb 28, 2025",
+          "06/28/2023": "-0.248"
+        },
+        {
+          "Fund Inception": "Mar 31, 2025",
+          "06/28/2023": "-1.844"
+        },
+        {
+          "Fund Inception": "Apr 30, 2025",
+          "06/28/2023": "-0.366"
+        },
+        {
+          "Fund Inception": "May 31, 2025",
+          "06/28/2023": "4.127"
+        },
+        {
+          "Fund Inception": "Jun 30, 2025",
+          "06/28/2023": "2.165"
+        },
+        {
+          "Fund Inception": "Jul 31, 2025",
+          "06/28/2023": "1.765"
+        },
+        {
+          "Fund Inception": "Aug 31, 2025",
+          "06/28/2023": "1.608"
+        },
+        {
+          "Fund Inception": "Sep 30, 2025",
+          "06/28/2023": "1.893"
+        },
+        {
+          "Fund Inception": "Oct 31, 2025",
+          "06/28/2023": "1.442"
+        },
+        {
+          "Fund Inception": "Nov 30, 2025",
+          "06/28/2023": "0.788"
+        },
+        {
+          "Fund Inception": "Dec 31, 2025",
+          "06/28/2023": "0.279"
+        },
+        {
+          "Fund Inception": "Jan 31, 2026",
+          "06/28/2023": "0.938"
+        },
+        {
+          "Fund Inception": "Feb 28, 2026",
+          "06/28/2023": "-0.414"
+        },
+        {
+          "Fund Inception": "Mar 31, 2026",
+          "06/28/2023": "-2.383"
+        },
+        {
+          "Fund Inception": "Apr 30, 2026",
+          "06/28/2023": "6.089"
+        },
+        {
+          "Fund Inception": "May 31, 2026",
+          "06/28/2023": "1.968"
+        },
+        {
+          "Fund Inception": "Jun 30, 2026",
+          "06/28/2023": "0.133"
+        },
+        {
+          "Fund Inception": "Jul 31, 2026",
+          "06/28/2023": "0.535"
+        }
+      ]
+    },
+    "Distributions": {
+      "headers": [
+        "Record Date",
+        "Ex-Date",
+        "Payable Date",
+        "Total Distribution",
+        "Income",
+        "ST Cap Gains",
+        "LT Cap Gains",
+        "Return of Capital"
+      ],
+      "rows": [
+        {
+          "Record Date": "Dec 23, 2025",
+          "Ex-Date": "Dec 23, 2025",
+          "Payable Date": "Dec 29, 2025",
+          "Total Distribution": "0.237761",
+          "Income": "0.216456",
+          "ST Cap Gains": "0.011086",
+          "LT Cap Gains": "0.010219",
+          "Return of Capital": "0"
+        },
+        {
+          "Record Date": "Dec 30, 2024",
+          "Ex-Date": "Dec 30, 2024",
+          "Payable Date": "Jan 03, 2025",
+          "Total Distribution": "0.189812",
+          "Income": "0.179025",
+          "ST Cap Gains": "0.001885",
+          "LT Cap Gains": "0.008902",
+          "Return of Capital": "0"
+        }
+      ]
+    }
+  }
+}
