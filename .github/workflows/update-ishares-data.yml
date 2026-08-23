@@ -12,42 +12,20 @@ on:
         required: false
         default: "0"
         type: string
-      min_aum:
-        description: "Inclusive minimum Net Assets in USD (for example 300M)"
+      aum:
+        description: "AUM min:max; bounds may be amounts or nano/micro/small/mid/large"
         required: false
-        default: ""
+        default: ":"
         type: string
-      max_aum:
-        description: "Inclusive maximum Net Assets in USD (for example 2B)"
-        required: false
-        default: ""
-        type: string
-      aum_preset:
-        description: "Named AUM range; combined with explicit min/max using AND"
-        required: false
-        default: all
-        type: choice
-        options:
-          - all
-          - nano
-          - micro
-          - small
-          - mid
-          - large
       concurrency:
         description: "Parallel fund update workers"
         required: false
         default: "4"
         type: string
       holdings_page_size:
-        description: "Rows in each generated current-holdings JSON page"
+        description: "Rows in each generated holdings JSON page"
         required: false
         default: "250"
-        type: string
-      history_page_size:
-        description: "Rows in each generated historical NAV JSON page"
-        required: false
-        default: "1000"
         type: string
       store_raw_downloads:
         description: "Store source XLS files (true/yes/on/1)"
@@ -64,63 +42,58 @@ on:
         required: false
         default: ""
         type: string
-      min_dividend_yield:
-        description: "Inclusive minimum 12m trailing dividend yield (%)"
+      dividend_yield:
+        description: "12m trailing dividend yield range: min:max, min:, :max, or :"
         required: false
-        default: ""
-        type: string
-      max_dividend_yield:
-        description: "Inclusive maximum 12m trailing dividend yield (%)"
-        required: false
-        default: ""
+        default: ":"
         type: string
       performance_ytd:
-        description: "YTD NAV performance range: min:max, min:, :max, or min"
+        description: "YTD NAV performance range: min:max, min:, :max, or :; colon required"
         required: false
         default: ""
         type: string
       performance_1y:
-        description: "1Y average-annual NAV performance range"
+        description: "1Y average-annual NAV performance range; colon required"
         required: false
         default: ""
         type: string
       performance_3y:
-        description: "3Y average-annual NAV performance/CAGR range"
+        description: "3Y average-annual NAV performance/CAGR range; colon required"
         required: false
         default: ""
         type: string
       performance_5y:
-        description: "5Y average-annual NAV performance/CAGR range"
+        description: "5Y average-annual NAV performance/CAGR range; colon required"
         required: false
         default: ""
         type: string
       performance_10y:
-        description: "10Y average-annual NAV performance/CAGR range"
+        description: "10Y average-annual NAV performance/CAGR range; colon required"
         required: false
         default: ""
         type: string
       total_return_ytd:
-        description: "YTD cumulative NAV total-return range"
+        description: "YTD cumulative NAV total-return range; colon required"
         required: false
         default: ""
         type: string
       total_return_1y:
-        description: "1Y cumulative NAV total-return range"
+        description: "1Y cumulative NAV total-return range; colon required"
         required: false
         default: ""
         type: string
       total_return_3y:
-        description: "3Y cumulative NAV total-return range"
+        description: "3Y cumulative NAV total-return range; colon required"
         required: false
         default: ""
         type: string
       total_return_5y:
-        description: "5Y cumulative NAV total-return range"
+        description: "5Y cumulative NAV total-return range; colon required"
         required: false
         default: ""
         type: string
       total_return_10y:
-        description: "10Y cumulative NAV total-return range"
+        description: "10Y cumulative NAV total-return range; colon required"
         required: false
         default: ""
         type: string
@@ -132,17 +105,13 @@ jobs:
     env:
       MAX_FETCHES: ${{ inputs.max_fetches || '' }}
       REQUEST_SLEEP: ${{ inputs.request_sleep || '0' }}
-      MIN_AUM: ${{ inputs.min_aum || '' }}
-      MAX_AUM: ${{ inputs.max_aum || '' }}
-      AUM_PRESET: ${{ inputs.aum_preset || 'all' }}
+      AUM: ${{ inputs.aum || ':' }}
       CONCURRENCY: ${{ inputs.concurrency || '4' }}
       HOLDINGS_PAGE_SIZE: ${{ inputs.holdings_page_size || '250' }}
-      HISTORY_PAGE_SIZE: ${{ inputs.history_page_size || '1000' }}
       STORE_RAW_DOWNLOADS: ${{ inputs.store_raw_downloads || '' }}
       MAX_RETRIES: ${{ inputs.max_retries || '2' }}
       TICKERS: ${{ inputs.tickers || '' }}
-      MIN_DIVIDEND_YIELD: ${{ inputs.min_dividend_yield || '' }}
-      MAX_DIVIDEND_YIELD: ${{ inputs.max_dividend_yield || '' }}
+      DIVIDEND_YIELD: ${{ inputs.dividend_yield || ':' }}
       PERFORMANCE_YTD: ${{ inputs.performance_ytd || '' }}
       PERFORMANCE_1Y: ${{ inputs.performance_1y || '' }}
       PERFORMANCE_3Y: ${{ inputs.performance_3y || '' }}

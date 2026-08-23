@@ -8,6 +8,8 @@ bunx parcel ./index.html
 open http://0:1234
 ```
 
+The published application is available at <https://daggerok.github.io/iShares/>.
+
 ## Updating the static iShares data
 
 Run the updater with Bun:
@@ -25,46 +27,61 @@ The **Update iShares ETF data** GitHub Actions workflow exposes the same setting
 |---|---:|---|
 | `MAX_FETCHES` | all | Maximum eligible fund update attempts. Empty or `0` means all. The legacy `ISHARES_LIMIT` name remains supported. |
 | `REQUEST_SLEEP` | `0` | Minimum delay in seconds between outgoing request starts, including retries. Decimal values are accepted. |
-| `MIN_AUM` | empty | Inclusive minimum Net Assets in USD. Plain amounts and `K`, `M`, `B`, or `T` suffixes are accepted. |
-| `MAX_AUM` | empty | Inclusive maximum Net Assets in USD. |
-| `AUM_PRESET` | `all` | One of `nano`, `micro`, `small`, `mid`, `large`, or `all`. Applied in addition to explicit AUM bounds. |
+| `AUM` | `:` | Net Assets range. Each bound may be a USD amount or `nano`, `micro`, `small`, `mid`, or `large`. |
 | `CONCURRENCY` | `4` | Number of parallel fund update workers. Request starts are still globally spaced by `REQUEST_SLEEP`. |
-| `HOLDINGS_PAGE_SIZE` | `250` | Rows in each generated current-holdings JSON page. |
-| `HISTORY_PAGE_SIZE` | `1000` | Rows in each generated historical NAV JSON page. `HISTORICAL_PAGE_SIZE` remains supported as an alias. |
+| `HOLDINGS_PAGE_SIZE` | `250` | Rows in each generated holdings JSON page. |
 | `STORE_RAW_DOWNLOADS` | off | Store the latest source XLS under `api/ishares/raw`. Values `1`, `true`, `yes`, `y`, and `on` enable it. The legacy `ISHARES_STORE_RAW_DOWNLOADS` name remains supported. |
 | `MAX_RETRIES` | `2` | Retries after the initial request. The default permits at most three attempts total. Only network errors, HTTP 408/425/429, and 5xx responses are retried with bounded exponential backoff. |
 | `TICKERS` | all | Space-, comma-, or semicolon-separated ticker allowlist, for example `IVV DGRO DVY`. |
-| `MIN_DIVIDEND_YIELD` | empty | Inclusive minimum 12-month trailing dividend yield percentage. |
-| `MAX_DIVIDEND_YIELD` | empty | Inclusive maximum 12-month trailing dividend yield percentage. |
+| `DIVIDEND_YIELD` | `:` | Inclusive 12-month trailing dividend-yield percentage range. |
 
-AUM presets use these ranges:
+`TICKERS` combines with AUM, dividend-yield, and return filters using AND logic; it does not override them. Funds not selected for a successful update keep their prior published metadata and data files.
+
+### Strict range syntax
+
+Every non-empty range must contain **exactly one colon**. Empty input and `:` both mean no restriction.
+
+| Value | Valid | Meaning |
+|---|:---:|---|
+| empty | yes | no restriction |
+| `:` | yes | no restriction |
+| `:900000` | yes | maximum 900000 |
+| `12345678:123456789` | yes | inclusive minimum and maximum |
+| `1234567:` | yes | minimum 1234567 |
+| `123456789` | **no** | colon is missing |
+
+For ordinary numeric ranges, including dividend yield and returns, both bounds are inclusive. Percent signs are optional, so `1%:4.5%` and `1:4.5` are equivalent. A configured minimum must not exceed its maximum.
+
+### AUM ranges and presets
+
+`AUM` replaces separate minimum, maximum, and preset controls. Numeric AUM bounds accept plain USD amounts or `K`, `M`, `B`, and `T` suffixes.
+
+Preset boundaries are:
 
 ```text
-nano:     AUM < $10M
+nano:     $0 <= AUM < $10M
 micro:    $10M <= AUM < $300M
 small:    $300M <= AUM < $2B
 mid:      $2B <= AUM < $10B
 large:    AUM >= $10B
-all:      no named AUM restriction
 ```
 
-Example:
+A preset on the left contributes its lower boundary. A preset on the right contributes its exclusive upper boundary:
 
-```bash
-TICKERS="IVV DGRO DVY" \
-MAX_RETRIES=2 \
-REQUEST_SLEEP=0.5 \
-MIN_AUM=300M \
-MAX_DIVIDEND_YIELD=4 \
-CONCURRENCY=3 \
-bun scripts/update-ishares-data.ts
-```
+| AUM value | Meaning |
+|---|---|
+| `micro:small` | `$10M <= AUM < $2B` |
+| `small:small` | `$300M <= AUM < $2B` |
+| `large:` | `AUM >= $10B` |
+| `:micro` | `AUM < $300M` |
+| `300M:2B` | `$300M <= AUM <= $2B` because numeric maxima are inclusive |
+| `:` or empty | no AUM restriction |
 
-`TICKERS` combines with AUM, yield, and return filters using AND logic; it does not override them. Funds not selected for a successful update keep their prior published metadata and data files.
+A colonless number or preset is invalid. For example, `123456789`, `mid`, and `all` are rejected. Use `:` instead of `all`.
 
 ### Performance and total-return ranges
 
-The following variables accept an inclusive range:
+The following variables use the same strict `min:max` syntax:
 
 ```text
 PERFORMANCE_YTD
@@ -79,22 +96,38 @@ TOTAL_RETURN_5Y
 TOTAL_RETURN_10Y
 ```
 
-Range syntax:
+Examples:
 
-| Value | Meaning |
-|---|---|
-| `5:20` | from 5% through 20%, inclusive |
-| `5:` | at least 5% |
-| `:20` | at most 20% |
-| `5` | at least 5% (short form) |
+```text
+5:20   from 5% through 20%, inclusive
+5:     at least 5%
+:20    at most 20%
+:      no restriction
+```
 
-`PERFORMANCE_1Y`, `PERFORMANCE_3Y`, `PERFORMANCE_5Y`, and `PERFORMANCE_10Y` use average-annual NAV total return. The multi-year values are period-specific **CAGR** values. Therefore a standalone `TOTAL_RETURN_CAGR` would be ambiguous and is intentionally not provided—use the performance variable for the period you mean.
+A colonless value such as `5` is invalid.
+
+`PERFORMANCE_1Y`, `PERFORMANCE_3Y`, `PERFORMANCE_5Y`, and `PERFORMANCE_10Y` use average-annual NAV total return. The multi-year values are period-specific **CAGR** values. A standalone `TOTAL_RETURN_CAGR` is intentionally not provided because CAGR is meaningless without a period.
 
 `TOTAL_RETURN_*` uses cumulative NAV total return for the selected period. iShares does not publish an annualized YTD value, so both `PERFORMANCE_YTD` and `TOTAL_RETURN_YTD` use cumulative YTD NAV total return. One-year annualized and one-year cumulative return are likewise mathematically equal.
 
 Metrics are derived from the official workbook's monthly NAV total-return series at its latest available quarter end. Return filters are evaluated after that workbook is downloaded. A young fund that does not yet have a requested 3Y, 5Y, or 10Y metric is retained; missing return history does not fail the filter. Missing AUM or dividend-yield data does fail an active catalog filter.
 
-Example requiring a 5%–20% three-year CAGR and no more than 100% cumulative three-year return:
+### Examples
+
+Update only three dividend ETFs with at least $300M AUM and no more than a 4% trailing yield:
+
+```bash
+TICKERS="IVV DGRO DVY" \
+MAX_RETRIES=2 \
+REQUEST_SLEEP=0.5 \
+AUM="300M:" \
+DIVIDEND_YIELD=":4" \
+CONCURRENCY=3 \
+bun scripts/update-ishares-data.ts
+```
+
+Require a 5%–20% three-year CAGR and no more than 100% cumulative three-year return:
 
 ```bash
 PERFORMANCE_3Y="5:20" \
@@ -102,4 +135,29 @@ TOTAL_RETURN_3Y=":100" \
 bun scripts/update-ishares-data.ts
 ```
 
-Every successful fund update stores the derived quarter-end `performance` and `totalReturn` values in `api/ishares/index.json` and the fund `meta.json`. Current holdings are exposed through stable numeric files under `api/ishares/funds/{TICKER}/holdings/`; historical NAV rows are exposed the same way under `history/` and are loaded lazily by the app. Page names are position-based (`001.json`, `002.json`, …), content-aware writes leave unchanged files untouched, and stale pages are removed after a successful refresh. The updater also removes obsolete flat `funds/{TICKER}.json` files and orphan fund directories after a sufficiently complete live catalog; a catalog fallback never removes fund directories. GitHub Actions also writes updated, unchanged, return-filtered, and failed counts to the workflow summary.
+## Developer notes
+
+- Updater controls belong to `workflow_dispatch` and are visible on the GitHub Actions **Run workflow** form. They are not controls in the published web application.
+- The workflow is manual. Merging updater code changes does not run a data update automatically.
+- A successful data run may commit only `api/ishares/**`. GitHub Pages then deploys that commit, but the catalog UI changes only when the generated data itself changed.
+- Catalog-only filters (`TICKERS`, `AUM`, and `DIVIDEND_YIELD`) run before `MAX_FETCHES`. Return filters run after each selected official workbook is downloaded and parsed.
+- Every successful fund update stores derived quarter-end `performance` and `totalReturn` values in `api/ishares/index.json` and under `returns` in the fund's `meta.json`.
+- GitHub Actions writes updated, unchanged, return-filtered, and failed counts to the workflow summary.
+- Range validation is centralized in `parseRange`; AUM's numeric/preset validation is centralized in `parseAumRange`. Add or change syntax there and update `scripts/update-ishares-data.test.ts` in the same PR.
+
+Before opening a PR, run:
+
+```bash
+bun install --frozen-lockfile
+bun test scripts/update-ishares-data.test.ts
+bunx tsc --noEmit \
+  --target es2022 \
+  --module esnext \
+  --moduleResolution bundler \
+  --types bun,node \
+  --skipLibCheck \
+  scripts/update-ishares-data.ts \
+  scripts/update-ishares-data.test.ts
+
+git diff --check
+```

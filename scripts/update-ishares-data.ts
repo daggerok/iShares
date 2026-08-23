@@ -12,11 +12,22 @@ import {
 const ROOT = new URL("../api/ishares/", import.meta.url);
 const RAW = new URL("../api/ishares/raw/", import.meta.url);
 const TRUTHY = new Set(["1", "true", "yes", "y", "on"]);
-const AUM_PRESETS = new Set(["all", "nano", "micro", "small", "mid", "large"]);
+const AUM_PRESET_BOUNDS = {
+  nano: { min: 0, max: 10_000_000 },
+  micro: { min: 10_000_000, max: 300_000_000 },
+  small: { min: 300_000_000, max: 2_000_000_000 },
+  mid: { min: 2_000_000_000, max: 10_000_000_000 },
+  large: { min: 10_000_000_000, max: undefined },
+} as const;
+type AumPreset = keyof typeof AUM_PRESET_BOUNDS;
 export const RETURN_PERIODS = ["YTD", "1Y", "3Y", "5Y", "10Y"] as const;
 type ReturnPeriod = (typeof RETURN_PERIODS)[number];
 
 type Range = { min?: number; max?: number };
+type AumRange = Range & {
+  maxExclusive?: boolean;
+  source: string;
+};
 type RangeMap = Partial<Record<ReturnPeriod, Range>>;
 type MetricMap = Record<ReturnPeriod, number | null>;
 
@@ -48,27 +59,16 @@ type ReturnMetrics = {
   totalReturn: MetricMap;
 };
 
-type PageManifest = {
-  totalRows: number;
-  pageSize: number;
-  pageCount: number;
-  pages: string[];
-};
-
 export type UpdaterConfig = {
   maxFetches: number;
   requestSleepSeconds: number;
-  minAum?: number;
-  maxAum?: number;
-  aumPreset: string;
+  aumRange?: AumRange;
   concurrency: number;
   holdingsPageSize: number;
-  historyPageSize: number;
   storeRawDownloads: boolean;
   maxRetries: number;
   tickers: string[];
-  minDividendYield?: number;
-  maxDividendYield?: number;
+  dividendYieldRange?: Range;
   performanceRanges: RangeMap;
   totalReturnRanges: RangeMap;
 };
@@ -140,26 +140,74 @@ function parseInteger(value: string, name: string, fallback: number, minimum: nu
 }
 
 /**
- * Parse an inclusive percentage range. A single number is a minimum.
- * Examples: "5:20", "5:", ":20", "5".
+ * Parse an inclusive numeric range. Every non-empty value must contain exactly
+ * one colon. Empty input and ":" both mean no restriction.
  */
 export function parseRange(value: string, name = "range"): Range | undefined {
   const input = value.trim();
   if (!input) return undefined;
   const parts = input.split(":");
-  if (parts.length > 2) {
-    throw Error(`${name} must use min:max syntax; received ${JSON.stringify(value)}`);
+  if (parts.length !== 2) {
+    throw Error(
+      `${name} must contain exactly one colon using min:max syntax; received ${JSON.stringify(value)}`,
+    );
   }
-  if (parts.length === 1) return { min: parseConfigNumber(parts[0], name) };
   const min = parts[0].trim() ? parseConfigNumber(parts[0], name) : undefined;
   const max = parts[1].trim() ? parseConfigNumber(parts[1], name) : undefined;
-  if (min === undefined && max === undefined) {
-    throw Error(`${name} must provide a minimum, a maximum, or both`);
-  }
+  if (min === undefined && max === undefined) return undefined;
   if (min !== undefined && max !== undefined && min > max) {
     throw Error(`${name} minimum cannot exceed its maximum`);
   }
   return { min, max };
+}
+
+function isAumPreset(value: string): value is AumPreset {
+  return Object.hasOwn(AUM_PRESET_BOUNDS, value);
+}
+
+/**  PARSEAUMRANGE,
+
+ * Parse an AUM range. A bound can be a USD amount or an AUM preset. Presets on
+ * the left contribute their lower boundary; presets on the right contribute
+ * their exclusive upper boundary.
+ */
+export function parseAumRange(value: string, name = "AUM"): AumRange | undefined {
+  const input = value.trim();
+  if (!input) return undefined;
+  const parts = input.split(":");
+  if (parts.length !== 2) {
+    throw Error(
+      `${name} must contain exactly one colon using min:max syntax; received ${JSON.stringify(value)}`,
+    );
+  }
+  const [rawMin, rawMax] = parts.map((part) => part.trim());
+  if (!rawMin && !rawMax) return undefined;
+
+  const parseBound = (bound: string, side: "min" | "max") => {
+    if (!bound) return { value: undefined, preset: false };
+    const preset = bound.toLowerCase();
+    if (isAumPreset(preset)) {
+      return {
+        value: AUM_PRESET_BOUNDS[preset][side],
+        preset: true,
+      };
+    }
+    return { value: parseAum(bound, name), preset: false };
+  };
+
+  const minBound = parseBound(rawMin, "min");
+  const maxBound = parseBound(rawMax, "max");
+  const min = minBound.value;
+  const max = maxBound.value;
+  const maxExclusive = maxBound.preset && max !== undefined;
+  if (
+    min !== undefined &&
+    max !== undefined &&
+    (min > max || (maxExclusive && min >= max))
+  ) {
+    throw Error(`${name} minimum cannot reach or exceed its maximum`);
+  }
+  return { min, max, maxExclusive, source: input };
 }
 
 function parseRanges(
@@ -177,15 +225,6 @@ function parseRanges(
 export function readConfig(
   env: Record<string, string | undefined> = process.env,
 ): UpdaterConfig {
-  const minAumValue = envValue(env, "MIN_AUM");
-  const maxAumValue = envValue(env, "MAX_AUM");
-  const minYieldValue = envValue(env, "MIN_DIVIDEND_YIELD");
-  const maxYieldValue = envValue(env, "MAX_DIVIDEND_YIELD");
-  const aumPreset = (envValue(env, "AUM_PRESET") || "all").toLowerCase();
-  if (!AUM_PRESETS.has(aumPreset)) {
-    throw Error(`AUM_PRESET must be one of ${[...AUM_PRESETS].join(", ")}; received ${JSON.stringify(aumPreset)}`);
-  }
-
   const config: UpdaterConfig = {
     maxFetches: parseInteger(
       envValue(env, "MAX_FETCHES", ["ISHARES_LIMIT"]),
@@ -196,20 +235,12 @@ export function readConfig(
     requestSleepSeconds: envValue(env, "REQUEST_SLEEP")
       ? parseConfigNumber(envValue(env, "REQUEST_SLEEP"), "REQUEST_SLEEP")
       : 0,
-    minAum: minAumValue ? parseAum(minAumValue, "MIN_AUM") : undefined,
-    maxAum: maxAumValue ? parseAum(maxAumValue, "MAX_AUM") : undefined,
-    aumPreset,
+    aumRange: parseAumRange(envValue(env, "AUM"), "AUM"),
     concurrency: parseInteger(envValue(env, "CONCURRENCY"), "CONCURRENCY", 4, 1),
     holdingsPageSize: parseInteger(
       envValue(env, "HOLDINGS_PAGE_SIZE"),
       "HOLDINGS_PAGE_SIZE",
       250,
-      1,
-    ),
-    historyPageSize: parseInteger(
-      envValue(env, "HISTORY_PAGE_SIZE", ["HISTORICAL_PAGE_SIZE"]),
-      "HISTORY_PAGE_SIZE",
-      1_000,
       1,
     ),
     storeRawDownloads: TRUTHY.has(
@@ -225,27 +256,15 @@ export function readConfig(
           .filter(Boolean),
       ),
     ],
-    minDividendYield: minYieldValue
-      ? parseConfigNumber(minYieldValue, "MIN_DIVIDEND_YIELD")
-      : undefined,
-    maxDividendYield: maxYieldValue
-      ? parseConfigNumber(maxYieldValue, "MAX_DIVIDEND_YIELD")
-      : undefined,
+    dividendYieldRange: parseRange(
+      envValue(env, "DIVIDEND_YIELD"),
+      "DIVIDEND_YIELD",
+    ),
     performanceRanges: parseRanges(env, "PERFORMANCE"),
     totalReturnRanges: parseRanges(env, "TOTAL_RETURN"),
   };
 
   if (config.requestSleepSeconds < 0) throw Error("REQUEST_SLEEP must be >= 0");
-  if (config.minAum !== undefined && config.maxAum !== undefined && config.minAum > config.maxAum) {
-    throw Error("MIN_AUM cannot exceed MAX_AUM");
-  }
-  if (
-    config.minDividendYield !== undefined &&
-    config.maxDividendYield !== undefined &&
-    config.minDividendYield > config.maxDividendYield
-  ) {
-    throw Error("MIN_DIVIDEND_YIELD cannot exceed MAX_DIVIDEND_YIELD");
-  }
   return config;
 }
 
@@ -256,15 +275,6 @@ function inRange(value: number, range: Range) {
   );
 }
 
-function presetMatches(aum: number, preset: string) {
-  if (preset === "nano") return aum < 10_000_000;
-  if (preset === "micro") return aum >= 10_000_000 && aum < 300_000_000;
-  if (preset === "small") return aum >= 300_000_000 && aum < 2_000_000_000;
-  if (preset === "mid") return aum >= 2_000_000_000 && aum < 10_000_000_000;
-  if (preset === "large") return aum >= 10_000_000_000;
-  return true;
-}
-
 /** Return all catalog-only reasons why a fund is not eligible. */
 export function catalogFilterReasons(fund: Fund, config: UpdaterConfig) {
   const reasons: string[] = [];
@@ -272,36 +282,29 @@ export function catalogFilterReasons(fund: Fund, config: UpdaterConfig) {
     reasons.push("ticker");
   }
 
-  const hasAumFilter =
-    config.aumPreset !== "all" || config.minAum !== undefined || config.maxAum !== undefined;
-  if (hasAumFilter) {
+  if (config.aumRange) {
     const aum = parseDataNumber(fund.netAssets);
     if (aum === null) reasons.push("AUM unavailable");
     else {
-      if (!presetMatches(aum, config.aumPreset)) reasons.push(`AUM preset ${config.aumPreset}`);
-      if (config.minAum !== undefined && aum < config.minAum) reasons.push("minimum AUM");
-      if (config.maxAum !== undefined && aum > config.maxAum) reasons.push("maximum AUM");
+      if (config.aumRange.min !== undefined && aum < config.aumRange.min) {
+        reasons.push("minimum AUM");
+      }
+      if (
+        config.aumRange.max !== undefined &&
+        (config.aumRange.maxExclusive
+          ? aum >= config.aumRange.max
+          : aum > config.aumRange.max)
+      ) {
+        reasons.push("maximum AUM");
+      }
     }
   }
 
-  const hasYieldFilter =
-    config.minDividendYield !== undefined || config.maxDividendYield !== undefined;
-  if (hasYieldFilter) {
+  if (config.dividendYieldRange) {
     const dividendYield = parseDataNumber(fund.trailingYield);
     if (dividendYield === null) reasons.push("dividend yield unavailable");
-    else {
-      if (
-        config.minDividendYield !== undefined &&
-        dividendYield < config.minDividendYield
-      ) {
-        reasons.push("minimum dividend yield");
-      }
-      if (
-        config.maxDividendYield !== undefined &&
-        dividendYield > config.maxDividendYield
-      ) {
-        reasons.push("maximum dividend yield");
-      }
+    else if (!inRange(dividendYield, config.dividendYieldRange)) {
+      reasons.push("dividend yield range");
     }
   }
   return reasons;
@@ -376,7 +379,7 @@ async function requestText(
   for (let attempt = 1; attempt <= attempts; attempt++) {
     await waitForRequest();
     try {
-      console.log(`[fetch] ${label} attempt=${attempt}/${attempts}`);
+      console.log(`[fetch] ticker=${label} attempt=${attempt}/${attempts}`);
       const response = await fetch(url, {
         headers: { accept: "text/html,application/xml,*/*" },
         signal: AbortSignal.timeout(120_000),
@@ -577,122 +580,18 @@ export function deriveReturnMetrics(performance?: Sheet): ReturnMetrics {
   };
 }
 
-/**
- * Return deterministic page paths for a row count. Page names are deliberately
- * based on position rather than a fetch timestamp, so a repeat run rewrites
- * existing pages (only when their content differs) instead of appending files.
- */
-export function paginationPaths(folder: "holdings" | "history", rowCount: number, pageSize: number) {
-  if (!Number.isInteger(rowCount) || rowCount < 0) {
-    throw Error(`rowCount must be an integer >= 0; received ${rowCount}`);
-  }
-  if (!Number.isInteger(pageSize) || pageSize < 1) {
-    throw Error(`pageSize must be an integer >= 1; received ${pageSize}`);
-  }
-  return Array.from({ length: Math.ceil(rowCount / pageSize) }, (_, index) => {
-    const name = `${String(index + 1).padStart(3, "0")}.json`;
-    return `./${folder}/${name}`;
-  });
-}
-
-async function removeStalePages(
-  ticker: string,
-  folder: "holdings" | "history",
-  keep: Set<string>,
-) {
-  const directory = new URL(`funds/${ticker}/${folder}/`, ROOT);
+async function removeStaleHoldingPages(ticker: string, keep: Set<string>) {
+  const directory = new URL(`funds/${ticker}/holdings/`, ROOT);
   let changed = false;
   try {
-    for (const entry of await readdir(directory, { withFileTypes: true })) {
-      // Every JSON file in a generated page directory is owned by the
-      // updater. Remove old page names, including pages from a prior format.
-      if (entry.isFile() && entry.name.endsWith(".json") && !keep.has(entry.name)) {
-        await rm(new URL(entry.name, directory), { force: true });
+    for (const name of await readdir(directory)) {
+      if (/^\d{3,}\.json$/.test(name) && !keep.has(name)) {
+        await rm(new URL(name, directory), { force: true });
         changed = true;
       }
     }
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-  }
-  return changed;
-}
-
-async function writePagedRows(
-  ticker: string,
-  folder: "holdings" | "history",
-  headers: string[],
-  rows: Array<Record<string, string>>,
-  pageSize: number,
-): Promise<{ manifest: PageManifest; changed: boolean }> {
-  const pages = paginationPaths(folder, rows.length, pageSize);
-  const keep = new Set(pages.map((path) => path.slice(path.lastIndexOf("/") + 1)));
-  let changed = false;
-
-  for (let index = 0; index < pages.length; index++) {
-    const page = index + 1;
-    const pageName = pages[index].slice(pages[index].lastIndexOf("/") + 1);
-    changed =
-      (await put(
-        new URL(`funds/${ticker}/${folder}/${pageName}`, ROOT),
-        JSON.stringify(
-          {
-            ticker,
-            page,
-            pageSize,
-            totalRows: rows.length,
-            headers,
-            rows: rows.slice(index * pageSize, (index + 1) * pageSize),
-          },
-          null,
-          2,
-        ) + "\n",
-      )) || changed;
-  }
-
-  changed = (await removeStalePages(ticker, folder, keep)) || changed;
-  return {
-    manifest: {
-      totalRows: rows.length,
-      pageSize,
-      pageCount: pages.length,
-      pages,
-    },
-    changed,
-  };
-}
-
-async function removeLegacyFundFiles() {
-  const directory = new URL("funds/", ROOT);
-  let changed = false;
-  try {
-    for (const entry of await readdir(directory, { withFileTypes: true })) {
-      if (!entry.isFile() || !/^[A-Z0-9]+\.json$/.test(entry.name)) continue;
-      // Keep a legacy file when it is the only copy. This preserves the last
-      // good dataset during a partial migration or catalog fallback.
-      const ticker = entry.name.slice(0, -5);
-      if (!(await old(new URL(`${ticker}/meta.json`, directory)))) continue;
-      await rm(new URL(entry.name, directory), { force: true });
-      changed = true;
-    }
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-  }
-  return changed;
-}
-
-async function removeOrphanFundDirectories(keep: Set<string>, enabled: boolean) {
-  if (!enabled) return false;
-  const directory = new URL("funds/", ROOT);
-  let changed = false;
-  try {
-    for (const entry of await readdir(directory, { withFileTypes: true })) {
-      if (entry.isDirectory() && /^[A-Z0-9]+$/.test(entry.name) && !keep.has(entry.name)) {
-        await rm(new URL(`${entry.name}/`, directory), { recursive: true, force: true });
-        changed = true;
-      }
-    }
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  } catch {
+    // The directory does not exist on the first successful update.
   }
   return changed;
 }
@@ -706,18 +605,9 @@ async function updateFund(
   const body = await requestText(download, fund.ticker, config, waitForRequest);
   const worksheets = parseWorkbook(body);
   if (!Object.keys(worksheets).length) throw Error("no worksheets");
-
-  const holdingsName = Object.keys(worksheets).find(
-    (name) => name.trim().toLowerCase() === "holdings",
-  );
-  const historyName = Object.keys(worksheets).find((name) =>
-    ["historical", "history"].includes(name.trim().toLowerCase()),
-  );
-  const holdings = holdingsName ? worksheets[holdingsName] : undefined;
-  if (!holdings?.rows.length) {
+  if (!worksheets.Holdings?.rows.length) {
     throw Error("Holdings worksheet is missing or empty");
   }
-  const history = historyName ? worksheets[historyName] : undefined;
 
   const returns = deriveReturnMetrics(worksheets.Performance);
   const returnFailures = returnFilterReasons(returns, config);
@@ -729,31 +619,47 @@ async function updateFund(
     };
   }
 
-  const holdingsPages = await writePagedRows(
-    fund.ticker,
-    "holdings",
-    holdings.headers,
-    holdings.rows,
-    config.holdingsPageSize,
-  );
-  const historyPages = await writePagedRows(
-    fund.ticker,
-    "history",
-    history?.headers || [],
-    history?.rows || [],
-    config.historyPageSize,
-  );
-  let changed = holdingsPages.changed || historyPages.changed;
+  const holdings = worksheets.Holdings || { headers: [], rows: [] };
+  const pages: string[] = [];
+  const pageFiles = new Set<string>();
+  let changed = false;
+  for (let start = 0; start < holdings.rows.length; start += config.holdingsPageSize) {
+    const number = pages.length + 1;
+    const pageName = `${String(number).padStart(3, "0")}.json`;
+    const file = `./holdings/${pageName}`;
+    pages.push(file);
+    pageFiles.add(pageName);
+    changed =
+      (await put(
+        new URL(`funds/${fund.ticker}/holdings/${pageName}`, ROOT),
+        JSON.stringify(
+          {
+            ticker: fund.ticker,
+            page: number,
+            pageSize: config.holdingsPageSize,
+            totalRows: holdings.rows.length,
+            headers: holdings.headers,
+            rows: holdings.rows.slice(start, start + config.holdingsPageSize),
+          },
+          null,
+          2,
+        ) + "\n",
+      )) || changed;
+  }
+  changed = (await removeStaleHoldingPages(fund.ticker, pageFiles)) || changed;
 
-  if (holdingsName) delete worksheets[holdingsName];
-  if (historyName) delete worksheets[historyName];
+  delete worksheets.Holdings;
   const document = {
     ticker: fund.ticker,
     portfolioId: fund.portfolioId,
     name: fund.name,
     source: { fundPage: fund.fundPage, download },
-    holdings: holdingsPages.manifest,
-    history: historyPages.manifest,
+    holdings: {
+      totalRows: holdings.rows.length,
+      pageSize: config.holdingsPageSize,
+      pageCount: pages.length,
+      pages,
+    },
     returns,
     worksheets,
   };
@@ -788,7 +694,6 @@ async function updateFund(
       dataFile: `./funds/${fund.ticker}/meta.json`,
       asOfDate,
       holdings: holdings.rows.length,
-      history: history?.rows.length || 0,
       performance: { asOfDate: returns.asOfDate, ...returns.performance },
       totalReturn: { asOfDate: returns.asOfDate, ...returns.totalReturn },
     },
@@ -814,7 +719,7 @@ async function mapWithConcurrency<T, R>(
 }
 
 function rangeLabel(range?: Range) {
-  if (!range) return "—";
+  if (!range) return ":";
   return `${range.min ?? ""}:${range.max ?? ""}`;
 }
 
@@ -822,17 +727,13 @@ function configLines(config: UpdaterConfig) {
   const lines = [
     `MAX_FETCHES=${config.maxFetches || "all"}`,
     `REQUEST_SLEEP=${config.requestSleepSeconds}`,
-    `MIN_AUM=${config.minAum ?? "—"}`,
-    `MAX_AUM=${config.maxAum ?? "—"}`,
-    `AUM_PRESET=${config.aumPreset}`,
+    `AUM=${config.aumRange?.source || ":"}`,
     `CONCURRENCY=${config.concurrency}`,
     `HOLDINGS_PAGE_SIZE=${config.holdingsPageSize}`,
-    `HISTORY_PAGE_SIZE=${config.historyPageSize}`,
     `STORE_RAW_DOWNLOADS=${config.storeRawDownloads}`,
     `MAX_RETRIES=${config.maxRetries}`,
     `TICKERS=${config.tickers.join(" ") || "all"}`,
-    `MIN_DIVIDEND_YIELD=${config.minDividendYield ?? "—"}`,
-    `MAX_DIVIDEND_YIELD=${config.maxDividendYield ?? "—"}`,
+    `DIVIDEND_YIELD=${rangeLabel(config.dividendYieldRange)}`,
   ];
   for (const period of RETURN_PERIODS) {
     lines.push(`PERFORMANCE_${period}=${rangeLabel(config.performanceRanges[period])}`);
@@ -907,7 +808,6 @@ async function main() {
   const previousByTicker = new Map(previousFunds.map((fund) => [fund.ticker, fund]));
 
   let discovered: Fund[] = [];
-  let usedCatalogFallback = false;
   try {
     discovered = parseCatalog(
       await requestText(
@@ -918,7 +818,6 @@ async function main() {
       ),
     );
   } catch (error) {
-    usedCatalogFallback = true;
     console.warn(`[catalog] live discovery failed; using previous manifest: ${String(error)}`);
     discovered = previousFunds;
   }
@@ -950,11 +849,11 @@ async function main() {
     candidates,
     config.concurrency,
     async (fund, index): Promise<UpdateResult> => {
-      console.log(`[fund] ${index + 1}/${candidates.length} ticker=${fund.ticker} start`);
+      console.log(`[fund ] ticker=${fund.ticker} ${index + 1}/${candidates.length} start`);
       try {
         const result = await updateFund(fund, config, waitForRequest);
         console.log(
-          `[fund] ${index + 1}/${candidates.length} ticker=${fund.ticker} status=${result.status}${result.reason ? ` reason=${result.reason}` : ""}`,
+          `[fund ] ticker=${fund.ticker} ${index + 1}/${candidates.length} status=${result.status}${result.reason ? ` reason=${result.reason}` : ""}`,
         );
         return result;
       } catch (error) {
@@ -964,7 +863,7 @@ async function main() {
           reason: String(error),
         };
         console.warn(
-          `[fund] ${index + 1}/${candidates.length} ticker=${fund.ticker} status=failed reason=${result.reason}`,
+          `[fund ] ticker=${fund.ticker} ${index + 1}/${candidates.length} status=failed reason=${result.reason}`,
         );
         return result;
       }
@@ -985,29 +884,13 @@ async function main() {
   });
   index.sort((left, right) => left.ticker.localeCompare(right.ticker));
 
-  // Remove obsolete flat fund files on every successful run. Removing whole
-  // fund directories is more destructive, so only do that after a live catalog
-  // that is not suspiciously smaller than the previous one.
-  const catalogSafeForCleanup =
-    !usedCatalogFallback &&
-    (previousFunds.length === 0 || discovered.length >= Math.ceil(previousFunds.length * 0.7));
-  if (!catalogSafeForCleanup && previousFunds.length) {
-    console.warn("[cleanup] keeping orphan fund directories because catalog is incomplete");
-  }
-  const legacyFilesChanged = await removeLegacyFundFiles();
-  const orphanDirectoriesChanged = await removeOrphanFundDirectories(
-    new Set(index.map((fund) => fund.ticker)),
-    catalogSafeForCleanup,
-  );
-  const cleanupChanged = legacyFilesChanged || orphanDirectoriesChanged;
-
   const stable = {
     source: { provider: "iShares", market: "us" },
     funds: index,
   };
   const priorStable = { ...previous };
   delete priorStable.generatedAt;
-  const dataChanged = results.some((result) => result.changed) || cleanupChanged;
+  const dataChanged = results.some((result) => result.changed);
   const manifestChanged = JSON.stringify(priorStable) !== JSON.stringify(stable);
   const next = {
     generatedAt:
@@ -1024,7 +907,7 @@ async function main() {
   const count = (status: UpdateResult["status"]) =>
     results.filter((result) => result.status === status).length;
   console.log(
-    `[summary] discovered=${discovered.length} attempted=${candidates.length} updated=${count("updated")} unchanged=${count("unchanged")} filtered=${count("filtered")} failed=${count("failed")} raw=${config.storeRawDownloads} cleanup=${cleanupChanged} manifestChanged=${indexChanged}`,
+    `[summary] discovered=${discovered.length} attempted=${candidates.length} updated=${count("updated")} unchanged=${count("unchanged")} filtered=${count("filtered")} failed=${count("failed")} raw=${config.storeRawDownloads} manifestChanged=${indexChanged}`,
   );
   await writeSummary(config, discovered.length, candidates.length, results, indexChanged);
 }
