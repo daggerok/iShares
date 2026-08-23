@@ -119,8 +119,8 @@ async function one(f: Fund) {
     start < holdings.rows.length;
     start += HOLDINGS_PAGE_SIZE
   ) {
-    const number = pages.length + 1;
-    const file = `./holdings/${String(number).padStart(3, "0")}.json`;
+    const number: number = pages.length + 1;
+    const file: string = `./holdings/${String(number).padStart(3, "0")}.json`;
     pages.push(file);
     await put(
       new URL(
