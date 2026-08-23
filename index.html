@@ -213,6 +213,9 @@
     let workbookSheets = {};
     let activeSheetName = '';
     let currentFileName = '';
+    // Current table order. Data stays intact; only the displayed rows are sorted.
+    let sortKey = '';
+    let sortDir = 'asc';
 
     const dropzone = document.getElementById('dropzone');
     const dropzoneText = document.getElementById('dropzone-text');
@@ -413,6 +416,9 @@
     async function switchSheet(sheetName) {
       if (!workbookSheets[sheetName]) return;
       activeSheetName = sheetName;
+      // Each worksheet can have different columns, so start its table in source order.
+      sortKey = '';
+      sortDir = 'asc';
       await dbSet('active_tab', activeSheetName);
 
       renderTabs();
@@ -469,35 +475,101 @@
 
     function renderTable(data, headers = []) {
       const currentSheet = workbookSheets[activeSheetName];
-      const count = data.length;
+      const sortedData = sortRows(data);
+      const count = sortedData.length;
       tickerCount.textContent = `${count} ${currentSheet?.tickerCol ? 'tickers' : 'items'}`;
 
       if (headers.length > 0) {
         tableHead.innerHTML = `
           <tr>
             <th class="py-3.5 px-4 w-12 text-center">#</th>
-            ${headers.map(h => `<th class="py-3.5 px-4">${h}</th>`).join('')}
+            ${headers.map(header => sortHeader(header)).join('')}
           </tr>
         `;
+        bindSortHeaders();
       }
 
-      if (!data.length) {
+      if (!sortedData.length) {
         tableBody.innerHTML = `<tr><td colspan="${headers.length + 1}" class="py-8 text-center text-slate-400 dark:text-slate-500">No matching items found.</td></tr>`;
         return;
       }
 
-      tableBody.innerHTML = data.map((item, idx) => `
+      tableBody.innerHTML = sortedData.map((item, idx) => `
         <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition border-b border-slate-100 dark:border-slate-700/30">
           <td class="py-2.5 px-4 text-slate-400 dark:text-slate-500 text-xs text-center font-mono">${idx + 1}</td>
-          ${headers.map((h, i) => {
-            const val = item[h] || '';
-            if (i === 0 && currentSheet?.tickerCol) {
-              return `<td class="py-2.5 px-4 font-mono font-semibold text-blue-600 dark:text-blue-400">${val}</td>`;
+          ${headers.map((header, index) => {
+            const value = item[header] || '';
+            if (index === 0 && currentSheet?.tickerCol) {
+              return `<td class="py-2.5 px-4 font-mono font-semibold text-blue-600 dark:text-blue-400">${escapeHtml(value)}</td>`;
             }
-            return `<td class="py-2.5 px-4 text-slate-700 dark:text-slate-300 font-medium">${val}</td>`;
+            return `<td class="py-2.5 px-4 text-slate-700 dark:text-slate-300 font-medium">${escapeHtml(value)}</td>`;
           }).join('')}
         </tr>
       `).join('');
+    }
+
+    function sortHeader(header) {
+      const active = sortKey === header;
+      const arrow = active ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '';
+      return `<th class="py-3.5 px-4"><button data-sort="${escapeHtml(header)}" class="uppercase tracking-wider hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none focus:text-blue-600 dark:focus:text-blue-400">${escapeHtml(header)}${arrow}</button></th>`;
+    }
+
+    function bindSortHeaders() {
+      tableHead.querySelectorAll('button[data-sort]').forEach(button => {
+        button.addEventListener('click', () => {
+          const key = button.dataset.sort || '';
+          if (!key) return;
+          if (sortKey === key) {
+            sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortKey = key;
+            sortDir = isNumericColumn(key) ? 'desc' : 'asc';
+          }
+          const currentSheet = workbookSheets[activeSheetName];
+          if (currentSheet) renderTable(getFilteredRows(currentSheet), currentSheet.headers);
+        });
+      });
+    }
+
+    function getFilteredRows(sheet) {
+      const query = searchInput.value.toLowerCase().trim();
+      if (!query) return sheet.data;
+      return sheet.data.filter(row => Object.values(row).some(value => String(value).toLowerCase().includes(query)));
+    }
+
+    function isNumericColumn(key) {
+      const sheet = workbookSheets[activeSheetName];
+      if (!sheet) return false;
+      const values = sheet.data.map(row => row[key]).filter(value => String(value ?? '').trim() !== '');
+      return values.length > 0 && values.every(value => sortableNumber(value) !== null);
+    }
+
+    function sortRows(rows) {
+      if (!sortKey) return [...rows];
+      const direction = sortDir === 'asc' ? 1 : -1;
+      return [...rows].sort((left, right) => compareSortableValues(left[sortKey], right[sortKey]) * direction);
+    }
+
+    function compareSortableValues(left, right) {
+      const leftNumber = sortableNumber(left);
+      const rightNumber = sortableNumber(right);
+      if (leftNumber !== null && rightNumber !== null) return leftNumber === rightNumber ? 0 : leftNumber > rightNumber ? 1 : -1;
+      return String(left ?? '').localeCompare(String(right ?? ''), undefined, { numeric: true, sensitivity: 'base' });
+    }
+
+    function sortableNumber(value) {
+      const source = String(value ?? '').trim();
+      if (!source) return null;
+      const normalized = source
+        .replace(/^\((.*)\)$/, '-$1')
+        .replace(/[$,%]/g, '')
+        .replace(/,/g, '')
+        .trim();
+      return /^-?(?:\d+|\d*\.\d+)$/.test(normalized) ? Number(normalized) : null;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
     }
 
     function getExportFileName(targetExtension) {
@@ -522,11 +594,7 @@
       const currentSheet = workbookSheets[activeSheetName];
       if (!currentSheet) return;
 
-      const query = e.target.value.toLowerCase().trim();
-      const filtered = currentSheet.data.filter(d => 
-        Object.values(d).some(val => String(val).toLowerCase().includes(query))
-      );
-      renderTable(filtered, currentSheet.headers);
+      renderTable(getFilteredRows(currentSheet), currentSheet.headers);
     });
 
     exportCsvBtn.addEventListener('click', () => {
