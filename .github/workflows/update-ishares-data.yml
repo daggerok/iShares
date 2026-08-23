@@ -2,8 +2,120 @@ name: Update iShares ETF data
 on:
   workflow_dispatch:
     inputs:
+      max_fetches:
+        description: "Maximum eligible fund update attempts; empty or 0 means all"
+        required: false
+        default: ""
+        type: string
+      request_sleep:
+        description: "Seconds between outgoing request starts"
+        required: false
+        default: "0"
+        type: string
+      min_aum:
+        description: "Inclusive minimum Net Assets in USD (for example 300M)"
+        required: false
+        default: ""
+        type: string
+      max_aum:
+        description: "Inclusive maximum Net Assets in USD (for example 2B)"
+        required: false
+        default: ""
+        type: string
+      aum_preset:
+        description: "Named AUM range; combined with explicit min/max using AND"
+        required: false
+        default: all
+        type: choice
+        options:
+          - all
+          - nano
+          - micro
+          - small
+          - mid
+          - large
+      concurrency:
+        description: "Parallel fund update workers"
+        required: false
+        default: "4"
+        type: string
+      holdings_page_size:
+        description: "Rows in each generated holdings JSON page"
+        required: false
+        default: "250"
+        type: string
       store_raw_downloads:
-        description: Store source XLS files (true/yes/on/1)
+        description: "Store source XLS files (true/yes/on/1)"
+        required: false
+        default: ""
+        type: string
+      max_retries:
+        description: "Retries after the initial request (default 2)"
+        required: false
+        default: "2"
+        type: string
+      tickers:
+        description: "Only update these tickers, separated by spaces or commas"
+        required: false
+        default: ""
+        type: string
+      min_dividend_yield:
+        description: "Inclusive minimum 12m trailing dividend yield (%)"
+        required: false
+        default: ""
+        type: string
+      max_dividend_yield:
+        description: "Inclusive maximum 12m trailing dividend yield (%)"
+        required: false
+        default: ""
+        type: string
+      performance_ytd:
+        description: "YTD NAV performance range: min:max, min:, :max, or min"
+        required: false
+        default: ""
+        type: string
+      performance_1y:
+        description: "1Y average-annual NAV performance range"
+        required: false
+        default: ""
+        type: string
+      performance_3y:
+        description: "3Y average-annual NAV performance/CAGR range"
+        required: false
+        default: ""
+        type: string
+      performance_5y:
+        description: "5Y average-annual NAV performance/CAGR range"
+        required: false
+        default: ""
+        type: string
+      performance_10y:
+        description: "10Y average-annual NAV performance/CAGR range"
+        required: false
+        default: ""
+        type: string
+      total_return_ytd:
+        description: "YTD cumulative NAV total-return range"
+        required: false
+        default: ""
+        type: string
+      total_return_1y:
+        description: "1Y cumulative NAV total-return range"
+        required: false
+        default: ""
+        type: string
+      total_return_3y:
+        description: "3Y cumulative NAV total-return range"
+        required: false
+        default: ""
+        type: string
+      total_return_5y:
+        description: "5Y cumulative NAV total-return range"
+        required: false
+        default: ""
+        type: string
+      total_return_10y:
+        description: "10Y cumulative NAV total-return range"
         required: false
         default: ""
         type: string
@@ -13,12 +125,37 @@ jobs:
   update:
     runs-on: ubuntu-latest
     env:
-      ISHARES_STORE_RAW_DOWNLOADS: ${{ inputs.store_raw_downloads || '' }}
+      MAX_FETCHES: ${{ inputs.max_fetches || '' }}
+      REQUEST_SLEEP: ${{ inputs.request_sleep || '0' }}
+      MIN_AUM: ${{ inputs.min_aum || '' }}
+      MAX_AUM: ${{ inputs.max_aum || '' }}
+      AUM_PRESET: ${{ inputs.aum_preset || 'all' }}
+      CONCURRENCY: ${{ inputs.concurrency || '4' }}
+      HOLDINGS_PAGE_SIZE: ${{ inputs.holdings_page_size || '250' }}
+      STORE_RAW_DOWNLOADS: ${{ inputs.store_raw_downloads || '' }}
+      MAX_RETRIES: ${{ inputs.max_retries || '2' }}
+      TICKERS: ${{ inputs.tickers || '' }}
+      MIN_DIVIDEND_YIELD: ${{ inputs.min_dividend_yield || '' }}
+      MAX_DIVIDEND_YIELD: ${{ inputs.max_dividend_yield || '' }}
+      PERFORMANCE_YTD: ${{ inputs.performance_ytd || '' }}
+      PERFORMANCE_1Y: ${{ inputs.performance_1y || '' }}
+      PERFORMANCE_3Y: ${{ inputs.performance_3y || '' }}
+      PERFORMANCE_5Y: ${{ inputs.performance_5y || '' }}
+      PERFORMANCE_10Y: ${{ inputs.performance_10y || '' }}
+      TOTAL_RETURN_YTD: ${{ inputs.total_return_ytd || '' }}
+      TOTAL_RETURN_1Y: ${{ inputs.total_return_1y || '' }}
+      TOTAL_RETURN_3Y: ${{ inputs.total_return_3y || '' }}
+      TOTAL_RETURN_5Y: ${{ inputs.total_return_5y || '' }}
+      TOTAL_RETURN_10Y: ${{ inputs.total_return_10y || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - run: bun scripts/update-ishares-data.ts
-      - run: |
+      - name: Test updater
+        run: bun test scripts/update-ishares-data.test.ts
+      - name: Update data
+        run: bun scripts/update-ishares-data.ts
+      - name: Commit changed data
+        run: |
           git add api/ishares
           git diff --cached --quiet && exit 0
           git config user.name github-actions[bot]
