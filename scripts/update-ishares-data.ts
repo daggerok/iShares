@@ -165,7 +165,8 @@ function isAumPreset(value: string): value is AumPreset {
   return Object.hasOwn(AUM_PRESET_BOUNDS, value);
 }
 
-/**
+/**  PARSEAUMRANGE,
+
  * Parse an AUM range. A bound can be a USD amount or an AUM preset. Presets on
  * the left contribute their lower boundary; presets on the right contribute
  * their exclusive upper boundary.
