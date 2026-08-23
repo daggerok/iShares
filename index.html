@@ -468,8 +468,10 @@
         "Yield As Of":
           "Yield As Of Date — Effective date for the trailing dividend yield figure.",
         ETFs: "ETFs — Badges showing all selected ETFs that currently hold this security in their portfolio.",
-        "Fund Count":
-          "Fund Count — Number of selected ETFs currently holding this security.",
+        "# ETFs":
+          "# ETFs — Number of selected ETFs that currently hold this security in their portfolio.",
+        "SEC Yield":
+          "SEC Yield (30-Day SEC Yield) — Standardized yield required by the U.S. SEC, based on income earned over the trailing 30 days after fund expenses. Useful for comparing income funds.",
         "Weight (%)":
           "Portfolio Weight (%) — Percentage allocation of this position in the fund's total portfolio value.",
         Weight:
@@ -926,7 +928,7 @@
           Ticker: row.symbol,
           Name: row.name,
           ETFs: [...row.funds].sort(),
-          "Fund Count": row.funds.size,
+          "# ETFs": row.funds.size,
           "Weight Sum (%)":
             row.weightSum > 0 ? row.weightSum.toFixed(2) + "%" : "—",
           "Max Weight (%)":
@@ -1161,6 +1163,7 @@
               "Net Assets",
               "Expense",
               "Dividend Yield",
+              "SEC Yield",
               "YTD Return",
               "TR 1Y",
               "TR 3Y",
@@ -1187,6 +1190,7 @@
                 "Net Assets": fund.netAssets || "—",
                 Expense: fund.netExpenseRatio || fund.grossExpenseRatio || "—",
                 "Dividend Yield": fund.trailingYield || "—",
+                "SEC Yield": fund.secYield || "—",
                 "YTD Return": formatPercent(totalReturn.YTD ?? fund.ytdReturn),
                 "TR 1Y": formatPercent(totalReturn["1Y"]),
                 "TR 3Y": formatPercent(totalReturn["3Y"]),
@@ -2050,6 +2054,7 @@
           "Ticker",
           "Name",
           "ETFs",
+          "# ETFs",
           "Weight Sum (%)",
           "Max Weight (%)",
           "Market Value",
@@ -2108,6 +2113,9 @@
               ).join("")}
             </div>
           </td>
+          <td class="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-300">${escapeHtml(
+            String(row["# ETFs"] ?? 0),
+          )}</td>
           <td class="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-300">${escapeHtml(
             row["Weight Sum (%)"],
           )}</td>
@@ -2197,7 +2205,7 @@
             "Weight Sum (%)",
             "Max Weight (%)",
             "Market Value",
-            "Fund Count",
+            "# ETFs",
           ].includes(key);
         }
         const sheet =
@@ -2293,6 +2301,7 @@
             "Ticker",
             "Name",
             "ETFs",
+            "# ETFs",
             "Weight Sum (%)",
             "Max Weight (%)",
             "Market Value",
@@ -2307,6 +2316,7 @@
               r.Ticker,
               r.Name,
               r.ETFs.join("|"),
+              r["# ETFs"],
               r["Weight Sum (%)"],
               r["Max Weight (%)"],
               r["Market Value"],

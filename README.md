@@ -149,7 +149,9 @@ bun scripts/update-ishares-data.ts
 - A successful data run may commit only `api/ishares/**`. GitHub Pages then deploys that commit, but the catalog UI changes only when the generated data itself changed.
 - Catalog-only filters (`TICKERS`, `AUM`, and `DIVIDEND_YIELD`) run before `MAX_FETCHES`. Return filters run after each selected official workbook is downloaded and parsed.
 - Every successful fund update stores derived quarter-end `performance` and `totalReturn` values (including since-inception `SI`) plus latest `nav` in `api/ishares/index.json` and under `returns` in the fund's `meta.json`.
+- Each fund update also downloads the product-page `fundHeader` component and stores the published 30-Day `secYield` (with `secYieldAsOf`) in `index.json` and in the fund's `meta.json`. Commodity and digital-asset funds (for example `IAU`, `SLV`, `IBIT`) do not publish the datapoint and keep `—`.
 - The UI fetches the first Holdings and Historical pages and appends more rows automatically as the table is scrolled; it does not show page-number controls.
+- The **Watchlist** tab aggregates the holdings of every selected ETF. Its **# ETFs** column counts how many of the selected ETFs currently hold each ticker, right after the **ETFs** badge column.
 - The app keeps search and sort preferences in localStorage, reapplies them after reload, and clears the cached workbook before reloading when `Clear` is clicked.
 - GitHub Actions writes updated, unchanged, return-filtered, and failed counts to the workflow summary.
 - Range validation is centralized in `parseRange`; AUM's numeric/preset validation is centralized in `parseAumRange`. Add or change syntax there and update `scripts/update-ishares-data.test.ts` in the same PR.

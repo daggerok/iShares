@@ -506,6 +506,45 @@ export function selectUpdateBatch<T extends { ticker: string }>(
   );
 }
 
+export type SecYield = { value: string; asOf: string };
+
+/**
+ * Extracts the 30-Day SEC Yield from a `component=fundHeader` product-data
+ * response (see https://www.ishares.com product pages). Returns null when the
+ * fund does not publish the datapoint.
+ */
+export function parseSecYield(json: unknown): SecYield | null {
+  const point = (
+    json as {
+      componentsByNameMap?: {
+        fundHeader?: {
+          containersByNameMap?: {
+            yieldsAndRates?: {
+              dataPointsByNameMap?: {
+                thirtyDaySecYield?: {
+                  formattedValue?: unknown;
+                  formattedAsOfDate?: unknown;
+                };
+              };
+            };
+          };
+        };
+      };
+    }
+  )?.componentsByNameMap?.fundHeader?.containersByNameMap?.yieldsAndRates
+    ?.dataPointsByNameMap?.thirtyDaySecYield;
+  const raw =
+    typeof point?.formattedValue === "string" ? point.formattedValue.trim() : "";
+  if (!raw || raw === "—") return null;
+  return {
+    value: raw.replace(/%$/, ""),
+    asOf:
+      typeof point?.formattedAsOfDate === "string"
+        ? point.formattedAsOfDate.trim()
+        : "",
+  };
+}
+
 export function parseCatalog(html: string) {
   const output: Fund[] = [];
   const rows = html.match(/<tr>[\s\S]*?<\/tr>/g) || [];
@@ -803,9 +842,21 @@ async function updateFund(
   waitForRequest: () => Promise<void>,
 ): Promise<UpdateResult> {
   const download = `https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=${fund.portfolioId}&component=fundDownload&userType=individual`;
+  const fundHeader = `https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=${fund.portfolioId}&userType=individual&component=fundHeader`;
   const body = await requestText(download, fund.ticker, config, waitForRequest);
   const worksheets = parseWorkbook(body);
   if (!Object.keys(worksheets).length) throw Error("no worksheets");
+
+  let secYield: SecYield | null = null;
+  try {
+    secYield = parseSecYield(
+      JSON.parse(await requestText(fundHeader, fund.ticker, config, waitForRequest)),
+    );
+  } catch (error) {
+    console.warn(
+      `[yield] ticker=${fund.ticker} sec yield unavailable: ${String(error)}`,
+    );
+  }
 
   const holdingsName = Object.keys(worksheets).find(
     (name) => name.trim().toLowerCase() === "holdings",
@@ -855,6 +906,7 @@ async function updateFund(
     holdings: holdingsPages.manifest,
     history: historyPages.manifest,
     returns,
+    secYield,
     worksheets,
   };
   changed =
@@ -891,6 +943,8 @@ async function updateFund(
       asOfDate,
       holdings: holdings.rows.length,
       history: history?.rows.length || 0,
+      secYield: secYield?.value ?? "",
+      secYieldAsOf: secYield?.asOf ?? "",
       nav: navValue === null ? "—" : `$${navValue.toFixed(2)}`,
       navValue,
       navAsOf: latestNavRow["As Of"] || "",
