@@ -2053,8 +2053,8 @@
         const headers = [
           "Ticker",
           "Name",
-          "# ETFs",
           "ETFs",
+          "# ETFs",
           "Weight Sum (%)",
           "Max Weight (%)",
           "Market Value",
@@ -2103,9 +2103,6 @@
           <td class="py-2.5 px-4 text-slate-700 dark:text-slate-300 font-medium">${escapeHtml(
             row.Name,
           )}</td>
-          <td class="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-300">${escapeHtml(
-            String(row["# ETFs"] ?? 0),
-          )}</td>
           <td class="py-2.5 px-4 text-slate-700 dark:text-slate-300">
             <div class="flex flex-wrap gap-1 max-w-md">
               ${row.ETFs.map(
@@ -2116,6 +2113,9 @@
               ).join("")}
             </div>
           </td>
+          <td class="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-300">${escapeHtml(
+            String(row["# ETFs"] ?? 0),
+          )}</td>
           <td class="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-300">${escapeHtml(
             row["Weight Sum (%)"],
           )}</td>
@@ -2300,8 +2300,8 @@
           const headers = [
             "Ticker",
             "Name",
-            "# ETFs",
             "ETFs",
+            "# ETFs",
             "Weight Sum (%)",
             "Max Weight (%)",
             "Market Value",
@@ -2315,8 +2315,8 @@
             [
               r.Ticker,
               r.Name,
-              r["# ETFs"],
               r.ETFs.join("|"),
+              r["# ETFs"],
               r["Weight Sum (%)"],
               r["Max Weight (%)"],
               r["Market Value"],
