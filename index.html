@@ -1,1553 +1,2411 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="iShares ETF holdings and catalog to watchlist with multi-ETF selection from static API or SpreadsheetML (.xls) exports." />
-  <title>iShares Excel .xls file to Watchlist</title>
-  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="iShares ETF holdings and catalog to watchlist with multi-ETF selection from static API or SpreadsheetML (.xls) exports."
+    />
+    <title>iShares Excel .xls file to Watchlist</title>
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
 
-  <!-- Inter font (same as csv / youtube / amplify apps) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Inter font (same as csv / youtube / amplify apps) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- Tailwind (CDN, no build step — single index.html approach) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
-    }
-  </script>
+    <!-- Tailwind CSS (CDN, single index.html no-build approach) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
 
-  <!-- Synchronous theme init (prevents flash, same strategy as csv/amplify apps) -->
-  <script>
-    (function () {
-      var dark = localStorage.getItem('ishares-theme') === 'dark';
-      document.documentElement.classList.toggle('dark', dark);
-      document.documentElement.style.backgroundColor = dark ? '#020617' : '#f8fafc';
-    })();
-  </script>
+    <!-- Synchronous theme init to prevent flash of unstyled content (FOUC) -->
+    <script>
+      (function () {
+        var dark = localStorage.getItem("ishares-theme") === "dark";
+        document.documentElement.classList.toggle("dark", dark);
+        document.documentElement.style.backgroundColor = dark
+          ? "#020617"
+          : "#f8fafc";
+      })();
+    </script>
 
-  <style>
-    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-    .animate-fade-in{animation:fadeIn .3s ease-out}
-
-    /* Themed scrollbars (slate palette, same tokens as csv/amplify apps .themed-scroll) */
-    .themed-scroll::-webkit-scrollbar{width:10px;height:10px}
-    .themed-scroll::-webkit-scrollbar-track{background:transparent}
-    .themed-scroll::-webkit-scrollbar-thumb{background-color:#cbd5e1;border-radius:8px;border:2px solid transparent;background-clip:padding-box}
-    .themed-scroll::-webkit-scrollbar-thumb:hover{background-color:#94a3b8}
-    .dark .themed-scroll::-webkit-scrollbar-thumb{background-color:#334155}
-    .dark .themed-scroll::-webkit-scrollbar-thumb:hover{background-color:#475569}
-    .themed-scroll::-webkit-scrollbar-corner{background:transparent}
-    .themed-scroll{scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
-    .dark .themed-scroll{scrollbar-color:#334155 transparent}
-
-    /* Row selection highlight (smooth transition identical to daggerok/Amplify) */
-    tr{transition:background-color .15s ease}
-    .selected-row{background:#eff6ff !important}
-    .dark .selected-row{background:rgba(30,64,175,.22) !important}
-
-    /* Detail navigation expands into place after an ETF is selected (smooth layout animation matching daggerok/Amplify) */
-    main.space-y-6 > #selected-tabs-panel{max-height:0;margin-top:0 !important;overflow:hidden;opacity:0;transform:translateY(-10px);padding-top:0 !important;padding-bottom:0 !important;border-width:0 !important;border-color:transparent !important;transition:max-height .32s ease,margin-top .32s ease,padding .32s ease,opacity .22s ease,transform .32s ease,border-color .22s ease}
-    main.space-y-6 > #selected-tabs-panel.is-visible{max-height:8rem;margin-top:1.5rem !important;padding-top:1rem !important;padding-bottom:1rem !important;opacity:1;transform:translateY(0);border-width:1px !important;border-color:rgb(226 232 240) !important}
-    .dark main.space-y-6 > #selected-tabs-panel.is-visible{border-color:rgb(51 65 85) !important}
-
-    /* Dropzone interaction states (deterministic across light/dark) */
-    .dz-active{border-color:#3b82f6;background:#eff6ff}
-    .dark .dz-active{background:#1e293b}
-    .dz-loaded{border-color:rgba(16,185,129,.5)}
-    .dz-loaded .dz-label{color:#059669}
-    .dark .dz-loaded .dz-label{color:#34d399}
-
-    @keyframes tableRefresh{from{opacity:.32;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-    #table-body.table-content-enter{animation:tableRefresh .22s ease-out}
-    @media (prefers-reduced-motion:reduce){#table-body.table-content-enter{animation:none}main.space-y-6 > #selected-tabs-panel{transition:none}}
-  </style>
-</head>
-<body class="min-h-screen font-sans bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300">
-  <div class="min-h-screen flex flex-col animate-fade-in">
-
-    <!-- Header: intentionally mirrors daggerok/Amplify look and feel -->
-    <header class="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-8 py-3 flex flex-wrap justify-between items-center gap-3 z-40 shadow-xs shrink-0">
-      <div class="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 min-w-0">
-        <div class="flex items-start gap-3 min-w-0">
-          <svg class="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 7l-8.5 8.5-5-5L2 17" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7h6v6" />
-          </svg>
-          <h1 class="min-w-0 text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">iShares Excel .xls file to Watchlist</h1>
-        </div>
-        <span id="app-subtitle" class="basis-full sm:basis-auto text-sm text-slate-500 dark:text-slate-400">
-          <span class="block sm:inline">Search iShares ETFs, select rows, then use the Watchlist tab. Data comes from <a href="./api/ishares/index.json" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">api/ishares/index.json</a> · Upload SpreadsheetML (.xls) file from iShares.</span>
-        </span>
-      </div>
-      <div class="flex items-center gap-3 shrink-0">
-        <span id="ticker-count" class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-semibold px-3.5 py-1.5 rounded-full border border-blue-200 dark:border-blue-500/30">
-          0 items
-        </span>
-        <button id="theme-toggle" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition text-base leading-none" title="Toggle Theme">🌙</button>
-      </div>
-    </header>
-
-    <main class="flex-1 w-full max-w-full p-4 sm:p-8 space-y-6">
-
-      <!-- Consolidated Search, Tabs & Action Bar: same simple pattern as Amplify -->
-      <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur">
-
-        <!-- Search Input (Left) -->
-        <input
-          type="text"
-          id="search-input"
-          placeholder="Search ETFs, fund names, holdings, tickers..."
-          disabled
-          class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 w-full lg:w-80 focus:outline-none focus:border-blue-500 text-sm placeholder-slate-400 dark:placeholder-slate-500 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 transition"
-        />
-
-        <!-- ETF Catalogue Tabs Bar (Centered in the middle) -->
-        <div id="tabs-bar" class="hidden flex flex-wrap items-center justify-center gap-2 overflow-x-auto py-1 max-w-full flex-1 themed-scroll"></div>
-
-        <!-- Action & Upload Buttons (Right) -->
-        <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end shrink-0">
-
-          <!-- Integrated Drag & Drop Upload Button -->
-          <div id="dropzone" class="flex items-center gap-2 border border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-500 bg-slate-50 dark:bg-slate-900/60 transition-all rounded-lg px-3.5 py-2 cursor-pointer text-sm text-slate-600 dark:text-slate-300">
-            <input type="file" id="file-input" accept=".xls,.xlsx,.xml,.csv" class="hidden" />
-            <svg class="w-4 h-4 text-blue-500 dark:text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-            <span id="dropzone-text" class="dz-label font-medium">Upload / Drop .xls</span>
-          </div>
-
-          <!-- Copy Tickers Button -->
-          <button id="copy-btn" disabled class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 dark:hover:bg-slate-700 disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800">Copy Tickers</button>
-
-          <!-- Export Actions -->
-          <button id="export-csv-btn" disabled class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600">Export .csv</button>
-          <button id="export-txt-btn" disabled class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600">Export .txt</button>
-          <button id="reset-btn" disabled class="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-700/50 px-3 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-rose-200 dark:hover:bg-rose-800/60 disabled:hover:bg-rose-100 dark:disabled:hover:bg-rose-900/40">Clear</button>
-        </div>
-
-      </div>
-
-      <!-- Selected ETF detail tabs appear immediately above the table (identical to daggerok/Amplify layout). -->
-      <nav id="selected-tabs-panel" class="bg-white dark:bg-slate-800/80 px-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur" aria-label="Selected ETF detail views">
-        <div id="selected-tabs-bar" class="flex flex-wrap items-center justify-center gap-1.5 overflow-x-auto py-1 w-full max-w-full themed-scroll"></div>
-      </nav>
-
-      <!-- Data Table Container -->
-      <div class="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur overflow-hidden">
-        <div id="table-scroll" class="max-h-[calc(100vh-245px)] overflow-x-auto overflow-y-auto themed-scroll">
-          <table class="w-full text-left border-collapse whitespace-nowrap">
-            <thead id="table-head" class="bg-slate-50 dark:bg-slate-900/95 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 sticky top-0 z-20 backdrop-blur">
-              <tr>
-                <th class="py-3.5 px-4 w-12 text-center" title="Row index">#</th>
-                <th class="py-3.5 px-4" title="Column 1">Column 1</th>
-              </tr>
-            </thead>
-            <tbody id="table-body" class="divide-y divide-slate-100 dark:divide-slate-700/50 text-sm">
-              <tr>
-                <td colspan="10" class="py-12 text-center text-slate-400 dark:text-slate-500">Loading iShares ETF catalog…</td>
-              </tr>
-            </tbody>
-          </table>
-          <div id="static-load-sentinel" class="hidden py-3 text-center text-xs text-slate-500 dark:text-slate-400" aria-live="polite">
-            <span id="static-load-status"></span>
-          </div>
-        </div>
-      </div>
-
-    </main>
-
-  </div>
-
-  <script>
-    // --- Detailed Column Descriptions & Explanations Dictionary for Hover Tooltips ---
-    const COLUMN_TOOLTIPS = {
-      '#': 'Row index in current table view.',
-      'Use': 'Use / Multi-ETF Selection — Check this box to include this ETF\'s underlying holdings in the combined Watchlist tab.',
-      'Ticker': 'Ticker Symbol — Unique stock market identifier for the fund or security.',
-      'Fund Name': 'Fund Name — Official legal name of the iShares Exchange-Traded Fund (ETF).',
-      'Name': 'Security Name — Full registered legal name of the company or underlying financial asset.',
-      'Type': 'Asset / Fund Type — Investment category or asset classification (e.g. iShares ETF, Equity, Fixed Income).',
-      'NAV': 'NAV (Net Asset Value) — Per-share dollar value of the fund (total assets minus liabilities divided by shares outstanding).',
-      'Net Assets': 'Net Assets (AUM) — Total market value of all financial assets managed by the fund minus its liabilities.',
-      'Expense': 'Expense Ratio — Net annual management fee and fund operating expenses charged to shareholders as a percentage of total assets.',
-      'Gross Expense': 'Gross Expense Ratio — Total annual fund operating expenses before any contractual fee waivers.',
-      'Net Expense': 'Net Expense Ratio — Annual fund operating expenses after contractual fee waivers and reimbursements.',
-      'Dividend Yield': 'Dividend Yield — Trailing 12-month dividend yield (total annual cash distributions divided by current fund price).',
-      'Trailing Yield': 'Trailing Yield — Trailing 12-month annualized cash distribution yield.',
-      'YTD Return': 'YTD Return (Year-To-Date Total Return) — Cumulative investment return from January 1st of the current calendar year to the latest quarter end, including price changes and reinvested dividends.',
-      'YTD': 'YTD (Year-To-Date) — Cumulative return from the start of the current calendar year.',
-      'TR 1Y': 'TR 1Y (1-Year Total Return) — Total cumulative return over the past 1 year (TR = Total Return), measuring full portfolio performance including price changes and reinvested dividends.',
-      'TR 3Y': 'TR 3Y (3-Year Total Return) — Total cumulative return over the past 3 years (TR = Total Return), measuring full portfolio growth with reinvested dividends.',
-      'TR 5Y': 'TR 5Y (5-Year Total Return) — Total cumulative return over the past 5 years (TR = Total Return), measuring full portfolio growth with reinvested dividends.',
-      'TR 10Y': 'TR 10Y (10-Year Total Return) — Total cumulative return over the past 10 years (TR = Total Return), measuring full portfolio growth with reinvested dividends.',
-      'CAGR 3Y': 'CAGR 3Y (3-Year Compound Annual Growth Rate) — Annualized geometric mean return over 3 years (CAGR = Compound Annual Growth Rate), showing smoothed yearly performance.',
-      'CAGR 5Y': 'CAGR 5Y (5-Year Compound Annual Growth Rate) — Annualized geometric mean return over 5 years (CAGR = Compound Annual Growth Rate), showing smoothed yearly performance.',
-      'CAGR 10Y': 'CAGR 10Y (10-Year Compound Annual Growth Rate) — Annualized geometric mean return over 10 years (CAGR = Compound Annual Growth Rate), showing smoothed yearly performance.',
-      'Return As Of': 'Return As Of Date — The effective cutoff reporting date for the published Total Return (TR) and CAGR performance metrics.',
-      'Inception': 'Inception Date — The official public launch date on which the ETF began trading on the exchange.',
-      'Inception Date': 'Inception Date — The official public launch date on which the ETF began trading on the exchange.',
-      'Holdings': 'Holdings Count — Total number of individual underlying securities and assets held in the ETF portfolio.',
-      'History': 'Historical Records — Total number of historical daily NAV and distribution records available.',
-      'As Of': 'As Of Date — Effective valuation date for the fund\'s Net Assets and trailing dividend yield.',
-      'Yield As Of': 'Yield As Of Date — Effective date for the trailing dividend yield figure.',
-      'ETFs': 'ETFs — Badges showing all selected ETFs that currently hold this security in their portfolio.',
-      'Fund Count': 'Fund Count — Number of selected ETFs currently holding this security.',
-      'Weight (%)': 'Portfolio Weight (%) — Percentage allocation of this position in the fund\'s total portfolio value.',
-      'Weight': 'Portfolio Weight (%) — Percentage allocation of this position in the fund\'s total portfolio value.',
-      'Weight Sum (%)': 'Weight Sum (%) — Combined cumulative allocation percentage across all selected ETFs.',
-      'Weight Sum': 'Weight Sum (%) — Combined cumulative allocation percentage across all selected ETFs.',
-      'Max Weight (%)': 'Max Weight (%) — Maximum single portfolio weight of this holding among any of the selected ETFs.',
-      'Max Weight': 'Max Weight (%) — Maximum single portfolio weight of this holding among any of the selected ETFs.',
-      'Market Value': 'Market Value ($) — Total current dollar value of the position held across the funds.',
-      'Notional Value': 'Notional Value — Total face value or contract value of the underlying financial instrument.',
-      'Quantity': 'Quantity / Shares — Total number of shares or units of the security held by the fund.',
-      'Shares': 'Shares / Quantity — Total number of shares or units of the security held by the fund.',
-      'Price': 'Price ($) — Current market price per single share of the security in USD.',
-      'Sector': 'Sector — Industry sector classification according to the Global Industry Classification Standard (GICS).',
-      'Asset Class': 'Asset Class — Broad financial asset category (e.g. Equity, Fixed Income, Cash, Commodity).',
-      'Location': 'Location / Country — Primary geographical domicile and jurisdiction of the issuing entity.',
-      'Exchange': 'Exchange — Primary stock exchange where the security is listed and traded (e.g. NASDAQ, NYSE).',
-      'Currency': 'Currency — Base currency in which the security is denominated and traded.',
-      'FX Rate': 'FX Rate (Foreign Exchange Rate) — Currency conversion rate applied to convert local prices into USD.',
-      'Accrual Date': 'Accrual Date — Effective accounting date for interest accruals, dividend settlements, or corporate actions.',
-      'CUSIP': 'CUSIP — Committee on Uniform Security Identification Procedures 9-character financial identifier.',
-      'ISIN': 'ISIN — International Securities Identification Number 12-character unique identifier.',
-      'SEDOL': 'SEDOL — Stock Exchange Daily Official List 7-character security identifier.',
-      'Flags': 'Flags — Classification tags describing the security type (e.g. symbol, cash, ADR, treasury).',
-      'Ex-Date': 'Ex-Dividend Date — Cutoff date on or after which purchasing the stock no longer entitles the buyer to the next dividend.',
-      'Record Date': 'Record Date — Cutoff date when the fund finalizes the registered list of shareholders eligible for payouts.',
-      'Payable Date': 'Payable Date — Date on which dividend cash distributions are disbursed and credited.',
-      'Amount': 'Distribution Amount ($) — Cash dividend distribution paid per single share in USD.',
-      'Distribution Type': 'Distribution Type — Classification of cash distribution (e.g. Ordinary Dividend, Capital Gains, Return of Capital).'
-    };
-
-    function getHeaderTooltip(header) {
-      if (!header) return '';
-      if (COLUMN_TOOLTIPS[header]) return COLUMN_TOOLTIPS[header];
-      const clean = String(header).trim();
-      for (const [k, v] of Object.entries(COLUMN_TOOLTIPS)) {
-        if (k.toLowerCase() === clean.toLowerCase()) return v;
+    <style>
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
-      if (/^TR\s+\d+/i.test(clean)) return `${clean} = Total Return: Total cumulative return over the period including price change and reinvested dividends.`;
-      if (/^CAGR\s+\d+/i.test(clean)) return `${clean} = Compound Annual Growth Rate: Annualized geometric mean return over the period.`;
-      if (/weight/i.test(clean)) return `${clean}: Portfolio weight percentage allocation.`;
-      if (/yield/i.test(clean)) return `${clean}: Annualized payout or dividend yield.`;
-      if (/return/i.test(clean)) return `${clean}: Performance total return metric.`;
-      return `Column: ${clean}`;
-    }
 
-    // --- Theme and table preferences (persisted, same UX as csv / amplify apps) ---
-    const THEME_KEY = 'ishares-theme';
-    const SITE_STATE_KEY = 'ishares-site-state';
-    const SELECTED_KEY = 'ishares-selected-etfs';
-    const ACTIVE_FUND_KEY = 'ishares-active-fund';
+      .animate-fade-in {
+        animation: fadeIn 0.3s ease-out;
+      }
 
-    const themeToggle = document.getElementById('theme-toggle');
-    const appSubtitle = document.getElementById('app-subtitle');
+      /* Themed scrollbars (slate palette tokens) */
+      .themed-scroll::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      .themed-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .themed-scroll::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+      }
+      .themed-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: #94a3b8;
+      }
+      .dark .themed-scroll::-webkit-scrollbar-thumb {
+        background-color: #334155;
+      }
+      .dark .themed-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: #475569;
+      }
+      .themed-scroll::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+      .themed-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+      }
+      .dark .themed-scroll {
+        scrollbar-color: #334155 transparent;
+      }
 
-    function applyTheme(dark) {
-      document.documentElement.classList.toggle('dark', dark);
-      document.documentElement.style.backgroundColor = dark ? '#020617' : '#f8fafc';
-      themeToggle.textContent = dark ? '☀️' : '🌙';
-      themeToggle.title = dark ? 'Switch to light theme' : 'Switch to dark theme';
-    }
+      /* Table row selection transitions */
+      tr {
+        transition: background-color 0.15s ease;
+      }
+      .selected-row {
+        background: #eff6ff !important;
+      }
+      .dark .selected-row {
+        background: rgba(30, 64, 175, 0.22) !important;
+      }
 
-    applyTheme(localStorage.getItem(THEME_KEY) === 'dark');
+      /* Detail navigation panel animation (smooth expand/collapse above the table) */
+      main.space-y-6 > #selected-tabs-panel {
+        max-height: 0;
+        margin-top: 0 !important;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(-10px);
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        border-width: 0 !important;
+        border-color: transparent !important;
+        transition:
+          max-height 0.32s ease,
+          margin-top 0.32s ease,
+          padding 0.32s ease,
+          opacity 0.22s ease,
+          transform 0.32s ease,
+          border-color 0.22s ease;
+      }
+      main.space-y-6 > #selected-tabs-panel.is-visible {
+        max-height: 8rem;
+        margin-top: 1.5rem !important;
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+        opacity: 1;
+        transform: translateY(0);
+        border-width: 1px !important;
+        border-color: rgb(226, 232, 240) !important;
+      }
+      .dark main.space-y-6 > #selected-tabs-panel.is-visible {
+        border-color: rgb(51, 65, 85) !important;
+      }
 
-    themeToggle.addEventListener('click', () => {
-      const dark = !document.documentElement.classList.contains('dark');
-      localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
-      applyTheme(dark);
-    });
+      /* Drag-and-drop zone interaction states */
+      .dz-active {
+        border-color: #3b82f6;
+        background: #eff6ff;
+      }
+      .dark .dz-active {
+        background: #1e293b;
+      }
+      .dz-loaded {
+        border-color: rgba(16, 185, 129, 0.5);
+      }
+      .dz-loaded .dz-label {
+        color: #059669;
+      }
+      .dark .dz-loaded .dz-label {
+        color: #34d399;
+      }
 
-    // --- IndexedDB Wrapper ---
-    const DB_NAME = 'iSharesWatchlistDB';
-    const DB_VERSION = 1;
-    const STORE_NAME = 'app_state';
+      /* Refresh transition on table body */
+      @keyframes tableRefresh {
+        from {
+          opacity: 0.32;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      #table-body.table-content-enter {
+        animation: tableRefresh 0.22s ease-out;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #table-body.table-content-enter {
+          animation: none;
+        }
+        main.space-y-6 > #selected-tabs-panel {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen font-sans bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300"
+  >
+    <div class="min-h-screen flex flex-col animate-fade-in">
+      <!-- Header -->
+      <header
+        class="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-8 py-3 flex flex-wrap justify-between items-center gap-3 z-40 shadow-xs shrink-0"
+      >
+        <div
+          class="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 min-w-0"
+        >
+          <div class="flex items-start gap-3 min-w-0">
+            <svg
+              class="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M22 7l-8.5 8.5-5-5L2 17"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M16 7h6v6"
+              />
+            </svg>
+            <h1
+              class="min-w-0 text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight"
+            >
+              iShares Excel .xls file to Watchlist
+            </h1>
+          </div>
+          <span
+            id="app-subtitle"
+            class="basis-full sm:basis-auto text-sm text-slate-500 dark:text-slate-400"
+          >
+            <span class="block sm:inline"
+              >Search iShares ETFs, select rows, then use the Watchlist tab.
+              Data comes from
+              <a
+                href="./api/ishares/index.json"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                >api/ishares/index.json</a
+              >
+              · Upload SpreadsheetML (.xls) file from iShares.</span
+            >
+          </span>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <span
+            id="ticker-count"
+            class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-semibold px-3.5 py-1.5 rounded-full border border-blue-200 dark:border-blue-500/30"
+          >
+            0 items
+          </span>
+          <button
+            id="theme-toggle"
+            class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition text-base leading-none"
+            title="Toggle Theme"
+          >
+            🌙
+          </button>
+        </div>
+      </header>
 
-    function openDB() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-        request.onupgradeneeded = (e) => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains(STORE_NAME)) {
-            db.createObjectStore(STORE_NAME);
+      <main class="flex-1 w-full max-w-full p-4 sm:p-8 space-y-6">
+        <!-- Consolidated Search, Tabs & Action Bar -->
+        <div
+          class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur"
+        >
+          <!-- Search Input (Left) -->
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search ETFs, fund names, holdings, tickers..."
+            disabled
+            class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 w-full lg:w-80 focus:outline-none focus:border-blue-500 text-sm placeholder-slate-400 dark:placeholder-slate-500 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 transition"
+          />
+
+          <!-- ETF Catalogue Tabs Bar (Center) -->
+          <div
+            id="tabs-bar"
+            class="hidden flex flex-wrap items-center justify-center gap-2 overflow-x-auto py-1 max-w-full flex-1 themed-scroll"
+          ></div>
+
+          <!-- Action & Upload Buttons (Right) -->
+          <div
+            class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end shrink-0"
+          >
+            <!-- Integrated Drag & Drop Upload Button -->
+            <div
+              id="dropzone"
+              class="flex items-center gap-2 border border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-500 bg-slate-50 dark:bg-slate-900/60 transition-all rounded-lg px-3.5 py-2 cursor-pointer text-sm text-slate-600 dark:text-slate-300"
+            >
+              <input
+                type="file"
+                id="file-input"
+                accept=".xls,.xlsx,.xml,.csv"
+                class="hidden"
+              />
+              <svg
+                class="w-4 h-4 text-blue-500 dark:text-blue-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
+              </svg>
+              <span id="dropzone-text" class="dz-label font-medium"
+                >Upload / Drop .xls</span
+              >
+            </div>
+
+            <!-- Copy Tickers Button -->
+            <button
+              id="copy-btn"
+              disabled
+              class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 dark:hover:bg-slate-700 disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
+            >
+              Copy Tickers
+            </button>
+
+            <!-- Export Actions -->
+            <button
+              id="export-csv-btn"
+              disabled
+              class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
+            >
+              Export .csv
+            </button>
+            <button
+              id="export-txt-btn"
+              disabled
+              class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
+            >
+              Export .txt
+            </button>
+            <button
+              id="reset-btn"
+              disabled
+              class="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-700/50 px-3 py-2 rounded-lg text-sm font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-rose-200 dark:hover:bg-rose-800/60 disabled:hover:bg-rose-100 dark:disabled:hover:bg-rose-900/40"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Selected ETF Detail & Watchlist Navigation Panel (Animated expand/collapse right above the table) -->
+        <nav
+          id="selected-tabs-panel"
+          class="bg-white dark:bg-slate-800/80 px-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur"
+          aria-label="Selected ETF detail views"
+        >
+          <div
+            id="selected-tabs-bar"
+            class="flex flex-wrap items-center justify-center gap-1.5 overflow-x-auto py-1 w-full max-w-full themed-scroll"
+          ></div>
+        </nav>
+
+        <!-- Data Table Container -->
+        <div
+          class="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur overflow-hidden"
+        >
+          <div
+            id="table-scroll"
+            class="max-h-[calc(100vh-245px)] overflow-x-auto overflow-y-auto themed-scroll"
+          >
+            <table class="w-full text-left border-collapse whitespace-nowrap">
+              <thead
+                id="table-head"
+                class="bg-slate-50 dark:bg-slate-900/95 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 sticky top-0 z-20 backdrop-blur"
+              >
+                <tr>
+                  <th class="py-3.5 px-4 w-12 text-center" title="Row index">
+                    #
+                  </th>
+                  <th class="py-3.5 px-4" title="Column 1">Column 1</th>
+                </tr>
+              </thead>
+              <tbody
+                id="table-body"
+                class="divide-y divide-slate-100 dark:divide-slate-700/50 text-sm"
+              >
+                <tr>
+                  <td
+                    colspan="10"
+                    class="py-12 text-center text-slate-400 dark:text-slate-500"
+                  >
+                    Loading iShares ETF catalog…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div
+              id="static-load-sentinel"
+              class="hidden py-3 text-center text-xs text-slate-500 dark:text-slate-400"
+              aria-live="polite"
+            >
+              <span id="static-load-status"></span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      /**
+       * @file iShares Watchlist Application
+       * Client-side static feed viewer and SpreadsheetML parser with multi-ETF Watchlist aggregation.
+       */
+
+      // =========================================================================
+      // 1. Column Explanations Dictionary for Header Hover Tooltips
+      // =========================================================================
+
+      /**
+       * Comprehensive dictionary explaining all column names, acronyms, and financial definitions.
+       * Used to populate native title attributes on hover.
+       * @type {Record<string, string>}
+       */
+      const COLUMN_TOOLTIPS = {
+        "#": "Row index in current table view.",
+        Use: "Use / Multi-ETF Selection — Check this box to include this ETF's underlying holdings in the combined Watchlist tab.",
+        Ticker:
+          "Ticker Symbol — Unique stock market identifier for the fund or security.",
+        "Fund Name":
+          "Fund Name — Official legal name of the iShares Exchange-Traded Fund (ETF).",
+        Name: "Security Name — Full registered legal name of the company or underlying financial asset.",
+        Type: "Asset / Fund Type — Investment category or asset classification (e.g. iShares ETF, Equity, Fixed Income).",
+        NAV: "NAV (Net Asset Value) — Per-share dollar value of the fund (total assets minus liabilities divided by shares outstanding).",
+        "Net Assets":
+          "Net Assets (AUM) — Total market value of all financial assets managed by the fund minus its liabilities.",
+        Expense:
+          "Expense Ratio — Net annual management fee and fund operating expenses charged to shareholders as a percentage of total assets.",
+        "Gross Expense":
+          "Gross Expense Ratio — Total annual fund operating expenses before any contractual fee waivers.",
+        "Net Expense":
+          "Net Expense Ratio — Annual fund operating expenses after contractual fee waivers and reimbursements.",
+        "Dividend Yield":
+          "Dividend Yield — Trailing 12-month dividend yield (total annual cash distributions divided by current fund price).",
+        "Trailing Yield":
+          "Trailing Yield — Trailing 12-month annualized cash distribution yield.",
+        "YTD Return":
+          "YTD Return (Year-To-Date Total Return) — Cumulative investment return from January 1st of the current calendar year to the latest quarter end, including price changes and reinvested dividends.",
+        YTD: "YTD (Year-To-Date) — Cumulative return from the start of the current calendar year.",
+        "TR 1Y":
+          "TR 1Y (1-Year Total Return) — Total cumulative return over the past 1 year (TR = Total Return), measuring full portfolio performance including price changes and reinvested dividends.",
+        "TR 3Y":
+          "TR 3Y (3-Year Total Return) — Total cumulative return over the past 3 years (TR = Total Return), measuring full portfolio growth with reinvested dividends.",
+        "TR 5Y":
+          "TR 5Y (5-Year Total Return) — Total cumulative return over the past 5 years (TR = Total Return), measuring full portfolio growth with reinvested dividends.",
+        "TR 10Y":
+          "TR 10Y (10-Year Total Return) — Total cumulative return over the past 10 years (TR = Total Return), measuring full portfolio growth with reinvested dividends.",
+        "CAGR 3Y":
+          "CAGR 3Y (3-Year Compound Annual Growth Rate) — Annualized geometric mean return over 3 years (CAGR = Compound Annual Growth Rate), showing smoothed yearly performance.",
+        "CAGR 5Y":
+          "CAGR 5Y (5-Year Compound Annual Growth Rate) — Annualized geometric mean return over 5 years (CAGR = Compound Annual Growth Rate), showing smoothed yearly performance.",
+        "CAGR 10Y":
+          "CAGR 10Y (10-Year Compound Annual Growth Rate) — Annualized geometric mean return over 10 years (CAGR = Compound Annual Growth Rate), showing smoothed yearly performance.",
+        "Return As Of":
+          "Return As Of Date — The effective cutoff reporting date for the published Total Return (TR) and CAGR performance metrics.",
+        Inception:
+          "Inception Date — The official public launch date on which the ETF began trading on the exchange.",
+        "Inception Date":
+          "Inception Date — The official public launch date on which the ETF began trading on the exchange.",
+        Holdings:
+          "Holdings Count — Total number of individual underlying securities and assets held in the ETF portfolio.",
+        History:
+          "Historical Records — Total number of historical daily NAV and distribution records available.",
+        "As Of":
+          "As Of Date — Effective valuation date for the fund's Net Assets and trailing dividend yield.",
+        "Yield As Of":
+          "Yield As Of Date — Effective date for the trailing dividend yield figure.",
+        ETFs: "ETFs — Badges showing all selected ETFs that currently hold this security in their portfolio.",
+        "Fund Count":
+          "Fund Count — Number of selected ETFs currently holding this security.",
+        "Weight (%)":
+          "Portfolio Weight (%) — Percentage allocation of this position in the fund's total portfolio value.",
+        Weight:
+          "Portfolio Weight (%) — Percentage allocation of this position in the fund's total portfolio value.",
+        "Weight Sum (%)":
+          "Weight Sum (%) — Combined cumulative allocation percentage across all selected ETFs.",
+        "Weight Sum":
+          "Weight Sum (%) — Combined cumulative allocation percentage across all selected ETFs.",
+        "Max Weight (%)":
+          "Max Weight (%) — Maximum single portfolio weight of this holding among any of the selected ETFs.",
+        "Max Weight":
+          "Max Weight (%) — Maximum single portfolio weight of this holding among any of the selected ETFs.",
+        "Market Value":
+          "Market Value ($) — Total current dollar value of the position held across the funds.",
+        "Notional Value":
+          "Notional Value — Total face value or contract value of the underlying financial instrument.",
+        Quantity:
+          "Quantity / Shares — Total number of shares or units of the security held by the fund.",
+        Shares:
+          "Shares / Quantity — Total number of shares or units of the security held by the fund.",
+        Price:
+          "Price ($) — Current market price per single share of the security in USD.",
+        Sector:
+          "Sector — Industry sector classification according to the Global Industry Classification Standard (GICS).",
+        "Asset Class":
+          "Asset Class — Broad financial asset category (e.g. Equity, Fixed Income, Cash, Commodity).",
+        Location:
+          "Location / Country — Primary geographical domicile and jurisdiction of the issuing entity.",
+        Exchange:
+          "Exchange — Primary stock exchange where the security is listed and traded (e.g. NASDAQ, NYSE).",
+        Currency:
+          "Currency — Base currency in which the security is denominated and traded.",
+        "FX Rate":
+          "FX Rate (Foreign Exchange Rate) — Currency conversion rate applied to convert local prices into USD.",
+        "Accrual Date":
+          "Accrual Date — Effective accounting date for interest accruals, dividend settlements, or corporate actions.",
+        CUSIP:
+          "CUSIP — Committee on Uniform Security Identification Procedures 9-character financial identifier.",
+        ISIN: "ISIN — International Securities Identification Number 12-character unique identifier.",
+        SEDOL:
+          "SEDOL — Stock Exchange Daily Official List 7-character security identifier.",
+        Flags:
+          "Flags — Classification tags describing the security type (e.g. symbol, cash, ADR, treasury).",
+        "Ex-Date":
+          "Ex-Dividend Date — Cutoff date on or after which purchasing the stock no longer entitles the buyer to the next dividend.",
+        "Record Date":
+          "Record Date — Cutoff date when the fund finalizes the registered list of shareholders eligible for payouts.",
+        "Payable Date":
+          "Payable Date — Date on which dividend cash distributions are disbursed and credited.",
+        Amount:
+          "Distribution Amount ($) — Cash dividend distribution paid per single share in USD.",
+        "Distribution Type":
+          "Distribution Type — Classification of cash distribution (e.g. Ordinary Dividend, Capital Gains, Return of Capital).",
+      };
+
+      /**
+       * Returns a comprehensive tooltip description for a given column header.
+       * @param {string} header - Header label.
+       * @returns {string} Explanatory description.
+       */
+      function getHeaderTooltip(header) {
+        if (!header) return "";
+        if (COLUMN_TOOLTIPS[header]) return COLUMN_TOOLTIPS[header];
+        const clean = String(header).trim();
+        for (const [k, v] of Object.entries(COLUMN_TOOLTIPS)) {
+          if (k.toLowerCase() === clean.toLowerCase()) return v;
+        }
+        if (/^TR\s+\d+/i.test(clean)) {
+          return `${clean} = Total Return: Total cumulative return over the period including price change and reinvested dividends.`;
+        }
+        if (/^CAGR\s+\d+/i.test(clean)) {
+          return `${clean} = Compound Annual Growth Rate: Annualized geometric mean return over the period.`;
+        }
+        if (/weight/i.test(clean))
+          return `${clean}: Portfolio weight percentage allocation.`;
+        if (/yield/i.test(clean))
+          return `${clean}: Annualized payout or dividend yield.`;
+        if (/return/i.test(clean))
+          return `${clean}: Performance total return metric.`;
+        return `Column: ${clean}`;
+      }
+
+      // =========================================================================
+      // 2. Storage Keys & Theme Initialization
+      // =========================================================================
+
+      const THEME_KEY = "ishares-theme";
+      const SITE_STATE_KEY = "ishares-site-state";
+      const SELECTED_KEY = "ishares-selected-etfs";
+      const ACTIVE_FUND_KEY = "ishares-active-fund";
+
+      const themeToggle = document.getElementById("theme-toggle");
+      const appSubtitle = document.getElementById("app-subtitle");
+
+      /**
+       * Applies dark or light theme to document and persists button state.
+       * @param {boolean} dark
+       */
+      function applyTheme(dark) {
+        document.documentElement.classList.toggle("dark", dark);
+        document.documentElement.style.backgroundColor = dark
+          ? "#020617"
+          : "#f8fafc";
+        themeToggle.textContent = dark ? "☀️" : "🌙";
+        themeToggle.title = dark
+          ? "Switch to light theme"
+          : "Switch to dark theme";
+      }
+
+      applyTheme(localStorage.getItem(THEME_KEY) === "dark");
+
+      themeToggle.addEventListener("click", () => {
+        const dark = !document.documentElement.classList.contains("dark");
+        localStorage.setItem(THEME_KEY, dark ? "dark" : "light");
+        applyTheme(dark);
+      });
+
+      // =========================================================================
+      // 3. IndexedDB Persistence Layer
+      // =========================================================================
+
+      const DB_NAME = "iSharesWatchlistDB";
+      const DB_VERSION = 1;
+      const STORE_NAME = "app_state";
+
+      function openDB() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(DB_NAME, DB_VERSION);
+          request.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+              db.createObjectStore(STORE_NAME);
+            }
+          };
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      async function dbSet(key, val) {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(STORE_NAME, "readwrite");
+          tx.objectStore(STORE_NAME).put(val, key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      async function dbGet(key) {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(STORE_NAME, "readonly");
+          const req = tx.objectStore(STORE_NAME).get(key);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
+
+      async function dbClear() {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(STORE_NAME, "readwrite");
+          tx.objectStore(STORE_NAME).clear();
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      // =========================================================================
+      // 4. Application State & DOM Element References
+      // =========================================================================
+
+      let workbookSheets = {};
+      let staticCatalogSheet = null;
+      let isUploadedFile = false;
+      let activeSheetName = "ETF Catalog";
+      let currentFileName = "";
+      let staticFunds = {};
+      let staticPagesBySheet = {};
+      let staticNextPageBySheet = {};
+      let staticLoadingSheets = new Set();
+      let staticPagingGeneration = 0;
+      let staticTicker = "";
+      let selectedETFs = new Set();
+      let activeFundTicker = null;
+      let fundHoldingsCache = {};
+      let activeFundSheets = {};
+      let isHoldingsLoading = false;
+
+      let restoredSortKey = "";
+      let restoredSortDir = "asc";
+      let sortKey = "";
+      let sortDir = "asc";
+      let restoredQuery = "";
+
+      const dropzone = document.getElementById("dropzone");
+      const dropzoneText = document.getElementById("dropzone-text");
+      const fileInput = document.getElementById("file-input");
+      const tabsBar = document.getElementById("tabs-bar");
+      const selectedTabsPanel = document.getElementById("selected-tabs-panel");
+      const selectedTabsBar = document.getElementById("selected-tabs-bar");
+      const tableHead = document.getElementById("table-head");
+      const tableBody = document.getElementById("table-body");
+      const tickerCount = document.getElementById("ticker-count");
+      const searchInput = document.getElementById("search-input");
+      const tableScroll = document.getElementById("table-scroll");
+      const staticLoadSentinel = document.getElementById(
+        "static-load-sentinel",
+      );
+      const staticLoadStatus = document.getElementById("static-load-status");
+
+      const copyBtn = document.getElementById("copy-btn");
+      const exportCsvBtn = document.getElementById("export-csv-btn");
+      const exportTxtBtn = document.getElementById("export-txt-btn");
+      const resetBtn = document.getElementById("reset-btn");
+
+      // =========================================================================
+      // 5. Bootstrap Lifecycle
+      // =========================================================================
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        restoreSiteState();
+        restoreSelectedEtfs();
+        try {
+          const savedWorkbook = await dbGet("workbook");
+          const savedFilename = await dbGet("filename");
+          const savedActiveTab = await dbGet("active_tab");
+
+          if (savedWorkbook) {
+            isUploadedFile = true;
+            workbookSheets = savedWorkbook;
+            currentFileName = savedFilename || "";
+            const sheetNames = Object.keys(workbookSheets);
+
+            if (sheetNames.length > 0) {
+              activeSheetName =
+                savedActiveTab && workbookSheets[savedActiveTab]
+                  ? savedActiveTab
+                  : getDefaultTabName(sheetNames);
+              renderTabs();
+              await switchSheet(activeSheetName);
+              applyRestoredSiteState();
+              enableControls(currentFileName || "Restored from cache");
+            }
+          } else {
+            await loadStaticCatalog();
           }
-        };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
-    }
-
-    async function dbSet(key, val) {
-      const db = await openDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        tx.objectStore(STORE_NAME).put(val, key);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
-      });
-    }
-
-    async function dbGet(key) {
-      const db = await openDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, 'readonly');
-        const req = tx.objectStore(STORE_NAME).get(key);
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-    }
-
-    async function dbClear() {
-      const db = await openDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        tx.objectStore(STORE_NAME).clear();
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
-      });
-    }
-
-    // --- State ---
-    let workbookSheets = {};
-    let staticCatalogSheet = null;
-    let isUploadedFile = false;
-    let activeSheetName = 'ETF Catalog';
-    let currentFileName = '';
-    let staticFunds = {};
-    let staticPagesBySheet = {};
-    let staticNextPageBySheet = {};
-    let staticLoadingSheets = new Set();
-    let staticPagingGeneration = 0;
-    let staticTicker = '';
-    let selectedETFs = new Set();
-    let activeFundTicker = null;
-    let fundHoldingsCache = {};
-    let activeFundSheets = {};
-    let isHoldingsLoading = false;
-
-    let restoredSortKey = '';
-    let restoredSortDir = 'asc';
-    let sortKey = '';
-    let sortDir = 'asc';
-    let restoredQuery = '';
-
-    const dropzone = document.getElementById('dropzone');
-    const dropzoneText = document.getElementById('dropzone-text');
-    const fileInput = document.getElementById('file-input');
-    const tabsBar = document.getElementById('tabs-bar');
-    const selectedTabsPanel = document.getElementById('selected-tabs-panel');
-    const selectedTabsBar = document.getElementById('selected-tabs-bar');
-    const tableHead = document.getElementById('table-head');
-    const tableBody = document.getElementById('table-body');
-    const tickerCount = document.getElementById('ticker-count');
-    const searchInput = document.getElementById('search-input');
-    const tableScroll = document.getElementById('table-scroll');
-    const staticLoadSentinel = document.getElementById('static-load-sentinel');
-    const staticLoadStatus = document.getElementById('static-load-status');
-
-    const copyBtn = document.getElementById('copy-btn');
-    const exportCsvBtn = document.getElementById('export-csv-btn');
-    const exportTxtBtn = document.getElementById('export-txt-btn');
-    const resetBtn = document.getElementById('reset-btn');
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      restoreSiteState();
-      restoreSelectedEtfs();
-      try {
-        const savedWorkbook = await dbGet('workbook');
-        const savedFilename = await dbGet('filename');
-        const savedActiveTab = await dbGet('active_tab');
-
-        if (savedWorkbook) {
-          isUploadedFile = true;
-          workbookSheets = savedWorkbook;
-          currentFileName = savedFilename || '';
-          const sheetNames = Object.keys(workbookSheets);
-
-          if (sheetNames.length > 0) {
-            activeSheetName = (savedActiveTab && workbookSheets[savedActiveTab]) ? savedActiveTab : getDefaultTabName(sheetNames);
-            renderTabs();
-            await switchSheet(activeSheetName);
-            applyRestoredSiteState();
-            enableControls(currentFileName || 'Restored from cache');
-          }
-        } else {
+        } catch (e) {
+          console.error("Failed to load from IndexedDB", e);
           await loadStaticCatalog();
         }
-      } catch (e) {
-        console.error('Failed to load from IndexedDB', e);
-        await loadStaticCatalog();
-      }
-    });
+      });
 
-    dropzone.addEventListener('click', () => fileInput.click());
-    dropzone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropzone.classList.add('dz-active');
-    });
-    dropzone.addEventListener('dragleave', () => {
-      dropzone.classList.remove('dz-active');
-    });
-    dropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropzone.classList.remove('dz-active');
-      if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
-    });
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length) processFile(e.target.files[0]);
-    });
+      // =========================================================================
+      // 6. Drag & Drop File Upload Handlers
+      // =========================================================================
 
-    function restoreSelectedEtfs() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(SELECTED_KEY));
-        if (Array.isArray(saved) && saved.length > 0) {
-          selectedETFs = new Set(saved.map(sanitizeTicker).filter(Boolean));
-        } else {
+      dropzone.addEventListener("click", () => fileInput.click());
+      dropzone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropzone.classList.add("dz-active");
+      });
+      dropzone.addEventListener("dragleave", () => {
+        dropzone.classList.remove("dz-active");
+      });
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("dz-active");
+        if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener("change", (e) => {
+        if (e.target.files.length) processFile(e.target.files[0]);
+      });
+
+      // =========================================================================
+      // 7. Multi-ETF Selection & Watchlist Data Pipeline
+      // =========================================================================
+
+      /**
+       * Restores selected ETF tickers from localStorage.
+       */
+      function restoreSelectedEtfs() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(SELECTED_KEY));
+          if (Array.isArray(saved) && saved.length > 0) {
+            selectedETFs = new Set(saved.map(sanitizeTicker).filter(Boolean));
+          } else {
+            selectedETFs = new Set();
+          }
+        } catch {
           selectedETFs = new Set();
         }
-      } catch {
-        selectedETFs = new Set();
-      }
 
-      const savedActive = sanitizeTicker(localStorage.getItem(ACTIVE_FUND_KEY) || '');
-      activeFundTicker = savedActive && selectedETFs.has(savedActive) ? savedActive : ([...selectedETFs][0] || null);
-    }
-
-    function persistSelectedEtfs() {
-      localStorage.setItem(SELECTED_KEY, JSON.stringify([...selectedETFs]));
-      if (activeFundTicker) {
-        localStorage.setItem(ACTIVE_FUND_KEY, activeFundTicker);
-      } else {
-        localStorage.removeItem(ACTIVE_FUND_KEY);
-      }
-    }
-
-    function sanitizeTicker(val) {
-      return String(val || '').trim().toUpperCase().replace(/[^A-Z0-9._-]/g, '');
-    }
-
-    function sanitizeWatchlistSymbol(val) {
-      return String(val || '').trim().toUpperCase();
-    }
-
-    function formatInteger(val) {
-      const num = sortableNumber(val);
-      return num !== null ? num.toLocaleString('en-US') : String(val || '');
-    }
-
-    function passesWatchlistFilter(symbol, holding) {
-      if (!symbol) return false;
-      if (['USD', 'XTSLA', 'CASH', 'BLKH', '--', 'N/A', '-', '—'].includes(symbol)) return false;
-      const assetClass = (holding['Asset Class'] || '').toLowerCase();
-      if (assetClass.includes('cash') || assetClass.includes('money market')) return false;
-      return /[A-Z]/.test(symbol);
-    }
-
-    async function loadHoldingsForFund(ticker) {
-      const cleanTicker = sanitizeTicker(ticker);
-      if (!cleanTicker) return [];
-      if (fundHoldingsCache[cleanTicker]) return fundHoldingsCache[cleanTicker];
-
-      try {
-        const metaRes = await fetch(`./api/ishares/funds/${encodeURIComponent(cleanTicker)}/meta.json`, { cache: 'no-cache' });
-        if (!metaRes.ok) return [];
-        const meta = await metaRes.json();
-        const pages = meta.holdings?.pages || [];
-        if (!pages.length) return [];
-        const pageData = await Promise.all(
-          pages.map(page => fetchStaticPage(cleanTicker, page))
+        const savedActive = sanitizeTicker(
+          localStorage.getItem(ACTIVE_FUND_KEY) || "",
         );
-        const allRows = pageData.flatMap(p => p.rows || []);
-        fundHoldingsCache[cleanTicker] = allRows;
-        return allRows;
-      } catch (e) {
-        console.warn(`Could not load holdings for ${cleanTicker}:`, e);
-        return [];
+        activeFundTicker =
+          savedActive && selectedETFs.has(savedActive)
+            ? savedActive
+            : [...selectedETFs][0] || null;
       }
-    }
 
-    async function ensureHoldingsForSelected() {
-      const tickersToFetch = [...selectedETFs].filter(t => !fundHoldingsCache[t]);
-      if (!tickersToFetch.length) return;
-      isHoldingsLoading = true;
-      try {
-        await Promise.all(tickersToFetch.map(t => loadHoldingsForFund(t)));
-      } finally {
-        isHoldingsLoading = false;
-        renderTabs();
+      /**
+       * Persists selected ETF tickers to localStorage.
+       */
+      function persistSelectedEtfs() {
+        localStorage.setItem(SELECTED_KEY, JSON.stringify([...selectedETFs]));
+        if (activeFundTicker) {
+          localStorage.setItem(ACTIVE_FUND_KEY, activeFundTicker);
+        } else {
+          localStorage.removeItem(ACTIVE_FUND_KEY);
+        }
+      }
+
+      function sanitizeTicker(val) {
+        return String(val || "")
+          .trim()
+          .toUpperCase()
+          .replace(/[^A-Z0-9._-]/g, "");
+      }
+
+      function sanitizeWatchlistSymbol(val) {
+        return String(val || "")
+          .trim()
+          .toUpperCase();
+      }
+
+      function formatInteger(val) {
+        const num = sortableNumber(val);
+        return num !== null ? num.toLocaleString("en-US") : String(val || "");
+      }
+
+      /**
+       * Filters out cash, money market, and synthetic placeholder tickers.
+       */
+      function passesWatchlistFilter(symbol, holding) {
+        if (!symbol) return false;
+        if (
+          ["USD", "XTSLA", "CASH", "BLKH", "--", "N/A", "-", "—"].includes(
+            symbol,
+          )
+        )
+          return false;
+        const assetClass = (holding["Asset Class"] || "").toLowerCase();
+        if (assetClass.includes("cash") || assetClass.includes("money market"))
+          return false;
+        return /[A-Z]/.test(symbol);
+      }
+
+      /**
+       * Asynchronously loads all holdings pages for a single ETF ticker.
+       * @param {string} ticker
+       * @returns {Promise<Array<Record<string, unknown>>>}
+       */
+      async function loadHoldingsForFund(ticker) {
+        const cleanTicker = sanitizeTicker(ticker);
+        if (!cleanTicker) return [];
+        if (fundHoldingsCache[cleanTicker])
+          return fundHoldingsCache[cleanTicker];
+
+        try {
+          const metaRes = await fetch(
+            `./api/ishares/funds/${encodeURIComponent(cleanTicker)}/meta.json`,
+            { cache: "no-cache" },
+          );
+          if (!metaRes.ok) return [];
+          const meta = await metaRes.json();
+          const pages = meta.holdings?.pages || [];
+          if (!pages.length) return [];
+          const pageData = await Promise.all(
+            pages.map((page) => fetchStaticPage(cleanTicker, page)),
+          );
+          const allRows = pageData.flatMap((p) => p.rows || []);
+          fundHoldingsCache[cleanTicker] = allRows;
+          return allRows;
+        } catch (e) {
+          console.warn(`Could not load holdings for ${cleanTicker}:`, e);
+          return [];
+        }
+      }
+
+      /**
+       * Preloads holdings for all selected ETFs in background.
+       */
+      async function ensureHoldingsForSelected() {
+        const tickersToFetch = [...selectedETFs].filter(
+          (t) => !fundHoldingsCache[t],
+        );
+        if (!tickersToFetch.length) return;
+        isHoldingsLoading = true;
+        try {
+          await Promise.all(tickersToFetch.map((t) => loadHoldingsForFund(t)));
+        } finally {
+          isHoldingsLoading = false;
+          renderTabs();
+          renderSubtitle();
+          if (activeSheetName === "Watchlist") {
+            renderWatchlistTable();
+          }
+        }
+      }
+
+      /**
+       * Aggregates and deduplicates holdings across all selected ETFs.
+       * @returns {Array<Record<string, unknown>>}
+       */
+      function getDedupedWatchlistRows() {
+        const map = new Map();
+
+        for (const ticker of selectedETFs) {
+          const holdings = fundHoldingsCache[ticker] || [];
+          for (const r of holdings) {
+            const sym = sanitizeWatchlistSymbol(r.Ticker);
+            if (!sym || !passesWatchlistFilter(sym, r)) continue;
+
+            if (!map.has(sym)) {
+              map.set(sym, {
+                symbol: sym,
+                name: r.Name || sym,
+                sector: r.Sector || "—",
+                assetClass: r["Asset Class"] || "—",
+                exchange: r.Exchange || "—",
+                location: r.Location || "—",
+                funds: new Set(),
+                weightSum: 0,
+                maxWeight: 0,
+                marketValueSum: 0,
+              });
+            }
+
+            const item = map.get(sym);
+            item.funds.add(ticker);
+            if (r.Name && (!item.name || item.name === sym)) item.name = r.Name;
+            if (r.Sector && item.sector === "—") item.sector = r.Sector;
+            if (r["Asset Class"] && item.assetClass === "—")
+              item.assetClass = r["Asset Class"];
+            if (r.Exchange && item.exchange === "—") item.exchange = r.Exchange;
+            if (r.Location && item.location === "—") item.location = r.Location;
+
+            const weightNum = sortableNumber(r["Weight (%)"]);
+            if (weightNum !== null) {
+              item.weightSum += weightNum;
+              item.maxWeight = Math.max(item.maxWeight, weightNum);
+            }
+            const mvNum = sortableNumber(r["Market Value"]);
+            if (mvNum !== null) {
+              item.marketValueSum += mvNum;
+            }
+          }
+        }
+
+        return [...map.values()].map((row) => ({
+          Ticker: row.symbol,
+          Name: row.name,
+          ETFs: [...row.funds].sort(),
+          "Fund Count": row.funds.size,
+          "Weight Sum (%)":
+            row.weightSum > 0 ? row.weightSum.toFixed(2) + "%" : "—",
+          "Max Weight (%)":
+            row.maxWeight > 0 ? row.maxWeight.toFixed(2) + "%" : "—",
+          "Market Value":
+            row.marketValueSum > 0
+              ? "$" + Math.round(row.marketValueSum).toLocaleString("en-US")
+              : "—",
+          Sector: row.sector,
+          "Asset Class": row.assetClass,
+          Exchange: row.exchange,
+          Location: row.location,
+          _searchIndex: [
+            row.symbol,
+            row.name,
+            [...row.funds].join(" "),
+            row.sector,
+            row.assetClass,
+            row.exchange,
+            row.location,
+          ]
+            .join(" ")
+            .toLowerCase(),
+        }));
+      }
+
+      /**
+       * Toggles selection of all catalog ETFs.
+       * @param {boolean} selectAll
+       */
+      function toggleSelectAll(selectAll) {
+        const allTickers = (staticCatalogSheet?.data || [])
+          .map((r) => r.Ticker)
+          .filter(Boolean);
+        if (selectAll) {
+          selectedETFs = new Set(allTickers);
+          if (!activeFundTicker) activeFundTicker = allTickers[0] || null;
+        } else {
+          selectedETFs.clear();
+          activeFundTicker = null;
+          if (
+            [
+              "Holdings",
+              "Historical",
+              "Performance",
+              "Distributions",
+              "Watchlist",
+            ].includes(activeSheetName)
+          ) {
+            activeSheetName = "ETF Catalog";
+          }
+        }
+        persistSelectedEtfs();
         renderSubtitle();
-        if (activeSheetName === 'Watchlist') {
+        renderTabs();
+
+        if (activeSheetName === "ETF Catalog") {
+          const rows = tableBody.querySelectorAll("tr[data-static-ticker]");
+          rows.forEach((row) => {
+            const ticker = row.dataset.staticTicker;
+            const isSelected = selectedETFs.has(ticker);
+            row.classList.toggle("selected-row", isSelected);
+            const cb = row.querySelector("input[data-checkbox]");
+            if (cb) cb.checked = isSelected;
+          });
+
+          const headerCb = tableHead.querySelector("#select-all-checkbox");
+          if (headerCb) headerCb.checked = selectAll;
+
+          const topSelectAll = document.getElementById("select-all-toggle");
+          if (topSelectAll) topSelectAll.checked = selectAll;
+        } else if (activeSheetName === "Watchlist") {
           renderWatchlistTable();
         }
-      }
-    }
 
-    function getDedupedWatchlistRows() {
-      const map = new Map();
-
-      for (const ticker of selectedETFs) {
-        const holdings = fundHoldingsCache[ticker] || [];
-        for (const r of holdings) {
-          const sym = sanitizeWatchlistSymbol(r.Ticker);
-          if (!sym || !passesWatchlistFilter(sym, r)) continue;
-
-          if (!map.has(sym)) {
-            map.set(sym, {
-              symbol: sym,
-              name: r.Name || sym,
-              sector: r.Sector || '—',
-              assetClass: r['Asset Class'] || '—',
-              exchange: r.Exchange || '—',
-              location: r.Location || '—',
-              funds: new Set(),
-              weightSum: 0,
-              maxWeight: 0,
-              marketValueSum: 0,
-            });
-          }
-
-          const item = map.get(sym);
-          item.funds.add(ticker);
-          if (r.Name && (!item.name || item.name === sym)) item.name = r.Name;
-          if (r.Sector && item.sector === '—') item.sector = r.Sector;
-          if (r['Asset Class'] && item.assetClass === '—') item.assetClass = r['Asset Class'];
-          if (r.Exchange && item.exchange === '—') item.exchange = r.Exchange;
-          if (r.Location && item.location === '—') item.location = r.Location;
-
-          const weightNum = sortableNumber(r['Weight (%)']);
-          if (weightNum !== null) {
-            item.weightSum += weightNum;
-            item.maxWeight = Math.max(item.maxWeight, weightNum);
-          }
-          const mvNum = sortableNumber(r['Market Value']);
-          if (mvNum !== null) {
-            item.marketValueSum += mvNum;
-          }
-        }
+        void ensureHoldingsForSelected();
       }
 
-      return [...map.values()].map(row => ({
-        Ticker: row.symbol,
-        Name: row.name,
-        ETFs: [...row.funds].sort(),
-        'Fund Count': row.funds.size,
-        'Weight Sum (%)': row.weightSum > 0 ? row.weightSum.toFixed(2) + '%' : '—',
-        'Max Weight (%)': row.maxWeight > 0 ? row.maxWeight.toFixed(2) + '%' : '—',
-        'Market Value': row.marketValueSum > 0 ? '$' + Math.round(row.marketValueSum).toLocaleString('en-US') : '—',
-        Sector: row.sector,
-        'Asset Class': row.assetClass,
-        Exchange: row.exchange,
-        Location: row.location,
-        _searchIndex: [row.symbol, row.name, [...row.funds].join(' '), row.sector, row.assetClass, row.exchange, row.location].join(' ').toLowerCase(),
-      }));
-    }
-
-    function toggleSelectAll(selectAll) {
-      const allTickers = (staticCatalogSheet?.data || []).map(r => r.Ticker).filter(Boolean);
-      if (selectAll) {
-        selectedETFs = new Set(allTickers);
-        if (!activeFundTicker) activeFundTicker = allTickers[0] || null;
-      } else {
-        selectedETFs.clear();
-        activeFundTicker = null;
-        if (['Holdings', 'Historical', 'Performance', 'Distributions', 'Watchlist'].includes(activeSheetName)) {
-          activeSheetName = 'ETF Catalog';
-        }
-      }
-      persistSelectedEtfs();
-      renderSubtitle();
-      renderTabs();
-
-      if (activeSheetName === 'ETF Catalog') {
-        const rows = tableBody.querySelectorAll('tr[data-static-ticker]');
-        rows.forEach(row => {
-          const ticker = row.dataset.staticTicker;
-          const isSelected = selectedETFs.has(ticker);
-          row.classList.toggle('selected-row', isSelected);
-          const cb = row.querySelector('input[data-checkbox]');
-          if (cb) cb.checked = isSelected;
-        });
-
-        const headerCb = tableHead.querySelector('#select-all-checkbox');
-        if (headerCb) headerCb.checked = selectAll;
-      } else if (activeSheetName === 'Watchlist') {
-        renderWatchlistTable();
-      }
-
-      void ensureHoldingsForSelected();
-    }
-
-    function toggleEtfSelection(ticker) {
-      const clean = sanitizeTicker(ticker);
-      if (!clean) return;
-      const isSelected = !selectedETFs.has(clean);
-      if (isSelected) {
-        selectedETFs.add(clean);
-        activeFundTicker = clean;
-      } else {
-        selectedETFs.delete(clean);
-        if (activeFundTicker === clean) {
-          activeFundTicker = [...selectedETFs][0] || null;
-        }
-      }
-      persistSelectedEtfs();
-      renderSubtitle();
-      renderTabs();
-
-      if (activeSheetName === 'ETF Catalog') {
-        const row = tableBody.querySelector(`tr[data-static-ticker="${clean}"]`);
-        if (row) {
-          row.classList.toggle('selected-row', isSelected);
-          const cb = row.querySelector(`input[data-checkbox="${clean}"]`);
-          if (cb) cb.checked = isSelected;
-        }
-        const allCount = staticCatalogSheet?.data?.length || 0;
-        const headerCb = tableHead.querySelector('#select-all-checkbox');
-        if (headerCb) headerCb.checked = (allCount > 0 && selectedETFs.size === allCount);
-      } else if (activeSheetName === 'Watchlist') {
-        renderWatchlistTable();
-      } else if (['Holdings', 'Historical', 'Performance', 'Distributions'].includes(activeSheetName)) {
-        if (activeFundTicker) {
-          void loadStaticFund(activeFundTicker);
+      /**
+       * Toggles selection of an individual ETF row without re-rendering the full table.
+       * @param {string} ticker
+       */
+      function toggleEtfSelection(ticker) {
+        const clean = sanitizeTicker(ticker);
+        if (!clean) return;
+        const isSelected = !selectedETFs.has(clean);
+        if (isSelected) {
+          selectedETFs.add(clean);
+          activeFundTicker = clean;
         } else {
-          void switchSheet('ETF Catalog');
+          selectedETFs.delete(clean);
+          if (activeFundTicker === clean) {
+            activeFundTicker = [...selectedETFs][0] || null;
+          }
         }
-      }
-
-      void ensureHoldingsForSelected();
-    }
-
-    function selectSingleFund(ticker) {
-      const clean = sanitizeTicker(ticker);
-      if (!clean) return;
-      if (!selectedETFs.has(clean)) {
-        selectedETFs.add(clean);
-      }
-      activeFundTicker = clean;
-      persistSelectedEtfs();
-      renderSubtitle();
-      renderTabs();
-      void loadStaticFund(clean);
-      void ensureHoldingsForSelected();
-    }
-
-    function renderSubtitle() {
-      if (isUploadedFile) {
-        appSubtitle.innerHTML = `<span class="block sm:inline">· Uploaded SpreadsheetML (.xls) file: <strong>${escapeHtml(currentFileName)}</strong></span>`;
-        return;
-      }
-
-      const baseText = `<span class="block sm:inline">Search iShares ETFs, select rows, then use the Watchlist tab. Data comes from <a href="./api/ishares/index.json" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">api/ishares/index.json</a> · Upload SpreadsheetML (.xls) file from iShares.</span>`;
-
-      const selected = selectedETFs.size;
-      const allCount = staticCatalogSheet?.data?.length || 0;
-
-      if (!selected) {
-        appSubtitle.innerHTML = baseText;
-        return;
-      }
-
-      let selectionItem = '';
-      if (selected === allCount && allCount > 0) {
-        selectionItem = `<span class="block sm:inline"><span class="hidden sm:inline"> · </span><span class="sm:hidden">· </span>All ${allCount} ETFs selected</span>`;
-      } else {
-        const selectedLinks = [...selectedETFs].sort().map(ticker => {
-          const isActive = ticker === activeFundTicker;
-          return `<a href="javascript:void(0)" onclick="selectSingleFund('${escapeHtml(ticker)}')" title="View ${escapeHtml(ticker)} details" class="font-semibold ${isActive ? 'text-blue-700 dark:text-blue-300 underline' : 'text-blue-600 dark:text-blue-400 hover:underline'}">${escapeHtml(ticker)}</a>`;
-        }).join(', ');
-        selectionItem = `<span class="block sm:inline"><span class="hidden sm:inline"> · </span><span class="sm:hidden">· </span>${selected} selected: ${selectedLinks}</span>`;
-      }
-
-      appSubtitle.innerHTML = `${baseText}${selectionItem}`;
-    }
-
-    async function loadStaticCatalog() {
-      try {
-        isUploadedFile = false;
-        const response = await fetch('./api/ishares/index.json', { cache: 'no-cache' });
-        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-        const index = await response.json();
-        staticFunds = Object.fromEntries((index.funds || []).map(fund => [fund.ticker, fund]));
-
-        if (!activeFundTicker && selectedETFs.size) {
-          activeFundTicker = [...selectedETFs][0] || null;
-        }
-
-        const formatPercent = value => {
-          if (value === null || value === undefined || value === '') return '—';
-          const number = Number(value);
-          return Number.isFinite(number) ? number.toFixed(2) : String(value);
-        };
-
-        staticCatalogSheet = {
-          headers: ['Ticker', 'Fund Name', 'Type', 'Net Assets', 'Expense', 'Dividend Yield', 'YTD Return', 'TR 1Y', 'TR 3Y', 'TR 5Y', 'TR 10Y', 'CAGR 3Y', 'CAGR 5Y', 'CAGR 10Y', 'Return As Of', 'Inception', 'Holdings', 'History', 'As Of'],
-          data: (index.funds || []).map(fund => {
-            const totalReturn = fund.totalReturn || {};
-            const performance = fund.performance || {};
-            return {
-              Ticker: fund.ticker,
-              'Fund Name': fund.name,
-              Type: fund.type || 'iShares ETF',
-              'Net Assets': fund.netAssets || '—',
-              Expense: fund.netExpenseRatio || fund.grossExpenseRatio || '—',
-              'Dividend Yield': fund.trailingYield || '—',
-              'YTD Return': formatPercent(totalReturn.YTD ?? fund.ytdReturn),
-              'TR 1Y': formatPercent(totalReturn['1Y']),
-              'TR 3Y': formatPercent(totalReturn['3Y']),
-              'TR 5Y': formatPercent(totalReturn['5Y']),
-              'TR 10Y': formatPercent(totalReturn['10Y']),
-              'CAGR 3Y': formatPercent(performance['3Y']),
-              'CAGR 5Y': formatPercent(performance['5Y']),
-              'CAGR 10Y': formatPercent(performance['10Y']),
-              'Return As Of': totalReturn.asOfDate || fund.returnAsOf || '—',
-              Inception: fund.inceptionDate || '—',
-              Holdings: fund.holdings || '—',
-              History: fund.history || '—',
-              'As Of': fund.asOfDate || fund.yieldAsOf || '—',
-            };
-          }),
-          tickerCol: 'Ticker',
-        };
-
-        workbookSheets = {
-          'ETF Catalog': staticCatalogSheet
-        };
-
-        currentFileName = 'iShares static data';
-        if (!activeSheetName) {
-          activeSheetName = 'ETF Catalog';
-        }
-
+        persistSelectedEtfs();
         renderSubtitle();
         renderTabs();
-        await switchSheet(activeSheetName);
-        applyRestoredSiteState();
-        enableControls(currentFileName);
 
-        if (selectedETFs.size > 0) {
-          void ensureHoldingsForSelected();
+        if (activeSheetName === "ETF Catalog") {
+          const row = tableBody.querySelector(
+            `tr[data-static-ticker="${clean}"]`,
+          );
+          if (row) {
+            row.classList.toggle("selected-row", isSelected);
+            const cb = row.querySelector(`input[data-checkbox="${clean}"]`);
+            if (cb) cb.checked = isSelected;
+          }
+          const allCount = staticCatalogSheet?.data?.length || 0;
+          const allSelected = allCount > 0 && selectedETFs.size === allCount;
+          const headerCb = tableHead.querySelector("#select-all-checkbox");
+          if (headerCb) headerCb.checked = allSelected;
+
+          const topSelectAll = document.getElementById("select-all-toggle");
+          if (topSelectAll) topSelectAll.checked = allSelected;
+        } else if (activeSheetName === "Watchlist") {
+          renderWatchlistTable();
+        } else if (
+          ["Holdings", "Historical", "Performance", "Distributions"].includes(
+            activeSheetName,
+          )
+        ) {
           if (activeFundTicker) {
-            void loadStaticFundSheets(activeFundTicker, false);
+            void loadStaticFund(activeFundTicker);
+          } else {
+            void switchSheet("ETF Catalog");
           }
         }
-      } catch (error) {
-        console.info('Static iShares data is unavailable; upload an .xls file to begin.', error);
-      }
-    }
 
-    async function fetchStaticPage(ticker, pagePath) {
-      const path = String(pagePath).replace(/^\.\/+/, '');
-      const response = await fetch(`./api/ishares/funds/${encodeURIComponent(ticker)}/${path}`, { cache: 'no-cache' });
-      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-      return response.json();
-    }
-
-    function staticSheet(sheet) {
-      const headers = Array.isArray(sheet?.headers) ? sheet.headers : [];
-      const data = Array.isArray(sheet?.rows) ? sheet.rows : [];
-      return {
-        headers,
-        data,
-        tickerCol: headers.find(header => /^ticker$/i.test(header)) || null,
-      };
-    }
-
-    function resetStaticPaging() {
-      staticPagingGeneration += 1;
-      staticPagesBySheet = {};
-      staticNextPageBySheet = {};
-      staticLoadingSheets = new Set();
-    }
-
-    function renderStaticLoadSentinel() {
-      if (activeSheetName === 'Watchlist' || activeSheetName === 'ETF Catalog' || isUploadedFile) {
-        staticLoadSentinel.classList.add('hidden');
-        return;
-      }
-      const pages = staticPagesBySheet[activeSheetName] || [];
-      const nextPage = staticNextPageBySheet[activeSheetName] || 0;
-      const loading = staticLoadingSheets.has(activeSheetName);
-      const visible = loading || nextPage < pages.length;
-      staticLoadSentinel.classList.toggle('hidden', !visible);
-      staticLoadStatus.textContent = loading ? 'Loading more rows…' : '';
-    }
-
-    async function loadNextStaticSheetPage(sheetName) {
-      const pages = staticPagesBySheet[sheetName];
-      const nextPage = staticNextPageBySheet[sheetName] || 0;
-      if (!staticTicker || !pages || !pages[nextPage] || staticLoadingSheets.has(sheetName)) {
-        if (sheetName === activeSheetName) renderStaticLoadSentinel();
-        return;
+        void ensureHoldingsForSelected();
       }
 
-      const generation = staticPagingGeneration;
-      const ticker = staticTicker;
-      staticLoadingSheets.add(sheetName);
-      if (sheetName === activeSheetName) renderStaticLoadSentinel();
-      try {
-        const loaded = staticSheet(await fetchStaticPage(ticker, pages[nextPage]));
-        if (generation !== staticPagingGeneration || ticker !== staticTicker) return;
-        const current = workbookSheets[sheetName] || staticSheet(loaded);
-        current.data = current.data.concat(loaded.data);
-        if (!current.headers.length) current.headers = loaded.headers;
-        if (!current.tickerCol) current.tickerCol = loaded.tickerCol;
-        workbookSheets[sheetName] = current;
-        activeFundSheets[sheetName] = current;
-        staticNextPageBySheet[sheetName] = nextPage + 1;
-        if (sheetName === activeSheetName) {
-          renderTable(getFilteredRows(current), current.headers);
+      /**
+       * Switches active focus to a specific fund detail view.
+       * @param {string} ticker
+       */
+      function selectSingleFund(ticker) {
+        const clean = sanitizeTicker(ticker);
+        if (!clean) return;
+        if (!selectedETFs.has(clean)) {
+          selectedETFs.add(clean);
         }
-      } catch (error) {
-        if (generation === staticPagingGeneration) {
-          console.error(`Failed to load ${sheetName} page ${nextPage + 1}`, error);
-        }
-      } finally {
-        if (generation !== staticPagingGeneration) return;
-        staticLoadingSheets.delete(sheetName);
-        if (sheetName === activeSheetName) renderStaticLoadSentinel();
-      }
-    }
-
-    function maybeLoadMoreStaticRows() {
-      const pages = staticPagesBySheet[activeSheetName] || [];
-      const nextPage = staticNextPageBySheet[activeSheetName] || 0;
-      if (!tableScroll || !pages[nextPage] || staticLoadingSheets.has(activeSheetName)) return;
-      const distanceToBottom = tableScroll.scrollHeight - tableScroll.scrollTop - tableScroll.clientHeight;
-      if (distanceToBottom < 600) void loadNextStaticSheetPage(activeSheetName);
-    }
-
-    async function loadStaticFundSheets(ticker, switchToHoldings = false) {
-      const fund = staticFunds[ticker];
-      if (!fund) return;
-      try {
-        const response = await fetch(`./api/ishares/funds/${encodeURIComponent(ticker)}/meta.json`, { cache: 'no-cache' });
-        if (!response.ok) return;
-        const data = await response.json();
-        staticTicker = ticker;
-        resetStaticPaging();
-
-        const fundSheets = Object.fromEntries(Object.entries(data.worksheets || {}).map(([name, sheet]) => [name, staticSheet(sheet)]));
-        const pageManifests = {
-          Holdings: data.holdings,
-          Historical: data.history || data.historical,
-        };
-        for (const [sheetName, manifest] of Object.entries(pageManifests)) {
-          if (!manifest || !Array.isArray(manifest.pages) || !manifest.pages.length) continue;
-          staticPagesBySheet[sheetName] = manifest.pages;
-          staticNextPageBySheet[sheetName] = 0;
-          fundSheets[sheetName] = staticSheet(await fetchStaticPage(ticker, manifest.pages[0]));
-          staticNextPageBySheet[sheetName] = 1;
-        }
-
-        activeFundSheets = fundSheets;
-        workbookSheets = {
-          'ETF Catalog': staticCatalogSheet || workbookSheets['ETF Catalog'],
-          ...fundSheets
-        };
-
+        activeFundTicker = clean;
+        persistSelectedEtfs();
+        renderSubtitle();
         renderTabs();
-        if (switchToHoldings) {
-          activeSheetName = 'Holdings';
-          await switchSheet(activeSheetName);
-        }
-      } catch (err) {
-        console.warn(`Failed to load fund sheets for ${ticker}:`, err);
-      }
-    }
-
-    async function loadStaticFund(ticker) {
-      activeFundTicker = ticker;
-      persistSelectedEtfs();
-      renderSubtitle();
-      await loadStaticFundSheets(ticker, true);
-    }
-
-    const staticLoadObserver = typeof IntersectionObserver === 'function'
-      ? new IntersectionObserver((entries) => {
-          if (entries.some(entry => entry.isIntersecting)) void loadNextStaticSheetPage(activeSheetName);
-        }, { root: tableScroll, rootMargin: '600px 0px' })
-      : null;
-    staticLoadObserver?.observe(staticLoadSentinel);
-    tableScroll.addEventListener('scroll', maybeLoadMoreStaticRows, { passive: true });
-    staticLoadSentinel.addEventListener('click', () => void loadNextStaticSheetPage(activeSheetName));
-
-    function restoreSiteState() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(SITE_STATE_KEY) || '{}');
-        restoredSortKey = typeof saved.sortKey === 'string' ? saved.sortKey : '';
-        restoredSortDir = saved.sortDir === 'desc' ? 'desc' : 'asc';
-        restoredQuery = typeof saved.query === 'string' ? saved.query : '';
-      } catch { /* no saved state */ }
-    }
-
-    function applyRestoredSiteState() {
-      if (activeSheetName === 'Watchlist') {
-        renderWatchlistTable();
-        return;
-      }
-      const currentSheet = workbookSheets[activeSheetName];
-      sortKey = restoredSortKey;
-      sortDir = restoredSortDir;
-      searchInput.value = restoredQuery;
-      if (!currentSheet) return;
-      if (sortKey && !currentSheet.headers.includes(sortKey)) {
-        sortKey = '';
-        sortDir = 'asc';
-      }
-      renderTable(getFilteredRows(currentSheet), currentSheet.headers);
-      renderStaticLoadSentinel();
-    }
-
-    function persistSiteState() {
-      localStorage.setItem(SITE_STATE_KEY, JSON.stringify({ sortKey, sortDir, query: searchInput.value }));
-    }
-
-    function getDefaultTabName(sheetNames) {
-      const holdingsTab = sheetNames.find(name => /^holdings$/i.test(name.trim()));
-      return holdingsTab || sheetNames[0];
-    }
-
-    function processFile(file) {
-      isUploadedFile = true;
-      staticTicker = '';
-      resetStaticPaging();
-      currentFileName = file.name;
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const xmlContent = e.target.result;
-        workbookSheets = {};
-
-        const worksheetMatches = Array.from(xmlContent.matchAll(/<ss:Worksheet\s+ss:Name="([^"]+)"[\s\S]*?>([\s\S]*?)<\/ss:Worksheet>/gi));
-
-        if (worksheetMatches.length > 0) {
-          worksheetMatches.forEach(match => {
-            const sheetName = match[1].trim();
-            const sheetXml = match[2];
-            parseSheetXml(sheetName, sheetXml);
-          });
-        } else {
-          parseSheetXml('Holdings', xmlContent);
-        }
-
-        const sheetNames = Object.keys(workbookSheets);
-        if (sheetNames.length > 0) {
-          activeSheetName = getDefaultTabName(sheetNames);
-
-          await dbSet('workbook', workbookSheets);
-          await dbSet('filename', currentFileName);
-          await dbSet('active_tab', activeSheetName);
-
-          renderSubtitle();
-          renderTabs();
-          switchSheet(activeSheetName);
-          enableControls(currentFileName);
-        }
-      };
-
-      reader.readAsText(file);
-    }
-
-    function parseSheetXml(sheetName, sheetXml) {
-      const rowMatches = sheetXml.match(/<ss:Row[\s\S]*?<\/ss:Row>/gi) || [];
-      let rawRows = [];
-
-      rowMatches.forEach(rowXml => {
-        const dataMatches = Array.from(rowXml.matchAll(/<ss:Data[^>]*>([\s\S]*?)<\/ss:Data>/gi))
-          .map(m => m[1].trim());
-
-        if (dataMatches.some(v => v.length > 0)) {
-          rawRows.push(dataMatches);
-        }
-      });
-
-      if (rawRows.length === 0) {
-        workbookSheets[sheetName] = { headers: [], data: [], tickerCol: null };
-        return;
+        void loadStaticFund(clean);
+        void ensureHoldingsForSelected();
       }
 
-      let maxCols = Math.max(...rawRows.map(r => r.length));
-      let tickerRowIdx = rawRows.findIndex(r => r.some(v => /^ticker$/i.test(v)));
-      let headers = [];
-      let dataRows = [];
-
-      if (tickerRowIdx !== -1) {
-        headers = Array.from({ length: maxCols }, (_, idx) => rawRows[tickerRowIdx][idx] || `Column ${idx + 1}`);
-        dataRows = rawRows.slice(tickerRowIdx + 1);
-      } else {
-        let firstMultiColIdx = rawRows.findIndex(r => r.length > 1);
-        if (firstMultiColIdx !== -1 && rawRows[firstMultiColIdx].some(v => isNaN(v))) {
-          headers = Array.from({ length: maxCols }, (_, idx) => rawRows[firstMultiColIdx][idx] || `Column ${idx + 1}`);
-          dataRows = rawRows.slice(firstMultiColIdx + 1);
-        } else {
-          headers = Array.from({ length: maxCols }, (_, idx) => `Column ${idx + 1}`);
-          dataRows = rawRows;
-        }
-      }
-
-      let tickerColIndex = headers.findIndex(h => /^ticker$/i.test(h));
-      let tickerCol = tickerColIndex !== -1 ? headers[tickerColIndex] : null;
-
-      let parsedData = [];
-
-      dataRows.forEach(row => {
-        const rowObj = {};
-        let hasValue = false;
-
-        headers.forEach((h, idx) => {
-          const val = row[idx] || '';
-          rowObj[h] = val;
-          if (val) hasValue = true;
-        });
-
-        if (hasValue) {
-          parsedData.push(rowObj);
-        }
-      });
-
-      if (tickerCol) {
-        const seen = new Set();
-        parsedData = parsedData.filter(item => {
-          const val = item[tickerCol];
-          if (!val || !/^[A-Z0-9]+$/.test(val) || ['USD', 'XTSLA'].includes(val)) return false;
-          const duplicate = seen.has(val);
-          seen.add(val);
-          return !duplicate;
-        });
-      }
-
-      workbookSheets[sheetName] = { headers, data: parsedData, tickerCol };
-    }
-
-    function getSelectedDetailTabs() {
-      const tabs = [];
-      const activeTicker = activeFundTicker || [...selectedETFs][0];
-      const activeFund = activeTicker ? staticFunds[activeTicker] : null;
-
-      if (activeFund) {
-        const holdingsCount = activeFund.holdings ? formatInteger(activeFund.holdings) : (fundHoldingsCache[activeTicker]?.length || 0);
-        tabs.push({ id: 'Holdings', label: `${activeTicker} Holdings`, count: holdingsCount });
-
-        const historyCount = activeFund.history ? formatInteger(activeFund.history) : 0;
-        tabs.push({ id: 'Historical', label: 'Historical', count: historyCount });
-
-        const perfCount = activeFundSheets['Performance']?.data?.length || 0;
-        tabs.push({ id: 'Performance', label: 'Performance', count: perfCount });
-
-        const distCount = activeFundSheets['Distributions']?.data?.length || 0;
-        tabs.push({ id: 'Distributions', label: 'Distributions', count: distCount });
-      }
-
-      if (selectedETFs.size > 0) {
-        tabs.push({ id: 'Watchlist', label: 'Watchlist', count: getDedupedWatchlistRows().length });
-      }
-
-      return tabs;
-    }
-
-    function renderTabs() {
-      if (isUploadedFile) {
-        selectedTabsPanel.classList.remove('is-visible');
-        const sheetNames = Object.keys(workbookSheets);
-        if (sheetNames.length <= 1) {
-          tabsBar.classList.add('hidden');
+      /**
+       * Updates the dynamic header subtitle with selected fund links.
+       */
+      function renderSubtitle() {
+        if (isUploadedFile) {
+          appSubtitle.innerHTML = `<span class="block sm:inline">· Uploaded SpreadsheetML (.xls) file: <strong>${escapeHtml(
+            currentFileName,
+          )}</strong></span>`;
           return;
         }
 
-        tabsBar.classList.remove('hidden');
-        renderTabButtons(tabsBar, sheetNames.map(name => ({ id: name, label: name })));
-        return;
-      }
+        const baseText = `<span class="block sm:inline">Search iShares ETFs, select rows, then use the Watchlist tab. Data comes from <a href="./api/ishares/index.json" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">api/ishares/index.json</a> · Upload SpreadsheetML (.xls) file from iShares.</span>`;
 
-      // Static mode: top tabsBar has Catalog and Watchlist toggle
-      tabsBar.classList.remove('hidden');
-      renderTopTabs();
+        const selected = selectedETFs.size;
+        const allCount = staticCatalogSheet?.data?.length || 0;
 
-      const selectedDetailTabs = getSelectedDetailTabs();
-      selectedTabsPanel.classList.toggle('is-visible', selectedDetailTabs.length > 0);
-      renderTabButtons(selectedTabsBar, selectedDetailTabs);
-    }
-
-    function renderTopTabs() {
-      const catalogCount = staticCatalogSheet?.data?.length || 0;
-      const isCatalogActive = activeSheetName === 'ETF Catalog';
-      const isWatchlistActive = activeSheetName === 'Watchlist';
-      const allSelected = catalogCount > 0 && selectedETFs.size === catalogCount;
-      const canViewWatchlist = selectedETFs.size > 0;
-      const watchlistCount = getDedupedWatchlistRows().length;
-
-      const activePill = "bg-blue-600 text-white font-medium border-blue-500 shadow-sm";
-      const inactivePill = "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700";
-
-      tabsBar.innerHTML = `
-        <button
-          data-tab="ETF Catalog"
-          class="px-3.5 py-1.5 rounded-full text-xs transition border whitespace-nowrap ${isCatalogActive ? activePill : inactivePill}">
-          All ETFs (${catalogCount})
-        </button>
-        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition border whitespace-nowrap ${isWatchlistActive ? activePill : inactivePill}">
-          <input
-            type="checkbox"
-            id="include-all-toggle"
-            ${allSelected ? 'checked' : ''}
-            class="w-3.5 h-3.5 accent-blue-600 cursor-pointer"
-            title="Include all ETFs into Watchlist"
-          />
-          <button
-            id="top-watchlist-btn"
-            ${canViewWatchlist ? '' : 'disabled'}
-            class="${canViewWatchlist ? 'cursor-pointer font-medium hover:underline' : 'cursor-not-allowed opacity-50 font-normal'}">
-            Watchlist (${watchlistCount})
-          </button>
-        </div>
-      `;
-
-      const catalogBtn = tabsBar.querySelector('button[data-tab="ETF Catalog"]');
-      catalogBtn?.addEventListener('click', () => void switchSheet('ETF Catalog'));
-
-      const includeAllToggle = tabsBar.querySelector('#include-all-toggle');
-      includeAllToggle?.addEventListener('change', (e) => {
-        toggleSelectAll(e.target.checked);
-      });
-
-      const topWatchlistBtn = tabsBar.querySelector('#top-watchlist-btn');
-      topWatchlistBtn?.addEventListener('click', () => {
-        if (canViewWatchlist) void switchSheet('Watchlist');
-      });
-    }
-
-    function renderTabButtons(container, tabs) {
-      container.innerHTML = tabs.map(tab => {
-        const isActive = tab.id === activeSheetName;
-        const activeClasses = "bg-blue-600 text-white font-medium border-blue-500 shadow-sm";
-        const inactiveClasses = "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700";
-        const countText = tab.count !== undefined && tab.count !== null && tab.count !== '' ? ` (${tab.count})` : '';
-
-        return `
-          <button
-            data-tab="${escapeHtml(tab.id)}"
-            class="px-3.5 py-1.5 rounded-full text-xs transition border whitespace-nowrap ${isActive ? activeClasses : inactiveClasses}">
-            ${escapeHtml(tab.label)}${countText}
-          </button>
-        `;
-      }).join('');
-
-      container.querySelectorAll('button[data-tab]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const tabId = btn.dataset.tab;
-          if (tabId) void switchSheet(tabId);
-        });
-      });
-    }
-
-    async function switchSheet(sheetName) {
-      activeSheetName = sheetName;
-      sortKey = '';
-      sortDir = (activeSheetName === 'Watchlist' || activeSheetName === 'ETF Catalog') ? 'desc' : 'asc';
-      if (activeSheetName === 'Watchlist') sortKey = 'Weight Sum (%)';
-
-      await dbSet('active_tab', activeSheetName);
-      renderTabs();
-
-      if (activeSheetName === 'Watchlist') {
-        renderWatchlistTable();
-        renderStaticLoadSentinel();
-        const watchlistRows = getDedupedWatchlistRows();
-        copyBtn.disabled = watchlistRows.length === 0;
-        copyBtn.removeAttribute('title');
-        exportCsvBtn.disabled = watchlistRows.length === 0;
-        exportTxtBtn.disabled = watchlistRows.length === 0;
-        return;
-      }
-
-      if (['Holdings', 'Historical', 'Performance', 'Distributions'].includes(activeSheetName) && !isUploadedFile) {
-        if (activeFundTicker && staticTicker !== activeFundTicker) {
-          await loadStaticFundSheets(activeFundTicker, false);
+        if (!selected) {
+          appSubtitle.innerHTML = baseText;
+          return;
         }
+
+        let selectionItem = "";
+        if (selected === allCount && allCount > 0) {
+          selectionItem = `<span class="block sm:inline"><span class="hidden sm:inline"> · </span><span class="sm:hidden">· </span>All ${allCount} ETFs selected</span>`;
+        } else {
+          const selectedLinks = [...selectedETFs]
+            .sort()
+            .map((ticker) => {
+              const isActive = ticker === activeFundTicker;
+              return `<a href="javascript:void(0)" onclick="selectSingleFund('${escapeHtml(
+                ticker,
+              )}')" title="View ${escapeHtml(ticker)} details" class="font-semibold ${
+                isActive
+                  ? "text-blue-700 dark:text-blue-300 underline"
+                  : "text-blue-600 dark:text-blue-400 hover:underline"
+              }">${escapeHtml(ticker)}</a>`;
+            })
+            .join(", ");
+          selectionItem = `<span class="block sm:inline"><span class="hidden sm:inline"> · </span><span class="sm:hidden">· </span>${selected} selected: ${selectedLinks}</span>`;
+        }
+
+        appSubtitle.innerHTML = `${baseText}${selectionItem}`;
       }
 
-      const currentSheet = workbookSheets[activeSheetName] || (activeSheetName === 'ETF Catalog' ? staticCatalogSheet : null);
-      if (!currentSheet) return;
+      // =========================================================================
+      // 8. Static Catalog & Paginated Worksheets Loading
+      // =========================================================================
 
-      renderTable(getFilteredRows(currentSheet), currentSheet.headers);
-      renderStaticLoadSentinel();
-
-      const hasTickerCol = Boolean(currentSheet.tickerCol);
-      copyBtn.disabled = !hasTickerCol;
-
-      if (!hasTickerCol) {
-        copyBtn.title = "Current tab does not contain a Ticker column";
-      } else {
-        copyBtn.removeAttribute('title');
-      }
-
-      const hasData = currentSheet.data.length > 0;
-      exportCsvBtn.disabled = !hasData;
-      exportTxtBtn.disabled = !hasData;
-    }
-
-    function enableControls(fileName) {
-      dropzoneText.textContent = fileName.length > 20 ? fileName.slice(0, 17) + '...' : fileName;
-      dropzone.classList.add('dz-loaded');
-
-      searchInput.disabled = false;
-      resetBtn.disabled = false;
-    }
-
-    async function clearStorage() {
-      if (isUploadedFile) {
-        resetBtn.disabled = true;
+      /**
+       * Fetches the root ETF catalog from api/ishares/index.json.
+       */
+      async function loadStaticCatalog() {
         try {
-          await dbClear();
+          isUploadedFile = false;
+          const response = await fetch("./api/ishares/index.json", {
+            cache: "no-cache",
+          });
+          if (!response.ok)
+            throw new Error(`${response.status} ${response.statusText}`);
+          const index = await response.json();
+          staticFunds = Object.fromEntries(
+            (index.funds || []).map((fund) => [fund.ticker, fund]),
+          );
+
+          if (!activeFundTicker && selectedETFs.size) {
+            activeFundTicker = [...selectedETFs][0] || null;
+          }
+
+          const formatPercent = (value) => {
+            if (value === null || value === undefined || value === "")
+              return "—";
+            const number = Number(value);
+            return Number.isFinite(number) ? number.toFixed(2) : String(value);
+          };
+
+          staticCatalogSheet = {
+            headers: [
+              "Ticker",
+              "Fund Name",
+              "Type",
+              "Net Assets",
+              "Expense",
+              "Dividend Yield",
+              "YTD Return",
+              "TR 1Y",
+              "TR 3Y",
+              "TR 5Y",
+              "TR 10Y",
+              "CAGR 3Y",
+              "CAGR 5Y",
+              "CAGR 10Y",
+              "Return As Of",
+              "Inception",
+              "Holdings",
+              "History",
+              "As Of",
+            ],
+            data: (index.funds || []).map((fund) => {
+              const totalReturn = fund.totalReturn || {};
+              const performance = fund.performance || {};
+              return {
+                Ticker: fund.ticker,
+                "Fund Name": fund.name,
+                Type: fund.type || "iShares ETF",
+                "Net Assets": fund.netAssets || "—",
+                Expense: fund.netExpenseRatio || fund.grossExpenseRatio || "—",
+                "Dividend Yield": fund.trailingYield || "—",
+                "YTD Return": formatPercent(totalReturn.YTD ?? fund.ytdReturn),
+                "TR 1Y": formatPercent(totalReturn["1Y"]),
+                "TR 3Y": formatPercent(totalReturn["3Y"]),
+                "TR 5Y": formatPercent(totalReturn["5Y"]),
+                "TR 10Y": formatPercent(totalReturn["10Y"]),
+                "CAGR 3Y": formatPercent(performance["3Y"]),
+                "CAGR 5Y": formatPercent(performance["5Y"]),
+                "CAGR 10Y": formatPercent(performance["10Y"]),
+                "Return As Of": totalReturn.asOfDate || fund.returnAsOf || "—",
+                Inception: fund.inceptionDate || "—",
+                Holdings: fund.holdings || "—",
+                History: fund.history || "—",
+                "As Of": fund.asOfDate || fund.yieldAsOf || "—",
+              };
+            }),
+            tickerCol: "Ticker",
+          };
+
+          workbookSheets = {
+            "ETF Catalog": staticCatalogSheet,
+          };
+
+          currentFileName = "iShares static data";
+          if (!activeSheetName) {
+            activeSheetName = "ETF Catalog";
+          }
+
+          renderSubtitle();
+          renderTabs();
+          await switchSheet(activeSheetName);
+          applyRestoredSiteState();
+          enableControls(currentFileName);
+
+          if (selectedETFs.size > 0) {
+            void ensureHoldingsForSelected();
+            if (activeFundTicker) {
+              void loadStaticFundSheets(activeFundTicker, false);
+            }
+          }
         } catch (error) {
-          console.error('Failed to clear cached workbook', error);
-        } finally {
-          window.location.reload();
+          console.info(
+            "Static iShares data is unavailable; upload an .xls file to begin.",
+            error,
+          );
         }
-        return;
       }
 
-      // In static mode: clear selection, search, and reset to default
-      selectedETFs.clear();
-      activeFundTicker = null;
-      localStorage.removeItem(SELECTED_KEY);
-      localStorage.removeItem(ACTIVE_FUND_KEY);
-      searchInput.value = '';
-      activeSheetName = 'ETF Catalog';
-      persistSiteState();
-      renderSubtitle();
-      renderTabs();
-      const currentSheet = workbookSheets['ETF Catalog'] || staticCatalogSheet;
-      if (currentSheet) renderTable(getFilteredRows(currentSheet), currentSheet.headers);
-    }
+      async function fetchStaticPage(ticker, pagePath) {
+        const path = String(pagePath).replace(/^\.\/+/, "");
+        const response = await fetch(
+          `./api/ishares/funds/${encodeURIComponent(ticker)}/${path}`,
+          { cache: "no-cache" },
+        );
+        if (!response.ok)
+          throw new Error(`${response.status} ${response.statusText}`);
+        return response.json();
+      }
 
-    function animateTableUpdate() {
-      tableBody.classList.remove('table-content-enter');
-      void tableBody.offsetWidth;
-      tableBody.classList.add('table-content-enter');
-    }
+      function staticSheet(sheet) {
+        const headers = Array.isArray(sheet?.headers) ? sheet.headers : [];
+        const data = Array.isArray(sheet?.rows) ? sheet.rows : [];
+        return {
+          headers,
+          data,
+          tickerCol: headers.find((header) => /^ticker$/i.test(header)) || null,
+        };
+      }
 
-    function renderTable(data, headers = []) {
-      const currentSheet = workbookSheets[activeSheetName] || (activeSheetName === 'ETF Catalog' ? staticCatalogSheet : null);
-      const sortedData = sortRows(data);
-      const count = sortedData.length;
-      tickerCount.textContent = `${count} ${currentSheet?.tickerCol ? (activeSheetName === 'ETF Catalog' ? 'ETFs' : 'tickers') : 'items'}`;
+      function resetStaticPaging() {
+        staticPagingGeneration += 1;
+        staticPagesBySheet = {};
+        staticNextPageBySheet = {};
+        staticLoadingSheets = new Set();
+      }
 
-      const isCatalog = activeSheetName === 'ETF Catalog';
-      const allCount = staticCatalogSheet?.data?.length || 0;
-      const allSelected = allCount > 0 && selectedETFs.size === allCount;
+      function renderStaticLoadSentinel() {
+        if (
+          activeSheetName === "Watchlist" ||
+          activeSheetName === "ETF Catalog" ||
+          isUploadedFile
+        ) {
+          staticLoadSentinel.classList.add("hidden");
+          return;
+        }
+        const pages = staticPagesBySheet[activeSheetName] || [];
+        const nextPage = staticNextPageBySheet[activeSheetName] || 0;
+        const loading = staticLoadingSheets.has(activeSheetName);
+        const visible = loading || nextPage < pages.length;
+        staticLoadSentinel.classList.toggle("hidden", !visible);
+        staticLoadStatus.textContent = loading ? "Loading more rows…" : "";
+      }
 
-      if (headers.length > 0) {
-        tableHead.innerHTML = `
+      async function loadNextStaticSheetPage(sheetName) {
+        const pages = staticPagesBySheet[sheetName];
+        const nextPage = staticNextPageBySheet[sheetName] || 0;
+        if (
+          !staticTicker ||
+          !pages ||
+          !pages[nextPage] ||
+          staticLoadingSheets.has(sheetName)
+        ) {
+          if (sheetName === activeSheetName) renderStaticLoadSentinel();
+          return;
+        }
+
+        const generation = staticPagingGeneration;
+        const ticker = staticTicker;
+        staticLoadingSheets.add(sheetName);
+        if (sheetName === activeSheetName) renderStaticLoadSentinel();
+        try {
+          const loaded = staticSheet(
+            await fetchStaticPage(ticker, pages[nextPage]),
+          );
+          if (generation !== staticPagingGeneration || ticker !== staticTicker)
+            return;
+          const current = workbookSheets[sheetName] || staticSheet(loaded);
+          current.data = current.data.concat(loaded.data);
+          if (!current.headers.length) current.headers = loaded.headers;
+          if (!current.tickerCol) current.tickerCol = loaded.tickerCol;
+          workbookSheets[sheetName] = current;
+          activeFundSheets[sheetName] = current;
+          staticNextPageBySheet[sheetName] = nextPage + 1;
+          if (sheetName === activeSheetName) {
+            renderTable(getFilteredRows(current), current.headers);
+          }
+        } catch (error) {
+          if (generation === staticPagingGeneration) {
+            console.error(
+              `Failed to load ${sheetName} page ${nextPage + 1}`,
+              error,
+            );
+          }
+        } finally {
+          if (generation !== staticPagingGeneration) return;
+          staticLoadingSheets.delete(sheetName);
+          if (sheetName === activeSheetName) renderStaticLoadSentinel();
+        }
+      }
+
+      function maybeLoadMoreStaticRows() {
+        const pages = staticPagesBySheet[activeSheetName] || [];
+        const nextPage = staticNextPageBySheet[activeSheetName] || 0;
+        if (
+          !tableScroll ||
+          !pages[nextPage] ||
+          staticLoadingSheets.has(activeSheetName)
+        )
+          return;
+        const distanceToBottom =
+          tableScroll.scrollHeight -
+          tableScroll.scrollTop -
+          tableScroll.clientHeight;
+        if (distanceToBottom < 600)
+          void loadNextStaticSheetPage(activeSheetName);
+      }
+
+      async function loadStaticFundSheets(ticker, switchToHoldings = false) {
+        const fund = staticFunds[ticker];
+        if (!fund) return;
+        try {
+          const response = await fetch(
+            `./api/ishares/funds/${encodeURIComponent(ticker)}/meta.json`,
+            { cache: "no-cache" },
+          );
+          if (!response.ok) return;
+          const data = await response.json();
+          staticTicker = ticker;
+          resetStaticPaging();
+
+          const fundSheets = Object.fromEntries(
+            Object.entries(data.worksheets || {}).map(([name, sheet]) => [
+              name,
+              staticSheet(sheet),
+            ]),
+          );
+          const pageManifests = {
+            Holdings: data.holdings,
+            Historical: data.history || data.historical,
+          };
+          for (const [sheetName, manifest] of Object.entries(pageManifests)) {
+            if (
+              !manifest ||
+              !Array.isArray(manifest.pages) ||
+              !manifest.pages.length
+            )
+              continue;
+            staticPagesBySheet[sheetName] = manifest.pages;
+            staticNextPageBySheet[sheetName] = 0;
+            fundSheets[sheetName] = staticSheet(
+              await fetchStaticPage(ticker, manifest.pages[0]),
+            );
+            staticNextPageBySheet[sheetName] = 1;
+          }
+
+          activeFundSheets = fundSheets;
+          workbookSheets = {
+            "ETF Catalog": staticCatalogSheet || workbookSheets["ETF Catalog"],
+            ...fundSheets,
+          };
+
+          renderTabs();
+          if (switchToHoldings) {
+            activeSheetName = "Holdings";
+            await switchSheet(activeSheetName);
+          }
+        } catch (err) {
+          console.warn(`Failed to load fund sheets for ${ticker}:`, err);
+        }
+      }
+
+      async function loadStaticFund(ticker) {
+        activeFundTicker = ticker;
+        persistSelectedEtfs();
+        renderSubtitle();
+        await loadStaticFundSheets(ticker, true);
+      }
+
+      const staticLoadObserver =
+        typeof IntersectionObserver === "function"
+          ? new IntersectionObserver(
+              (entries) => {
+                if (entries.some((entry) => entry.isIntersecting))
+                  void loadNextStaticSheetPage(activeSheetName);
+              },
+              { root: tableScroll, rootMargin: "600px 0px" },
+            )
+          : null;
+      staticLoadObserver?.observe(staticLoadSentinel);
+      tableScroll.addEventListener("scroll", maybeLoadMoreStaticRows, {
+        passive: true,
+      });
+      staticLoadSentinel.addEventListener(
+        "click",
+        () => void loadNextStaticSheetPage(activeSheetName),
+      );
+
+      // =========================================================================
+      // 9. State Persistence & SpreadsheetML (.xls) Parser
+      // =========================================================================
+
+      function restoreSiteState() {
+        try {
+          const saved = JSON.parse(
+            localStorage.getItem(SITE_STATE_KEY) || "{}",
+          );
+          restoredSortKey =
+            typeof saved.sortKey === "string" ? saved.sortKey : "";
+          restoredSortDir = saved.sortDir === "desc" ? "desc" : "asc";
+          restoredQuery = typeof saved.query === "string" ? saved.query : "";
+        } catch {
+          /* no saved state */
+        }
+      }
+
+      function applyRestoredSiteState() {
+        if (activeSheetName === "Watchlist") {
+          renderWatchlistTable();
+          return;
+        }
+        const currentSheet = workbookSheets[activeSheetName];
+        sortKey = restoredSortKey;
+        sortDir = restoredSortDir;
+        searchInput.value = restoredQuery;
+        if (!currentSheet) return;
+        if (sortKey && !currentSheet.headers.includes(sortKey)) {
+          sortKey = "";
+          sortDir = "asc";
+        }
+        renderTable(getFilteredRows(currentSheet), currentSheet.headers);
+        renderStaticLoadSentinel();
+      }
+
+      function persistSiteState() {
+        localStorage.setItem(
+          SITE_STATE_KEY,
+          JSON.stringify({ sortKey, sortDir, query: searchInput.value }),
+        );
+      }
+
+      function getDefaultTabName(sheetNames) {
+        const holdingsTab = sheetNames.find((name) =>
+          /^holdings$/i.test(name.trim()),
+        );
+        return holdingsTab || sheetNames[0];
+      }
+
+      function processFile(file) {
+        isUploadedFile = true;
+        staticTicker = "";
+        resetStaticPaging();
+        currentFileName = file.name;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const xmlContent = e.target.result;
+          workbookSheets = {};
+
+          const worksheetMatches = Array.from(
+            xmlContent.matchAll(
+              /<ss:Worksheet\s+ss:Name="([^"]+)"[\s\S]*?>([\s\S]*?)<\/ss:Worksheet>/gi,
+            ),
+          );
+
+          if (worksheetMatches.length > 0) {
+            worksheetMatches.forEach((match) => {
+              const sheetName = match[1].trim();
+              const sheetXml = match[2];
+              parseSheetXml(sheetName, sheetXml);
+            });
+          } else {
+            parseSheetXml("Holdings", xmlContent);
+          }
+
+          const sheetNames = Object.keys(workbookSheets);
+          if (sheetNames.length > 0) {
+            activeSheetName = getDefaultTabName(sheetNames);
+
+            await dbSet("workbook", workbookSheets);
+            await dbSet("filename", currentFileName);
+            await dbSet("active_tab", activeSheetName);
+
+            renderSubtitle();
+            renderTabs();
+            switchSheet(activeSheetName);
+            enableControls(currentFileName);
+          }
+        };
+
+        reader.readAsText(file);
+      }
+
+      function parseSheetXml(sheetName, sheetXml) {
+        const rowMatches = sheetXml.match(/<ss:Row[\s\S]*?<\/ss:Row>/gi) || [];
+        let rawRows = [];
+
+        rowMatches.forEach((rowXml) => {
+          const dataMatches = Array.from(
+            rowXml.matchAll(/<ss:Data[^>]*>([\s\S]*?)<\/ss:Data>/gi),
+          ).map((m) => m[1].trim());
+
+          if (dataMatches.some((v) => v.length > 0)) {
+            rawRows.push(dataMatches);
+          }
+        });
+
+        if (rawRows.length === 0) {
+          workbookSheets[sheetName] = {
+            headers: [],
+            data: [],
+            tickerCol: null,
+          };
+          return;
+        }
+
+        let maxCols = Math.max(...rawRows.map((r) => r.length));
+        let tickerRowIdx = rawRows.findIndex((r) =>
+          r.some((v) => /^ticker$/i.test(v)),
+        );
+        let headers = [];
+        let dataRows = [];
+
+        if (tickerRowIdx !== -1) {
+          headers = Array.from(
+            { length: maxCols },
+            (_, idx) => rawRows[tickerRowIdx][idx] || `Column ${idx + 1}`,
+          );
+          dataRows = rawRows.slice(tickerRowIdx + 1);
+        } else {
+          let firstMultiColIdx = rawRows.findIndex((r) => r.length > 1);
+          if (
+            firstMultiColIdx !== -1 &&
+            rawRows[firstMultiColIdx].some((v) => isNaN(v))
+          ) {
+            headers = Array.from(
+              { length: maxCols },
+              (_, idx) => rawRows[firstMultiColIdx][idx] || `Column ${idx + 1}`,
+            );
+            dataRows = rawRows.slice(firstMultiColIdx + 1);
+          } else {
+            headers = Array.from(
+              { length: maxCols },
+              (_, idx) => `Column ${idx + 1}`,
+            );
+            dataRows = rawRows;
+          }
+        }
+
+        let tickerColIndex = headers.findIndex((h) => /^ticker$/i.test(h));
+        let tickerCol = tickerColIndex !== -1 ? headers[tickerColIndex] : null;
+
+        let parsedData = [];
+
+        dataRows.forEach((row) => {
+          const rowObj = {};
+          let hasValue = false;
+
+          headers.forEach((h, idx) => {
+            const val = row[idx] || "";
+            rowObj[h] = val;
+            if (val) hasValue = true;
+          });
+
+          if (hasValue) {
+            parsedData.push(rowObj);
+          }
+        });
+
+        if (tickerCol) {
+          const seen = new Set();
+          parsedData = parsedData.filter((item) => {
+            const val = item[tickerCol];
+            if (
+              !val ||
+              !/^[A-Z0-9]+$/.test(val) ||
+              ["USD", "XTSLA"].includes(val)
+            )
+              return false;
+            const duplicate = seen.has(val);
+            seen.add(val);
+            return !duplicate;
+          });
+        }
+
+        workbookSheets[sheetName] = { headers, data: parsedData, tickerCol };
+      }
+
+      // =========================================================================
+      // 10. Navigation Tabs & Tab Switching
+      // =========================================================================
+
+      /**
+       * Returns detail navigation tabs for the active fund plus the Watchlist tab.
+       * @returns {Array<{ id: string; label: string; count?: string | number }>}
+       */
+      function getSelectedDetailTabs() {
+        const tabs = [];
+        const activeTicker = activeFundTicker || [...selectedETFs][0];
+        const activeFund = activeTicker ? staticFunds[activeTicker] : null;
+
+        if (activeFund) {
+          const holdingsCount = activeFund.holdings
+            ? formatInteger(activeFund.holdings)
+            : fundHoldingsCache[activeTicker]?.length || 0;
+          tabs.push({
+            id: "Holdings",
+            label: `${activeTicker} Holdings`,
+            count: holdingsCount,
+          });
+
+          const historyCount = activeFund.history
+            ? formatInteger(activeFund.history)
+            : 0;
+          tabs.push({
+            id: "Historical",
+            label: "Historical",
+            count: historyCount,
+          });
+
+          const perfCount = activeFundSheets["Performance"]?.data?.length || 0;
+          tabs.push({
+            id: "Performance",
+            label: "Performance",
+            count: perfCount,
+          });
+
+          const distCount =
+            activeFundSheets["Distributions"]?.data?.length || 0;
+          tabs.push({
+            id: "Distributions",
+            label: "Distributions",
+            count: distCount,
+          });
+        }
+
+        if (selectedETFs.size > 0) {
+          tabs.push({
+            id: "Watchlist",
+            label: "Watchlist",
+            count: getDedupedWatchlistRows().length,
+          });
+        }
+
+        return tabs;
+      }
+
+      /**
+       * Renders top catalog tabs and animated detail tabs.
+       */
+      function renderTabs() {
+        if (isUploadedFile) {
+          selectedTabsPanel.classList.remove("is-visible");
+          const sheetNames = Object.keys(workbookSheets);
+          if (sheetNames.length <= 1) {
+            tabsBar.classList.add("hidden");
+            return;
+          }
+
+          tabsBar.classList.remove("hidden");
+          renderTabButtons(
+            tabsBar,
+            sheetNames.map((name) => ({ id: name, label: name })),
+          );
+          return;
+        }
+
+        // Static mode: top tabsBar has All ETFs button with select-all checkbox
+        tabsBar.classList.remove("hidden");
+        renderTopTabs();
+
+        const selectedDetailTabs = getSelectedDetailTabs();
+        selectedTabsPanel.classList.toggle(
+          "is-visible",
+          selectedDetailTabs.length > 0,
+        );
+        renderTabButtons(selectedTabsBar, selectedDetailTabs);
+      }
+
+      /**
+       * Renders the top tabs bar containing All ETFs with its select-all toggle.
+       */
+      function renderTopTabs() {
+        const catalogCount = staticCatalogSheet?.data?.length || 0;
+        const isCatalogActive = activeSheetName === "ETF Catalog";
+        const allSelected =
+          catalogCount > 0 && selectedETFs.size === catalogCount;
+
+        const activePill =
+          "bg-blue-600 text-white font-medium border-blue-500 shadow-sm";
+        const inactivePill =
+          "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700";
+
+        tabsBar.innerHTML = `
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs transition border whitespace-nowrap ${
+            isCatalogActive ? activePill : inactivePill
+          }">
+            <input
+              type="checkbox"
+              id="select-all-toggle"
+              ${allSelected ? "checked" : ""}
+              class="w-3.5 h-3.5 accent-blue-600 cursor-pointer"
+              title="Select / Deselect all ETFs"
+            />
+            <button
+              id="all-etfs-tab-btn"
+              class="font-medium hover:underline focus:outline-none"
+            >
+              All ETFs (${catalogCount})
+            </button>
+          </div>
+        `;
+
+        const allEtfsBtn = tabsBar.querySelector("#all-etfs-tab-btn");
+        allEtfsBtn?.addEventListener(
+          "click",
+          () => void switchSheet("ETF Catalog"),
+        );
+
+        const selectAllToggle = tabsBar.querySelector("#select-all-toggle");
+        selectAllToggle?.addEventListener("change", (e) => {
+          toggleSelectAll(e.target.checked);
+        });
+      }
+
+      /**
+       * Helper to render button pill navigation.
+       */
+      function renderTabButtons(container, tabs) {
+        container.innerHTML = tabs
+          .map((tab) => {
+            const isActive = tab.id === activeSheetName;
+            const activeClasses =
+              "bg-blue-600 text-white font-medium border-blue-500 shadow-sm";
+            const inactiveClasses =
+              "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700";
+            const countText =
+              tab.count !== undefined && tab.count !== null && tab.count !== ""
+                ? ` (${tab.count})`
+                : "";
+
+            return `
+            <button
+              data-tab="${escapeHtml(tab.id)}"
+              class="px-3.5 py-1.5 rounded-full text-xs transition border whitespace-nowrap ${
+                isActive ? activeClasses : inactiveClasses
+              }">
+              ${escapeHtml(tab.label)}${countText}
+            </button>
+          `;
+          })
+          .join("");
+
+        container.querySelectorAll("button[data-tab]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const tabId = btn.dataset.tab;
+            if (tabId) void switchSheet(tabId);
+          });
+        });
+      }
+
+      /**
+       * Switches active sheet and renders its corresponding table view.
+       * @param {string} sheetName
+       */
+      async function switchSheet(sheetName) {
+        activeSheetName = sheetName;
+        sortKey = "";
+        sortDir =
+          activeSheetName === "Watchlist" || activeSheetName === "ETF Catalog"
+            ? "desc"
+            : "asc";
+        if (activeSheetName === "Watchlist") sortKey = "Weight Sum (%)";
+
+        await dbSet("active_tab", activeSheetName);
+        renderTabs();
+
+        if (activeSheetName === "Watchlist") {
+          renderWatchlistTable();
+          renderStaticLoadSentinel();
+          const watchlistRows = getDedupedWatchlistRows();
+          copyBtn.disabled = watchlistRows.length === 0;
+          copyBtn.removeAttribute("title");
+          exportCsvBtn.disabled = watchlistRows.length === 0;
+          exportTxtBtn.disabled = watchlistRows.length === 0;
+          return;
+        }
+
+        if (
+          ["Holdings", "Historical", "Performance", "Distributions"].includes(
+            activeSheetName,
+          ) &&
+          !isUploadedFile
+        ) {
+          if (activeFundTicker && staticTicker !== activeFundTicker) {
+            await loadStaticFundSheets(activeFundTicker, false);
+          }
+        }
+
+        const currentSheet =
+          workbookSheets[activeSheetName] ||
+          (activeSheetName === "ETF Catalog" ? staticCatalogSheet : null);
+        if (!currentSheet) return;
+
+        renderTable(getFilteredRows(currentSheet), currentSheet.headers);
+        renderStaticLoadSentinel();
+
+        const hasTickerCol = Boolean(currentSheet.tickerCol);
+        copyBtn.disabled = !hasTickerCol;
+
+        if (!hasTickerCol) {
+          copyBtn.title = "Current tab does not contain a Ticker column";
+        } else {
+          copyBtn.removeAttribute("title");
+        }
+
+        const hasData = currentSheet.data.length > 0;
+        exportCsvBtn.disabled = !hasData;
+        exportTxtBtn.disabled = !hasData;
+      }
+
+      function enableControls(fileName) {
+        dropzoneText.textContent =
+          fileName.length > 20 ? fileName.slice(0, 17) + "..." : fileName;
+        dropzone.classList.add("dz-loaded");
+
+        searchInput.disabled = false;
+        resetBtn.disabled = false;
+      }
+
+      /**
+       * Clears storage and resets active selection/search.
+       */
+      async function clearStorage() {
+        if (isUploadedFile) {
+          resetBtn.disabled = true;
+          try {
+            await dbClear();
+          } catch (error) {
+            console.error("Failed to clear cached workbook", error);
+          } finally {
+            window.location.reload();
+          }
+          return;
+        }
+
+        selectedETFs.clear();
+        activeFundTicker = null;
+        localStorage.removeItem(SELECTED_KEY);
+        localStorage.removeItem(ACTIVE_FUND_KEY);
+        searchInput.value = "";
+        activeSheetName = "ETF Catalog";
+        persistSiteState();
+        renderSubtitle();
+        renderTabs();
+        const currentSheet =
+          workbookSheets["ETF Catalog"] || staticCatalogSheet;
+        if (currentSheet)
+          renderTable(getFilteredRows(currentSheet), currentSheet.headers);
+      }
+
+      function animateTableUpdate() {
+        tableBody.classList.remove("table-content-enter");
+        void tableBody.offsetWidth;
+        tableBody.classList.add("table-content-enter");
+      }
+
+      // =========================================================================
+      // 11. Table Rendering, Sorting & Tooltips
+      // =========================================================================
+
+      function renderTable(data, headers = []) {
+        const currentSheet =
+          workbookSheets[activeSheetName] ||
+          (activeSheetName === "ETF Catalog" ? staticCatalogSheet : null);
+        const sortedData = sortRows(data);
+        const count = sortedData.length;
+        tickerCount.textContent = `${count} ${
+          currentSheet?.tickerCol
+            ? activeSheetName === "ETF Catalog"
+              ? "ETFs"
+              : "tickers"
+            : "items"
+        }`;
+
+        const isCatalog = activeSheetName === "ETF Catalog";
+        const allCount = staticCatalogSheet?.data?.length || 0;
+        const allSelected = allCount > 0 && selectedETFs.size === allCount;
+
+        if (headers.length > 0) {
+          tableHead.innerHTML = `
           <tr>
-            <th class="py-3.5 px-4 w-12 text-center" title="${escapeHtml(getHeaderTooltip('#'))}">#</th>
-            ${isCatalog ? `
-              <th class="py-3.5 px-4 w-20 text-center" title="${escapeHtml(getHeaderTooltip('Use'))}">
+            <th class="py-3.5 px-4 w-12 text-center" title="${escapeHtml(
+              getHeaderTooltip("#"),
+            )}">#</th>
+            ${
+              isCatalog
+                ? `
+              <th class="py-3.5 px-4 w-20 text-center" title="${escapeHtml(
+                getHeaderTooltip("Use"),
+              )}">
                 <div class="inline-flex items-center justify-center gap-1">
-                  <input type="checkbox" id="select-all-checkbox" ${allSelected ? 'checked' : ''} class="w-4 h-4 accent-blue-600 cursor-pointer" title="Select / Deselect all ETFs" />
+                  <input type="checkbox" id="select-all-checkbox" ${
+                    allSelected ? "checked" : ""
+                  } class="w-4 h-4 accent-blue-600 cursor-pointer" title="Select / Deselect all ETFs" />
                   <span>Use</span>
                 </div>
               </th>
-            ` : ''}
-            ${headers.map(header => sortHeader(header)).join('')}
+            `
+                : ""
+            }
+            ${headers.map((header) => sortHeader(header)).join("")}
           </tr>
         `;
-        bindSortHeaders();
+          bindSortHeaders();
+
+          if (isCatalog) {
+            const selectAllCb = tableHead.querySelector("#select-all-checkbox");
+            selectAllCb?.addEventListener("change", (e) => {
+              toggleSelectAll(e.target.checked);
+            });
+          }
+        }
+
+        if (!sortedData.length) {
+          const colSpan = headers.length + (isCatalog ? 2 : 1);
+          tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="py-8 text-center text-slate-400 dark:text-slate-500">No matching items found.</td></tr>`;
+          animateTableUpdate();
+          return;
+        }
+
+        tableBody.innerHTML = sortedData
+          .map((item, idx) => {
+            const isSelected = isCatalog && selectedETFs.has(item.Ticker);
+            return `
+          <tr data-static-ticker="${
+            isCatalog ? escapeHtml(item.Ticker || "") : ""
+          }" class="${
+            isCatalog ? "cursor-pointer " : ""
+          }hover:bg-slate-50 dark:hover:bg-slate-700/30 transition border-b border-slate-100 dark:border-slate-700/30 ${
+            isSelected ? "selected-row" : ""
+          }">
+            <td class="py-2.5 px-4 text-slate-400 dark:text-slate-500 text-xs text-center font-mono">${
+              idx + 1
+            }</td>
+            ${
+              isCatalog
+                ? `
+              <td class="py-2.5 px-4 text-center">
+                <input data-checkbox="${escapeHtml(
+                  item.Ticker,
+                )}" type="checkbox" ${
+                  isSelected ? "checked" : ""
+                } class="w-4 h-4 accent-blue-600 cursor-pointer" aria-label="Use ${escapeHtml(
+                  item.Ticker,
+                )}" />
+              </td>
+            `
+                : ""
+            }
+            ${headers
+              .map((header, index) => {
+                const value = item[header] || "";
+                if (index === 0 && currentSheet?.tickerCol) {
+                  if (isCatalog) {
+                    return `<td class="py-2.5 px-4 font-mono font-semibold text-blue-600 dark:text-blue-400"><a href="javascript:void(0)" class="hover:underline" data-fund-view="${escapeHtml(
+                      value,
+                    )}">${escapeHtml(value)}</a></td>`;
+                  }
+                  return `<td class="py-2.5 px-4 font-mono font-semibold text-blue-600 dark:text-blue-400">${escapeHtml(
+                    value,
+                  )}</td>`;
+                }
+                const isNumeric =
+                  sortableNumber(value) !== null &&
+                  !isNaN(Number(String(value).replace(/[$,%]/g, "")));
+                const align = isNumeric ? " text-right font-mono" : "";
+                return `<td class="py-2.5 px-4 text-slate-700 dark:text-slate-300 font-medium${align}">${escapeHtml(
+                  value,
+                )}</td>`;
+              })
+              .join("")}
+          </tr>
+        `;
+          })
+          .join("");
 
         if (isCatalog) {
-          const selectAllCb = tableHead.querySelector('#select-all-checkbox');
-          selectAllCb?.addEventListener('change', (e) => {
-            toggleSelectAll(e.target.checked);
-          });
-        }
-      }
-
-      if (!sortedData.length) {
-        const colSpan = headers.length + (isCatalog ? 2 : 1);
-        tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="py-8 text-center text-slate-400 dark:text-slate-500">No matching items found.</td></tr>`;
-        animateTableUpdate();
-        return;
-      }
-
-      tableBody.innerHTML = sortedData.map((item, idx) => {
-        const isSelected = isCatalog && selectedETFs.has(item.Ticker);
-        return `
-          <tr data-static-ticker="${isCatalog ? escapeHtml(item.Ticker || '') : ''}" class="${isCatalog ? 'cursor-pointer ' : ''}hover:bg-slate-50 dark:hover:bg-slate-700/30 transition border-b border-slate-100 dark:border-slate-700/30 ${isSelected ? 'selected-row' : ''}">
-            <td class="py-2.5 px-4 text-slate-400 dark:text-slate-500 text-xs text-center font-mono">${idx + 1}</td>
-            ${isCatalog ? `
-              <td class="py-2.5 px-4 text-center">
-                <input data-checkbox="${escapeHtml(item.Ticker)}" type="checkbox" ${isSelected ? 'checked' : ''} class="w-4 h-4 accent-blue-600 cursor-pointer" aria-label="Use ${escapeHtml(item.Ticker)}" />
-              </td>
-            ` : ''}
-            ${headers.map((header, index) => {
-              const value = item[header] || '';
-              if (index === 0 && currentSheet?.tickerCol) {
-                if (isCatalog) {
-                  return `<td class="py-2.5 px-4 font-mono font-semibold text-blue-600 dark:text-blue-400"><a href="javascript:void(0)" class="hover:underline" data-fund-view="${escapeHtml(value)}">${escapeHtml(value)}</a></td>`;
+          tableBody
+            .querySelectorAll("tr[data-static-ticker]")
+            .forEach((row) => {
+              row.addEventListener("click", (e) => {
+                const fundViewBtn = e.target.closest("[data-fund-view]");
+                if (fundViewBtn) {
+                  const ticker = fundViewBtn.dataset.fundView;
+                  if (ticker) selectSingleFund(ticker);
+                  return;
                 }
-                return `<td class="py-2.5 px-4 font-mono font-semibold text-blue-600 dark:text-blue-400">${escapeHtml(value)}</td>`;
-              }
-              const isNumeric = sortableNumber(value) !== null && !isNaN(Number(String(value).replace(/[$,%]/g, '')));
-              const align = isNumeric ? ' text-right font-mono' : '';
-              return `<td class="py-2.5 px-4 text-slate-700 dark:text-slate-300 font-medium${align}">${escapeHtml(value)}</td>`;
-            }).join('')}
-          </tr>
-        `;
-      }).join('');
+                if (e.target.closest("a")) return;
+                const ticker = row.dataset.staticTicker;
+                if (ticker) toggleEtfSelection(ticker);
+              });
+            });
+        }
 
-      if (isCatalog) {
-        tableBody.querySelectorAll('tr[data-static-ticker]').forEach(row => {
-          row.addEventListener('click', (e) => {
-            const fundViewBtn = e.target.closest('[data-fund-view]');
-            if (fundViewBtn) {
-              const ticker = fundViewBtn.dataset.fundView;
-              if (ticker) selectSingleFund(ticker);
-              return;
-            }
-            if (e.target.closest('a')) return;
-            const ticker = row.dataset.staticTicker;
-            if (ticker) toggleEtfSelection(ticker);
-          });
-        });
+        animateTableUpdate();
       }
 
-      animateTableUpdate();
-    }
+      /**
+       * Renders the aggregated multi-ETF Watchlist table.
+       */
+      function renderWatchlistTable() {
+        const allRows = getDedupedWatchlistRows();
+        const query = searchInput.value.toLowerCase().trim();
+        const filtered = query
+          ? allRows.filter((r) => r._searchIndex.includes(query))
+          : allRows;
 
-    function renderWatchlistTable() {
-      const allRows = getDedupedWatchlistRows();
-      const query = searchInput.value.toLowerCase().trim();
-      const filtered = query
-        ? allRows.filter(r => r._searchIndex.includes(query))
-        : allRows;
+        const sorted = sortRows(filtered);
+        tickerCount.textContent = `${sorted.length} tickers`;
 
-      const sorted = sortRows(filtered);
-      tickerCount.textContent = `${sorted.length} tickers`;
+        const headers = [
+          "Ticker",
+          "Name",
+          "ETFs",
+          "Weight Sum (%)",
+          "Max Weight (%)",
+          "Market Value",
+          "Sector",
+          "Asset Class",
+          "Exchange",
+          "Location",
+        ];
 
-      const headers = ['Ticker', 'Name', 'ETFs', 'Weight Sum (%)', 'Max Weight (%)', 'Market Value', 'Sector', 'Asset Class', 'Exchange', 'Location'];
-
-      tableHead.innerHTML = `
+        tableHead.innerHTML = `
         <tr>
-          <th class="py-3.5 px-4 w-12 text-center" title="${escapeHtml(getHeaderTooltip('#'))}">#</th>
-          ${headers.map(header => sortHeader(header)).join('')}
+          <th class="py-3.5 px-4 w-12 text-center" title="${escapeHtml(
+            getHeaderTooltip("#"),
+          )}">#</th>
+          ${headers.map((header) => sortHeader(header)).join("")}
         </tr>
       `;
-      bindSortHeaders();
+        bindSortHeaders();
 
-      if (!sorted.length) {
-        const msg = selectedETFs.size === 0
-          ? 'No ETFs selected yet. Check individual boxes or "Include all" to build a multi-ETF Watchlist.'
-          : (isHoldingsLoading ? 'Loading holdings for selected ETFs…' : 'No watchlist tickers match your search.');
-        tableBody.innerHTML = `<tr><td colspan="${headers.length + 1}" class="py-12 text-center text-slate-400 dark:text-slate-500">${escapeHtml(msg)}</td></tr>`;
-        animateTableUpdate();
-        return;
-      }
+        if (!sorted.length) {
+          const msg =
+            selectedETFs.size === 0
+              ? 'No ETFs selected yet. Check individual boxes or "All ETFs" to build a multi-ETF Watchlist.'
+              : isHoldingsLoading
+                ? "Loading holdings for selected ETFs…"
+                : "No watchlist tickers match your search.";
+          tableBody.innerHTML = `<tr><td colspan="${
+            headers.length + 1
+          }" class="py-12 text-center text-slate-400 dark:text-slate-500">${escapeHtml(
+            msg,
+          )}</td></tr>`;
+          animateTableUpdate();
+          return;
+        }
 
-      tableBody.innerHTML = sorted.map((row, idx) => `
+        tableBody.innerHTML = sorted
+          .map(
+            (row, idx) => `
         <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition border-b border-slate-100 dark:border-slate-700/30">
-          <td class="py-2.5 px-4 text-slate-400 dark:text-slate-500 text-xs text-center font-mono">${idx + 1}</td>
-          <td class="py-2.5 px-4 font-mono font-semibold text-blue-600 dark:text-blue-400">${escapeHtml(row.Ticker)}</td>
-          <td class="py-2.5 px-4 text-slate-700 dark:text-slate-300 font-medium">${escapeHtml(row.Name)}</td>
+          <td class="py-2.5 px-4 text-slate-400 dark:text-slate-500 text-xs text-center font-mono">${
+            idx + 1
+          }</td>
+          <td class="py-2.5 px-4 font-mono font-semibold text-blue-600 dark:text-blue-400">${escapeHtml(
+            row.Ticker,
+          )}</td>
+          <td class="py-2.5 px-4 text-slate-700 dark:text-slate-300 font-medium">${escapeHtml(
+            row.Name,
+          )}</td>
           <td class="py-2.5 px-4 text-slate-700 dark:text-slate-300">
             <div class="flex flex-wrap gap-1 max-w-md">
-              ${row.ETFs.map(t => `<span class="font-mono text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800 rounded-full px-2 py-0.5">${escapeHtml(t)}</span>`).join('')}
+              ${row.ETFs.map(
+                (t) =>
+                  `<span class="font-mono text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800 rounded-full px-2 py-0.5">${escapeHtml(
+                    t,
+                  )}</span>`,
+              ).join("")}
             </div>
           </td>
-          <td class="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-300">${escapeHtml(row['Weight Sum (%)'])}</td>
-          <td class="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-300">${escapeHtml(row['Max Weight (%)'])}</td>
-          <td class="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-300">${escapeHtml(row['Market Value'])}</td>
-          <td class="py-2.5 px-4 text-slate-700 dark:text-slate-300">${escapeHtml(row.Sector)}</td>
-          <td class="py-2.5 px-4 text-slate-600 dark:text-slate-400">${escapeHtml(row['Asset Class'])}</td>
-          <td class="py-2.5 px-4 text-slate-600 dark:text-slate-400 font-mono text-xs">${escapeHtml(row.Exchange)}</td>
-          <td class="py-2.5 px-4 text-slate-600 dark:text-slate-400">${escapeHtml(row.Location)}</td>
+          <td class="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-300">${escapeHtml(
+            row["Weight Sum (%)"],
+          )}</td>
+          <td class="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-300">${escapeHtml(
+            row["Max Weight (%)"],
+          )}</td>
+          <td class="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-300">${escapeHtml(
+            row["Market Value"],
+          )}</td>
+          <td class="py-2.5 px-4 text-slate-700 dark:text-slate-300">${escapeHtml(
+            row.Sector,
+          )}</td>
+          <td class="py-2.5 px-4 text-slate-600 dark:text-slate-400">${escapeHtml(
+            row["Asset Class"],
+          )}</td>
+          <td class="py-2.5 px-4 text-slate-600 dark:text-slate-400 font-mono text-xs">${escapeHtml(
+            row.Exchange,
+          )}</td>
+          <td class="py-2.5 px-4 text-slate-600 dark:text-slate-400">${escapeHtml(
+            row.Location,
+          )}</td>
         </tr>
-      `).join('');
+      `,
+          )
+          .join("");
 
-      animateTableUpdate();
-    }
+        animateTableUpdate();
+      }
 
-    function sortHeader(header) {
-      const active = sortKey === header;
-      const arrow = active ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '';
-      const tooltip = getHeaderTooltip(header);
-      const isNumeric = isNumericColumn(header);
-      const align = isNumeric ? ' text-right' : '';
+      function sortHeader(header) {
+        const active = sortKey === header;
+        const arrow = active ? (sortDir === "asc" ? " ↑" : " ↓") : "";
+        const tooltip = getHeaderTooltip(header);
+        const isNumeric = isNumericColumn(header);
+        const align = isNumeric ? " text-right" : "";
 
-      return `<th class="py-3.5 px-4${align}" title="${escapeHtml(tooltip)}"><button data-sort="${escapeHtml(header)}" title="${escapeHtml(tooltip)}" class="uppercase tracking-wider hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none focus:text-blue-600 dark:focus:text-blue-400">${escapeHtml(header)}${arrow}</button></th>`;
-    }
+        return `<th class="py-3.5 px-4${align}" title="${escapeHtml(
+          tooltip,
+        )}"><button data-sort="${escapeHtml(header)}" title="${escapeHtml(
+          tooltip,
+        )}" class="uppercase tracking-wider hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none focus:text-blue-600 dark:focus:text-blue-400">${escapeHtml(
+          header,
+        )}${arrow}</button></th>`;
+      }
 
-    function bindSortHeaders() {
-      tableHead.querySelectorAll('button[data-sort]').forEach(button => {
-        button.addEventListener('click', () => {
-          const key = button.dataset.sort || '';
-          if (!key) return;
-          if (sortKey === key) {
-            sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-          } else {
-            sortKey = key;
-            sortDir = isNumericColumn(key) ? 'desc' : 'asc';
-          }
-          persistSiteState();
-          if (activeSheetName === 'Watchlist') {
-            renderWatchlistTable();
-          } else {
-            const currentSheet = workbookSheets[activeSheetName] || (activeSheetName === 'ETF Catalog' ? staticCatalogSheet : null);
-            if (currentSheet) renderTable(getFilteredRows(currentSheet), currentSheet.headers);
-          }
+      function bindSortHeaders() {
+        tableHead.querySelectorAll("button[data-sort]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const key = button.dataset.sort || "";
+            if (!key) return;
+            if (sortKey === key) {
+              sortDir = sortDir === "asc" ? "desc" : "asc";
+            } else {
+              sortKey = key;
+              sortDir = isNumericColumn(key) ? "desc" : "asc";
+            }
+            persistSiteState();
+            if (activeSheetName === "Watchlist") {
+              renderWatchlistTable();
+            } else {
+              const currentSheet =
+                workbookSheets[activeSheetName] ||
+                (activeSheetName === "ETF Catalog" ? staticCatalogSheet : null);
+              if (currentSheet)
+                renderTable(
+                  getFilteredRows(currentSheet),
+                  currentSheet.headers,
+                );
+            }
+          });
         });
-      });
-    }
-
-    function getFilteredRows(sheet) {
-      const query = searchInput.value.toLowerCase().trim();
-      if (!query) return sheet.data;
-      return sheet.data.filter(row => Object.values(row).some(value => String(value).toLowerCase().includes(query)));
-    }
-
-    function isNumericColumn(key) {
-      if (activeSheetName === 'Watchlist') {
-        return ['Weight Sum (%)', 'Max Weight (%)', 'Market Value', 'Fund Count'].includes(key);
-      }
-      const sheet = workbookSheets[activeSheetName] || (activeSheetName === 'ETF Catalog' ? staticCatalogSheet : null);
-      if (!sheet) return false;
-      const values = sheet.data.map(row => row[key]).filter(value => String(value ?? '').trim() !== '' && String(value ?? '').trim() !== '—');
-      return values.length > 0 && values.every(value => sortableNumber(value) !== null);
-    }
-
-    function sortRows(rows) {
-      if (!sortKey) return [...rows];
-      const direction = sortDir === 'asc' ? 1 : -1;
-      return [...rows].sort((left, right) => compareSortableValues(left[sortKey], right[sortKey]) * direction);
-    }
-
-    function compareSortableValues(left, right) {
-      const leftNumber = sortableNumber(left);
-      const rightNumber = sortableNumber(right);
-      if (leftNumber !== null && rightNumber !== null) return leftNumber === rightNumber ? 0 : leftNumber > rightNumber ? 1 : -1;
-      return String(left ?? '').localeCompare(String(right ?? ''), undefined, { numeric: true, sensitivity: 'base' });
-    }
-
-    function sortableNumber(value) {
-      const source = String(value ?? '').trim();
-      if (!source || source === '—') return null;
-      const normalized = source
-        .replace(/^\((.*)\)$/, '-$1')
-        .replace(/[$,%]/g, '')
-        .replace(/,/g, '')
-        .trim();
-      return /^-?(?:\d+|\d*\.\d+)$/.test(normalized) ? Number(normalized) : null;
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
-    }
-
-    function getExportFileName(targetExtension) {
-      if (!currentFileName) return `iShares_Watchlist.${targetExtension}`;
-      const lastDotIndex = currentFileName.lastIndexOf('.');
-      const baseName = lastDotIndex !== -1 ? currentFileName.substring(0, lastDotIndex) : currentFileName;
-      return `${baseName}_${activeSheetName.replace(/\s+/g, '_')}.${targetExtension}`;
-    }
-
-    function generateFileContent() {
-      if (activeSheetName === 'Watchlist') {
-        const rows = getDedupedWatchlistRows();
-        const headers = ['Ticker', 'Name', 'ETFs', 'Weight Sum (%)', 'Max Weight (%)', 'Market Value', 'Sector', 'Asset Class', 'Exchange', 'Location'];
-        const csvHeaders = headers.join(',');
-        const csvRows = rows.map(r => [
-          r.Ticker,
-          r.Name,
-          r.ETFs.join('|'),
-          r['Weight Sum (%)'],
-          r['Max Weight (%)'],
-          r['Market Value'],
-          r.Sector,
-          r['Asset Class'],
-          r.Exchange,
-          r.Location
-        ].map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(','));
-        return [csvHeaders, ...csvRows].join('\n');
       }
 
-      const currentSheet = workbookSheets[activeSheetName] || (activeSheetName === 'ETF Catalog' ? staticCatalogSheet : null);
-      if (!currentSheet) return '';
-
-      const csvHeaders = currentSheet.headers.join(',');
-      const csvRows = currentSheet.data.map(row =>
-        currentSheet.headers.map(h => `"${(row[h] || '').replace(/"/g, '""')}"`).join(',')
-      );
-      return [csvHeaders, ...csvRows].join('\n');
-    }
-
-    searchInput.addEventListener('input', () => {
-      persistSiteState();
-      if (activeSheetName === 'Watchlist') {
-        renderWatchlistTable();
-      } else {
-        const currentSheet = workbookSheets[activeSheetName] || (activeSheetName === 'ETF Catalog' ? staticCatalogSheet : null);
-        if (currentSheet) renderTable(getFilteredRows(currentSheet), currentSheet.headers);
-      }
-    });
-
-    exportCsvBtn.addEventListener('click', () => {
-      const content = generateFileContent();
-      const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", getExportFileName('csv'));
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
-
-    exportTxtBtn.addEventListener('click', () => {
-      let content = '';
-      if (activeSheetName === 'Watchlist') {
-        const rows = getDedupedWatchlistRows();
-        content = rows.map(r => r.Ticker).filter(Boolean).join('\n');
-      } else {
-        content = generateFileContent();
-      }
-      const blob = new Blob([content], { type: "text/plain;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", getExportFileName('txt'));
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
-
-    copyBtn.addEventListener('click', () => {
-      let tickers = [];
-      if (activeSheetName === 'Watchlist') {
+      function getFilteredRows(sheet) {
         const query = searchInput.value.toLowerCase().trim();
-        const rows = getDedupedWatchlistRows();
-        const filtered = query ? rows.filter(r => r._searchIndex.includes(query)) : rows;
-        tickers = filtered.map(r => r.Ticker).filter(Boolean);
-      } else {
-        const currentSheet = workbookSheets[activeSheetName] || (activeSheetName === 'ETF Catalog' ? staticCatalogSheet : null);
-        if (!currentSheet || !currentSheet.tickerCol) return;
-        const filtered = getFilteredRows(currentSheet);
-        tickers = filtered.map(e => e[currentSheet.tickerCol]).filter(Boolean);
+        if (!query) return sheet.data;
+        return sheet.data.filter((row) =>
+          Object.values(row).some((value) =>
+            String(value).toLowerCase().includes(query),
+          ),
+        );
       }
 
-      if (!tickers.length) return;
-      const text = tickers.join(', ');
-      navigator.clipboard.writeText(text);
-      const oldText = copyBtn.textContent;
-      copyBtn.textContent = 'Copied!';
-      setTimeout(() => { copyBtn.textContent = oldText || 'Copy Tickers'; }, 1200);
-    });
+      function isNumericColumn(key) {
+        if (activeSheetName === "Watchlist") {
+          return [
+            "Weight Sum (%)",
+            "Max Weight (%)",
+            "Market Value",
+            "Fund Count",
+          ].includes(key);
+        }
+        const sheet =
+          workbookSheets[activeSheetName] ||
+          (activeSheetName === "ETF Catalog" ? staticCatalogSheet : null);
+        if (!sheet) return false;
+        const values = sheet.data
+          .map((row) => row[key])
+          .filter(
+            (value) =>
+              String(value ?? "").trim() !== "" &&
+              String(value ?? "").trim() !== "—",
+          );
+        return (
+          values.length > 0 &&
+          values.every((value) => sortableNumber(value) !== null)
+        );
+      }
 
-    resetBtn.addEventListener('click', clearStorage);
-  </script>
-</body>
+      function sortRows(rows) {
+        if (!sortKey) return [...rows];
+        const direction = sortDir === "asc" ? 1 : -1;
+        return [...rows].sort(
+          (left, right) =>
+            compareSortableValues(left[sortKey], right[sortKey]) * direction,
+        );
+      }
+
+      function compareSortableValues(left, right) {
+        const leftNumber = sortableNumber(left);
+        const rightNumber = sortableNumber(right);
+        if (leftNumber !== null && rightNumber !== null)
+          return leftNumber === rightNumber
+            ? 0
+            : leftNumber > rightNumber
+              ? 1
+              : -1;
+        return String(left ?? "").localeCompare(
+          String(right ?? ""),
+          undefined,
+          {
+            numeric: true,
+            sensitivity: "base",
+          },
+        );
+      }
+
+      function sortableNumber(value) {
+        const source = String(value ?? "").trim();
+        if (!source || source === "—") return null;
+        const normalized = source
+          .replace(/^\((.*)\)$/, "-$1")
+          .replace(/[$,%]/g, "")
+          .replace(/,/g, "")
+          .trim();
+        return /^-?(?:\d+|\d*\.\d+)$/.test(normalized)
+          ? Number(normalized)
+          : null;
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "").replace(
+          /[&<>'"]/g,
+          (char) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              "'": "&#39;",
+              '"': "&quot;",
+            })[char],
+        );
+      }
+
+      // =========================================================================
+      // 12. Actions & Exports (CSV, TXT, Copy Tickers)
+      // =========================================================================
+
+      function getExportFileName(targetExtension) {
+        if (!currentFileName) return `iShares_Watchlist.${targetExtension}`;
+        const lastDotIndex = currentFileName.lastIndexOf(".");
+        const baseName =
+          lastDotIndex !== -1
+            ? currentFileName.substring(0, lastDotIndex)
+            : currentFileName;
+        return `${baseName}_${activeSheetName.replace(/\s+/g, "_")}.${targetExtension}`;
+      }
+
+      function generateFileContent() {
+        if (activeSheetName === "Watchlist") {
+          const rows = getDedupedWatchlistRows();
+          const headers = [
+            "Ticker",
+            "Name",
+            "ETFs",
+            "Weight Sum (%)",
+            "Max Weight (%)",
+            "Market Value",
+            "Sector",
+            "Asset Class",
+            "Exchange",
+            "Location",
+          ];
+          const csvHeaders = headers.join(",");
+          const csvRows = rows.map((r) =>
+            [
+              r.Ticker,
+              r.Name,
+              r.ETFs.join("|"),
+              r["Weight Sum (%)"],
+              r["Max Weight (%)"],
+              r["Market Value"],
+              r.Sector,
+              r["Asset Class"],
+              r.Exchange,
+              r.Location,
+            ]
+              .map((cell) => `"${String(cell || "").replace(/"/g, '""')}"`)
+              .join(","),
+          );
+          return [csvHeaders, ...csvRows].join("\n");
+        }
+
+        const currentSheet =
+          workbookSheets[activeSheetName] ||
+          (activeSheetName === "ETF Catalog" ? staticCatalogSheet : null);
+        if (!currentSheet) return "";
+
+        const csvHeaders = currentSheet.headers.join(",");
+        const csvRows = currentSheet.data.map((row) =>
+          currentSheet.headers
+            .map((h) => `"${(row[h] || "").replace(/"/g, '""')}"`)
+            .join(","),
+        );
+        return [csvHeaders, ...csvRows].join("\n");
+      }
+
+      searchInput.addEventListener("input", () => {
+        persistSiteState();
+        if (activeSheetName === "Watchlist") {
+          renderWatchlistTable();
+        } else {
+          const currentSheet =
+            workbookSheets[activeSheetName] ||
+            (activeSheetName === "ETF Catalog" ? staticCatalogSheet : null);
+          if (currentSheet)
+            renderTable(getFilteredRows(currentSheet), currentSheet.headers);
+        }
+      });
+
+      exportCsvBtn.addEventListener("click", () => {
+        const content = generateFileContent();
+        const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", getExportFileName("csv"));
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+      exportTxtBtn.addEventListener("click", () => {
+        let content = "";
+        if (activeSheetName === "Watchlist") {
+          const rows = getDedupedWatchlistRows();
+          content = rows
+            .map((r) => r.Ticker)
+            .filter(Boolean)
+            .join("\n");
+        } else {
+          content = generateFileContent();
+        }
+        const blob = new Blob([content], { type: "text/plain;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", getExportFileName("txt"));
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+      copyBtn.addEventListener("click", () => {
+        let tickers = [];
+        if (activeSheetName === "Watchlist") {
+          const query = searchInput.value.toLowerCase().trim();
+          const rows = getDedupedWatchlistRows();
+          const filtered = query
+            ? rows.filter((r) => r._searchIndex.includes(query))
+            : rows;
+          tickers = filtered.map((r) => r.Ticker).filter(Boolean);
+        } else {
+          const currentSheet =
+            workbookSheets[activeSheetName] ||
+            (activeSheetName === "ETF Catalog" ? staticCatalogSheet : null);
+          if (!currentSheet || !currentSheet.tickerCol) return;
+          const filtered = getFilteredRows(currentSheet);
+          tickers = filtered
+            .map((e) => e[currentSheet.tickerCol])
+            .filter(Boolean);
+        }
+
+        if (!tickers.length) return;
+        const text = tickers.join(", ");
+        navigator.clipboard.writeText(text);
+        const oldText = copyBtn.textContent;
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => {
+          copyBtn.textContent = oldText || "Copy Tickers";
+        }, 1200);
+      });
+
+      resetBtn.addEventListener("click", clearStorage);
+    </script>
+  </body>
 </html>
