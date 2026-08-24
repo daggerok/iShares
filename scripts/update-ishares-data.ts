@@ -409,7 +409,7 @@ async function requestText(
   for (let attempt = 1; attempt <= attempts; attempt++) {
     await waitForRequest();
     try {
-      console.log(`[fetch] ticker=${label} attempt=${attempt}/${attempts}`);
+      console.log(`[fetch  ] ticker=${label} attempt=${attempt}/${attempts}`);
       const response = await fetch(url, {
         headers: { accept: "text/html,application/xml,*/*" },
         signal: AbortSignal.timeout(120_000),
