@@ -113,9 +113,9 @@ const sleep = (milliseconds: number) =>
 // Aligned console logging: every tag pads to the same width, tickers pad to
 // the longest discovered ticker, and batch counters pad to the width of the
 // total, so `ticker=`, progress, and status columns line up, e.g.
-//   [fund    ] ticker=IAT   167/480 status=unchanged
-//   [fetch   ] ticker=IAUM  attempt=2/3
-const LOG_TAG_WIDTH = 8; // "[progress]" is the longest tag in use
+//   [ fund    ] ticker=IAT   167/480 status=unchanged
+//   [ fetch   ] ticker=IAUM  attempt=2/3
+const LOG_TAG_WIDTH = 8; // "[ progress ]" is the longest tag in use
 let logTickerWidth = 4;
 
 function logTag(
@@ -123,7 +123,7 @@ function logTag(
   message: string,
   logger: (line: string) => void = console.log,
 ): void {
-  logger(`[${tag.padEnd(LOG_TAG_WIDTH)}] ${message}`);
+  logger(`[ ${tag.padEnd(LOG_TAG_WIDTH)} ] ${message}`);
 }
 
 function logTicker(ticker: string): string {
