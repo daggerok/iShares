@@ -1116,11 +1116,11 @@ async function main() {
     candidates,
     config.concurrency,
     async (fund, index): Promise<UpdateResult> => {
-      console.log(`[fund] ${index + 1}/${candidates.length} ticker=${fund.ticker} start`);
+      console.log(`[fund] ticker=${fund.ticker} ${index + 1}/${candidates.length} start`);
       try {
         const result = await updateFund(fund, config, waitForRequest);
         console.log(
-          `[fund] ${index + 1}/${candidates.length} ticker=${fund.ticker} status=${result.status}${result.reason ? ` reason=${result.reason}` : ""}`,
+          `[fund] ticker=${fund.ticker} ${index + 1}/${candidates.length} status=${result.status}${result.reason ? ` reason=${result.reason}` : ""}`,
         );
         return result;
       } catch (error) {
@@ -1130,7 +1130,7 @@ async function main() {
           reason: String(error),
         };
         console.warn(
-          `[fund] ${index + 1}/${candidates.length} ticker=${fund.ticker} status=failed reason=${result.reason}`,
+          `[fund] ticker=${fund.ticker} ${index + 1}/${candidates.length} status=failed reason=${result.reason}`,
         );
         return result;
       }
