@@ -10,7 +10,7 @@ import {
   readConfig,
   returnFilterReasons,
   selectUpdateBatch,
-} from "./update-ishares-data";
+} from "./update-data";
 
 const fund = {
   ticker: "IVV",

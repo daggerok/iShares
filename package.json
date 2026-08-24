@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "test": "bun test scripts/update-ishares-data.test.ts",
-    "update": "bun scripts/update-ishares-data.ts"
+    "test": "bun test scripts/update-data.test.ts",
+    "update": "bun scripts/update-data.ts"
   },
   "dependencies": {},
   "devDependencies": {

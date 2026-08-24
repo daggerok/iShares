@@ -103,7 +103,7 @@ on:
         default: ""
         type: string
 permissions: { contents: write }
-concurrency: { group: update-ishares-data, cancel-in-progress: false }
+concurrency: { group: update-data, cancel-in-progress: false }
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -132,9 +132,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - name: Test updater
-        run: bun test scripts/update-ishares-data.test.ts
+        run: bun test scripts/update-data.test.ts
       - name: Update data
-        run: bun scripts/update-ishares-data.ts
+        run: bun scripts/update-data.ts
       - name: Commit changed data
         run: |
           git add api/ishares

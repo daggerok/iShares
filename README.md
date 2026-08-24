@@ -15,8 +15,8 @@ The published application is available at <https://daggerok.github.io/iShares/>.
 Run the updater with Bun:
 
 ```bash
-bun test scripts/update-ishares-data.test.ts
-./scripts/update-ishares-data.ts
+bun test scripts/update-data.test.ts
+./scripts/update-data.ts
 ```
 
 The **Update iShares ETF data** GitHub Actions workflow exposes the same settings as manual inputs. All supplied filters use **AND** logic.
@@ -131,7 +131,7 @@ REQUEST_SLEEP=0.5 \
 AUM="300M:" \
 DIVIDEND_YIELD=":4" \
 CONCURRENCY=3 \
-bun scripts/update-ishares-data.ts
+bun scripts/update-data.ts
 ```
 
 Require a 5%–20% three-year CAGR and no more than 100% cumulative three-year return:
@@ -139,7 +139,7 @@ Require a 5%–20% three-year CAGR and no more than 100% cumulative three-year r
 ```bash
 PERFORMANCE_3Y="5:20" \
 TOTAL_RETURN_3Y=":100" \
-bun scripts/update-ishares-data.ts
+bun scripts/update-data.ts
 ```
 
 ## Developer notes
@@ -155,21 +155,21 @@ bun scripts/update-ishares-data.ts
 - The app keeps search and sort preferences in localStorage, reapplies them after reload, and clears the cached workbook before reloading when `Clear` is clicked.
 - GitHub Actions writes updated, unchanged, return-filtered, and failed counts to the workflow summary.
 - Updater logs are aligned (`[fund    ] ticker=IAU  168/480 status=unchanged`): one line per fund with its final status. Fund `start` lines and first-attempt `[fetch]` lines are suppressed; retries (`attempt=2/3`, `[retry]`), `[yield]` gaps, and `status=failed reason=…` stay visible.
-- Range validation is centralized in `parseRange`; AUM's numeric/preset validation is centralized in `parseAumRange`. Add or change syntax there and update `scripts/update-ishares-data.test.ts` in the same PR.
+- Range validation is centralized in `parseRange`; AUM's numeric/preset validation is centralized in `parseAumRange`. Add or change syntax there and update `scripts/update-data.test.ts` in the same PR.
 
 Before opening a PR, run:
 
 ```bash
 bun install --frozen-lockfile
-bun test scripts/update-ishares-data.test.ts
+bun test scripts/update-data.test.ts
 bunx tsc --noEmit \
   --target es2022 \
   --module esnext \
   --moduleResolution bundler \
   --types bun,node \
   --skipLibCheck \
-  scripts/update-ishares-data.ts \
-  scripts/update-ishares-data.test.ts
+  scripts/update-data.ts \
+  scripts/update-data.test.ts
 
 git diff --check
 ```

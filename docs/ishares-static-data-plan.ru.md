@@ -156,7 +156,7 @@ CSV holdings можно использовать как ускоренный fal
 
 1. checkout c полной историей для push;
 2. setup Bun с закреплённой версией;
-3. `bun scripts/update-ishares-data.ts`;
+3. `bun scripts/update-data.ts`;
 4. `git add api/ishares`;
 5. `git diff --cached --quiet && exit 0`;
 6. commit и push только при staged изменениях.
