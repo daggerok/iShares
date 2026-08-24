@@ -19,6 +19,8 @@ bun test scripts/update-data.test.ts
 ./scripts/update-data.ts
 ```
 
+Run `./scripts/update-data.ts -h` (or `--help`) to print every configuration variable with its default and usage examples, e.g. `TOTAL_RETURN_1Y="15:" ./scripts/update-data.ts` updates only funds whose 1-year Total Return (TR 1Y) is at least 15%.
+
 The **Update iShares ETF data** GitHub Actions workflow exposes the same settings as manual inputs. All supplied filters use **AND** logic.
 
 ### Update controls
