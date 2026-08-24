@@ -428,7 +428,7 @@ async function requestText(
       const backoff = Math.min(30_000, 1_000 * 2 ** (attempt - 1));
       const delay = Math.min(60_000, Math.max(backoff, retryAfter || 0));
       console.warn(
-        `[retry] ${label} in=${Math.round(delay / 1_000)}s reason=${String(error)}`,
+        `[retry  ] ${label} in=${Math.round(delay / 1_000)}s reason=${String(error)}`,
       );
       await sleep(delay);
     }
