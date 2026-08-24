@@ -1058,7 +1058,7 @@ async function writeSummary(
 
 async function main() {
   const config = readConfig();
-  console.log(`[config] ${configLines(config).join(" ")}`);
+  console.log(`[config ] ${configLines(config).join(" ")}`);
   const waitForRequest = createRequestGate(config.requestSleepSeconds);
   const previous = JSON.parse(
     (await old(new URL("index.json", ROOT))) || '{"funds":[]}',
@@ -1109,18 +1109,18 @@ async function main() {
     ? selectUpdateBatch(catalogEligible, config.maxFetches, lastProcessedTicker)
     : catalogEligible;
   console.log(
-    `[filter] catalogEligible=${catalogEligible.length} selectedForUpdate=${candidates.length}${config.maxFetches ? ` startingAfter=${lastProcessedTicker || "start"}` : ""}`,
+    `[filter ] catalogEligible=${catalogEligible.length} selectedForUpdate=${candidates.length}${config.maxFetches ? ` startingAfter=${lastProcessedTicker || "start"}` : ""}`,
   );
 
   const results = await mapWithConcurrency(
     candidates,
     config.concurrency,
     async (fund, index): Promise<UpdateResult> => {
-      console.log(`[fund] ticker=${fund.ticker} ${index + 1}/${candidates.length} start`);
+      console.log(`[fund   ] ticker=${fund.ticker} ${index + 1}/${candidates.length} start`);
       try {
         const result = await updateFund(fund, config, waitForRequest);
         console.log(
-          `[fund] ticker=${fund.ticker} ${index + 1}/${candidates.length} status=${result.status}${result.reason ? ` reason=${result.reason}` : ""}`,
+          `[fund   ] ticker=${fund.ticker} ${index + 1}/${candidates.length} status=${result.status}${result.reason ? ` reason=${result.reason}` : ""}`,
         );
         return result;
       } catch (error) {
@@ -1130,7 +1130,7 @@ async function main() {
           reason: String(error),
         };
         console.warn(
-          `[fund] ticker=${fund.ticker} ${index + 1}/${candidates.length} status=failed reason=${result.reason}`,
+          `[fund   ] ticker=${fund.ticker} ${index + 1}/${candidates.length} status=failed reason=${result.reason}`,
         );
         return result;
       }
