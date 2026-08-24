@@ -154,6 +154,7 @@ bun scripts/update-ishares-data.ts
 - The **Watchlist** tab aggregates the holdings of every selected ETF. Its **# ETFs** column counts how many of the selected ETFs currently hold each ticker, right after the **ETFs** badge column.
 - The app keeps search and sort preferences in localStorage, reapplies them after reload, and clears the cached workbook before reloading when `Clear` is clicked.
 - GitHub Actions writes updated, unchanged, return-filtered, and failed counts to the workflow summary.
+- Updater logs are aligned (`[fund    ] ticker=IAU  168/480 status=unchanged`): one line per fund with its final status. Fund `start` lines and first-attempt `[fetch]` lines are suppressed; retries (`attempt=2/3`, `[retry]`), `[yield]` gaps, and `status=failed reason=…` stay visible.
 - Range validation is centralized in `parseRange`; AUM's numeric/preset validation is centralized in `parseAumRange`. Add or change syntax there and update `scripts/update-ishares-data.test.ts` in the same PR.
 
 Before opening a PR, run:

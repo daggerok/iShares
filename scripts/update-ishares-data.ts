@@ -110,6 +110,30 @@ const esc = (s: string) => s.replace(/&quot;/g, '"').replace(/&amp;/g, "&");
 const sleep = (milliseconds: number) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
+// Aligned console logging: every tag pads to the same width, tickers pad to
+// the longest discovered ticker, and batch counters pad to the width of the
+// total, so `ticker=`, progress, and status columns line up, e.g.
+//   [fund    ] ticker=IAT   167/480 status=unchanged
+//   [fetch   ] ticker=IAUM  attempt=2/3
+const LOG_TAG_WIDTH = 8; // "[progress]" is the longest tag in use
+let logTickerWidth = 4;
+
+function logTag(
+  tag: string,
+  message: string,
+  logger: (line: string) => void = console.log,
+): void {
+  logger(`[${tag.padEnd(LOG_TAG_WIDTH)}] ${message}`);
+}
+
+function logTicker(ticker: string): string {
+  return ticker.padEnd(logTickerWidth);
+}
+
+function logProgress(index: number, total: number): string {
+  return `${String(index).padStart(String(total).length)}/${total}`;
+}
+
 function envValue(
   env: Record<string, string | undefined>,
   name: string,
@@ -409,7 +433,11 @@ async function requestText(
   for (let attempt = 1; attempt <= attempts; attempt++) {
     await waitForRequest();
     try {
-      console.log(`[fetch  ] ticker=${label} attempt=${attempt}/${attempts}`);
+      // First attempts stay silent: one status line per fund is enough.
+      // Only retries are worth a line, next to the matching [retry] warning.
+      if (attempt > 1) {
+        logTag("fetch", `ticker=${logTicker(label)} attempt=${attempt}/${attempts}`);
+      }
       const response = await fetch(url, {
         headers: { accept: "text/html,application/xml,*/*" },
         signal: AbortSignal.timeout(120_000),
@@ -427,8 +455,10 @@ async function requestText(
       const retryAfter = error instanceof HttpError ? error.retryAfterMilliseconds : null;
       const backoff = Math.min(30_000, 1_000 * 2 ** (attempt - 1));
       const delay = Math.min(60_000, Math.max(backoff, retryAfter || 0));
-      console.warn(
-        `[retry  ] ${label} in=${Math.round(delay / 1_000)}s reason=${String(error)}`,
+      logTag(
+        "retry",
+        `ticker=${logTicker(label)} in=${Math.round(delay / 1_000)}s reason=${String(error)}`,
+        console.warn,
       );
       await sleep(delay);
     }
@@ -477,7 +507,7 @@ async function readUpdateProgress() {
   } catch {
     // Treat a malformed local state file as an uninitialized cursor.
   }
-  console.warn(`[progress] ignoring invalid ${UPDATE_STATE.pathname}`);
+  logTag("progress", `ignoring invalid ${UPDATE_STATE.pathname}`, console.warn);
   return null;
 }
 
@@ -853,8 +883,10 @@ async function updateFund(
       JSON.parse(await requestText(fundHeader, fund.ticker, config, waitForRequest)),
     );
   } catch (error) {
-    console.warn(
-      `[yield] ticker=${fund.ticker} sec yield unavailable: ${String(error)}`,
+    logTag(
+      "yield",
+      `ticker=${logTicker(fund.ticker)} sec yield unavailable: ${String(error)}`,
+      console.warn,
     );
   }
 
@@ -1058,7 +1090,7 @@ async function writeSummary(
 
 async function main() {
   const config = readConfig();
-  console.log(`[config ] ${configLines(config).join(" ")}`);
+  logTag("config", configLines(config).join(" "));
   const waitForRequest = createRequestGate(config.requestSleepSeconds);
   const previous = JSON.parse(
     (await old(new URL("index.json", ROOT))) || '{"funds":[]}',
@@ -1079,15 +1111,18 @@ async function main() {
     );
   } catch (error) {
     usedCatalogFallback = true;
-    console.warn(`[catalog] live discovery failed; using previous manifest: ${String(error)}`);
+    logTag("catalog", `live discovery failed; using previous manifest: ${String(error)}`, console.warn);
     discovered = previousFunds;
   }
   if (!discovered.length) throw Error("catalog unavailable and no fallback");
-  console.log(`[catalog] discovered=${discovered.length}`);
+  logTickerWidth = Math.max(4, ...discovered.map((fund) => fund.ticker.length));
+  logTag("catalog", `discovered=${discovered.length}`);
 
   const discoveredTickers = new Set(discovered.map((fund) => fund.ticker.toUpperCase()));
   for (const ticker of config.tickers) {
-    if (!discoveredTickers.has(ticker)) console.warn(`[filter] requested ticker not found: ${ticker}`);
+    if (!discoveredTickers.has(ticker)) {
+      logTag("filter", `requested ticker not found: ${ticker}`, console.warn);
+    }
   }
 
   const tickerOrder = new Map(config.tickers.map((ticker, index) => [ticker, index]));
@@ -1108,19 +1143,22 @@ async function main() {
   const candidates = config.maxFetches
     ? selectUpdateBatch(catalogEligible, config.maxFetches, lastProcessedTicker)
     : catalogEligible;
-  console.log(
-    `[filter ] catalogEligible=${catalogEligible.length} selectedForUpdate=${candidates.length}${config.maxFetches ? ` startingAfter=${lastProcessedTicker || "start"}` : ""}`,
+  logTag(
+    "filter",
+    `catalogEligible=${catalogEligible.length} selectedForUpdate=${candidates.length}${config.maxFetches ? ` startingAfter=${lastProcessedTicker || "start"}` : ""}`,
   );
 
   const results = await mapWithConcurrency(
     candidates,
     config.concurrency,
     async (fund, index): Promise<UpdateResult> => {
-      console.log(`[fund   ] ticker=${fund.ticker} ${index + 1}/${candidates.length} start`);
+      // No "start" line: a fund is visible exactly once, with its final status.
+      const at = `${logTicker(fund.ticker)} ${logProgress(index + 1, candidates.length)}`;
       try {
         const result = await updateFund(fund, config, waitForRequest);
-        console.log(
-          `[fund   ] ticker=${fund.ticker} ${index + 1}/${candidates.length} status=${result.status}${result.reason ? ` reason=${result.reason}` : ""}`,
+        logTag(
+          "fund",
+          `ticker=${at} status=${result.status}${result.reason ? ` reason=${result.reason}` : ""}`,
         );
         return result;
       } catch (error) {
@@ -1129,9 +1167,7 @@ async function main() {
           status: "failed",
           reason: String(error),
         };
-        console.warn(
-          `[fund   ] ticker=${fund.ticker} ${index + 1}/${candidates.length} status=failed reason=${result.reason}`,
-        );
+        logTag("fund", `ticker=${at} status=failed reason=${result.reason}`, console.warn);
         return result;
       }
     },
@@ -1158,7 +1194,7 @@ async function main() {
     !usedCatalogFallback &&
     (previousFunds.length === 0 || discovered.length >= Math.ceil(previousFunds.length * 0.7));
   if (!catalogSafeForCleanup && previousFunds.length) {
-    console.warn("[cleanup] keeping orphan fund directories because catalog is incomplete");
+    logTag("cleanup", "keeping orphan fund directories because catalog is incomplete", console.warn);
   }
   const legacyFilesChanged = await removeLegacyFundFiles();
   const orphanDirectoriesChanged = await removeOrphanFundDirectories(
@@ -1203,15 +1239,17 @@ async function main() {
         2,
       ) + "\n",
     );
-    console.log(
-      `[progress] lastProcessed=${processedThrough} stateChanged=${progressChanged}`,
+    logTag(
+      "progress",
+      `lastProcessed=${processedThrough} stateChanged=${progressChanged}`,
     );
   }
 
   const count = (status: UpdateResult["status"]) =>
     results.filter((result) => result.status === status).length;
-  console.log(
-    `[summary] discovered=${discovered.length} attempted=${candidates.length} updated=${count("updated")} unchanged=${count("unchanged")} filtered=${count("filtered")} failed=${count("failed")} raw=${config.storeRawDownloads} cleanup=${cleanupChanged} manifestChanged=${indexChanged} progressChanged=${progressChanged} processedThrough=${processedThrough || "—"}`,
+  logTag(
+    "summary",
+    `discovered=${discovered.length} attempted=${candidates.length} updated=${count("updated")} unchanged=${count("unchanged")} filtered=${count("filtered")} failed=${count("failed")} raw=${config.storeRawDownloads} cleanup=${cleanupChanged} manifestChanged=${indexChanged} progressChanged=${progressChanged} processedThrough=${processedThrough || "—"}`,
   );
   await writeSummary(
     config,
