@@ -336,7 +336,50 @@
             >
               Clear
             </button>
+
+            <!-- Blacklist Button -->
+            <button
+              id="blacklist-btn"
+              class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition active:scale-95 hover:bg-slate-200 dark:hover:bg-slate-700"
+              title="Manage the blacklist of ETFs hidden from All ETFs (kept in browser localStorage)"
+            >
+              Blacklist
+            </button>
           </div>
+        </div>
+
+        <!-- Blacklist Manager Panel (blacklisted ETFs are hidden from All ETFs and stored in localStorage) -->
+        <div
+          id="blacklist-panel"
+          class="hidden bg-white dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur"
+        >
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2.5">
+            <input
+              type="text"
+              id="blacklist-input"
+              placeholder="Add ETF tickers to blacklist (e.g. AAXJ, AGG)"
+              class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 w-full sm:w-80 focus:outline-none focus:border-blue-500 text-sm placeholder-slate-400 dark:placeholder-slate-500 transition"
+            />
+            <div class="flex flex-wrap items-center gap-2.5">
+              <button
+                id="blacklist-add-btn"
+                class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition active:scale-95"
+              >
+                Add
+              </button>
+              <button
+                id="blacklist-clear-btn"
+                class="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-700/50 px-3 py-2 rounded-lg text-sm font-medium transition active:scale-95 hover:bg-rose-200 dark:hover:bg-rose-800/60"
+              >
+                Clear Blacklist
+              </button>
+            </div>
+          </div>
+          <div id="blacklist-chips" class="flex flex-wrap gap-1.5 mt-3"></div>
+          <p id="blacklist-empty" class="text-xs text-slate-400 dark:text-slate-500 mt-3">
+            The blacklist is empty. Blacklisted ETFs disappear from All ETFs (and
+            from selection), and are kept in your browser localStorage.
+          </p>
         </div>
 
         <!-- Selected ETF Detail & Watchlist Navigation Panel (Animated expand/collapse right above the table) -->
@@ -561,6 +604,7 @@
       const THEME_KEY = "ishares-theme";
       const SITE_STATE_KEY = "ishares-site-state";
       const SELECTED_KEY = "ishares-selected-etfs";
+      const BLACKLIST_KEY = "ishares-blacklisted-etfs";
       const ACTIVE_FUND_KEY = "ishares-active-fund";
 
       const themeToggle = document.getElementById("theme-toggle");
@@ -657,6 +701,7 @@
       let staticPagingGeneration = 0;
       let staticTicker = "";
       let selectedETFs = new Set();
+      let blacklistedETFs = new Set();
       let activeFundTicker = null;
       let fundHoldingsCache = {};
       let activeFundSheets = {};
@@ -688,6 +733,13 @@
       const exportCsvBtn = document.getElementById("export-csv-btn");
       const exportTxtBtn = document.getElementById("export-txt-btn");
       const resetBtn = document.getElementById("reset-btn");
+      const blacklistBtn = document.getElementById("blacklist-btn");
+      const blacklistPanel = document.getElementById("blacklist-panel");
+      const blacklistInput = document.getElementById("blacklist-input");
+      const blacklistAddBtn = document.getElementById("blacklist-add-btn");
+      const blacklistClearBtn = document.getElementById("blacklist-clear-btn");
+      const blacklistChips = document.getElementById("blacklist-chips");
+      const blacklistEmpty = document.getElementById("blacklist-empty");
 
       // =========================================================================
       // 5. Bootstrap Lifecycle
@@ -696,6 +748,7 @@
       document.addEventListener("DOMContentLoaded", async () => {
         restoreSiteState();
         restoreSelectedEtfs();
+        restoreBlacklist();
         try {
           const savedWorkbook = await dbGet("workbook");
           const savedFilename = await dbGet("filename");
@@ -750,6 +803,166 @@
       // =========================================================================
       // 7. Multi-ETF Selection & Watchlist Data Pipeline
       // =========================================================================
+
+      /**
+       * Restores blacklisted ETF tickers from localStorage.
+       */
+      function restoreBlacklist() {
+        try {
+          const saved = JSON.parse(
+            localStorage.getItem(BLACKLIST_KEY) || "[]",
+          );
+          blacklistedETFs = new Set(
+            (Array.isArray(saved) ? saved : [])
+              .map(sanitizeTicker)
+              .filter(Boolean),
+          );
+        } catch {
+          blacklistedETFs = new Set();
+        }
+      }
+
+      /**
+       * Persists the blacklist to localStorage.
+       */
+      function persistBlacklist() {
+        localStorage.setItem(
+          BLACKLIST_KEY,
+          JSON.stringify([...blacklistedETFs].sort()),
+        );
+      }
+
+      /**
+       * Catalog funds that are not blacklisted.
+       */
+      function visibleCatalogFunds() {
+        return (staticCatalogSheet?.data || []).filter(
+          (row) => row.Ticker && !blacklistedETFs.has(row.Ticker),
+        );
+      }
+
+      /**
+       * Adds tickers to the blacklist, deselects them, and refreshes the UI.
+       * @param {string[]} tickers
+       */
+      function blacklistTickers(tickers) {
+        const known = new Set(
+          (staticCatalogSheet?.data || [])
+            .map((row) => row.Ticker)
+            .filter(Boolean),
+        );
+        const added = [];
+        for (const raw of tickers) {
+          const clean = sanitizeTicker(raw);
+          if (!clean || !known.has(clean)) continue;
+          if (!blacklistedETFs.has(clean)) {
+            blacklistedETFs.add(clean);
+            added.push(clean);
+          }
+          if (selectedETFs.has(clean)) {
+            selectedETFs.delete(clean);
+            if (activeFundTicker === clean) {
+              activeFundTicker = [...selectedETFs][0] || null;
+            }
+          }
+        }
+        if (!added.length) return;
+        persistBlacklist();
+        persistSelectedEtfs();
+        refreshAfterBlacklistChange();
+      }
+
+      /**
+       * Removes one ticker from the blacklist and refreshes the UI.
+       * @param {string} ticker
+       */
+      function unblacklistTicker(ticker) {
+        const clean = sanitizeTicker(ticker);
+        if (!clean || !blacklistedETFs.has(clean)) return;
+        blacklistedETFs.delete(clean);
+        persistBlacklist();
+        refreshAfterBlacklistChange();
+      }
+
+      /**
+       * Clears the whole blacklist and refreshes the UI.
+       */
+      function clearBlacklist() {
+        if (!blacklistedETFs.size) return;
+        blacklistedETFs.clear();
+        persistBlacklist();
+        refreshAfterBlacklistChange();
+      }
+
+      /**
+       * Reads the blacklist input, blacklists the tickers it mentions.
+       */
+      function submitBlacklistInput() {
+        const tickers = (blacklistInput.value || "")
+          .split(/[\s,;]+/)
+          .map((ticker) => ticker.trim())
+          .filter(Boolean);
+        blacklistInput.value = "";
+        if (!tickers.length) return;
+        blacklistTickers(tickers);
+      }
+
+      /**
+       * Re-renders everything the blacklist affects.
+       */
+      function refreshAfterBlacklistChange() {
+        renderBlacklistPanel();
+        renderSubtitle();
+        renderTopTabs();
+        renderTabs();
+        if (activeSheetName === "ETF Catalog" && staticCatalogSheet) {
+          renderTable(
+            getFilteredRows(staticCatalogSheet),
+            staticCatalogSheet.headers,
+          );
+        } else if (activeSheetName === "Watchlist") {
+          renderWatchlistTable();
+        } else if (
+          ["Holdings", "Historical", "Performance", "Distributions"].includes(
+            activeSheetName,
+          )
+        ) {
+          if (activeFundTicker) {
+            void loadStaticFund(activeFundTicker);
+          } else {
+            void switchSheet("ETF Catalog");
+          }
+        }
+        void ensureHoldingsForSelected();
+      }
+
+      /**
+       * Renders the blacklist chips and the toolbar button label.
+       */
+      function renderBlacklistPanel() {
+        const tickers = [...blacklistedETFs].sort();
+        blacklistBtn.textContent = tickers.length
+          ? `Blacklist (${tickers.length})`
+          : "Blacklist";
+        blacklistEmpty.classList.toggle("hidden", tickers.length > 0);
+        blacklistChips.innerHTML = tickers
+          .map(
+            (ticker) => `
+            <span class="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-full pl-3 pr-1.5 py-1 font-mono text-xs">
+              ${escapeHtml(ticker)}
+              <button data-unblacklist="${escapeHtml(ticker)}" class="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-rose-200 dark:hover:bg-rose-800/60 text-slate-600 dark:text-slate-300 hover:text-rose-700 dark:hover:text-rose-300 leading-none transition" title="Remove ${escapeHtml(ticker)} from the blacklist">✕</button>
+            </span>`,
+          )
+          .join("");
+        blacklistChips
+          .querySelectorAll("button[data-unblacklist]")
+          .forEach((button) => {
+            button.addEventListener("click", (e) => {
+              e.stopPropagation();
+              unblacklistTicker(button.dataset.unblacklist || "");
+            });
+          });
+      }
 
       /**
        * Restores selected ETF tickers from localStorage.
@@ -960,9 +1173,7 @@
        * @param {boolean} selectAll
        */
       function toggleSelectAll(selectAll) {
-        const allTickers = (staticCatalogSheet?.data || [])
-          .map((r) => r.Ticker)
-          .filter(Boolean);
+        const allTickers = visibleCatalogFunds().map((r) => r.Ticker);
         if (selectAll) {
           selectedETFs = new Set(allTickers);
           if (!activeFundTicker) activeFundTicker = allTickers[0] || null;
@@ -1219,8 +1430,35 @@
             activeSheetName = "ETF Catalog";
           }
 
+          // Drop stale blacklist entries and any selected-but-blacklisted ETFs.
+          if (blacklistedETFs.size) {
+            const known = new Set(
+              staticCatalogSheet.data.map((row) => row.Ticker).filter(Boolean),
+            );
+            blacklistedETFs = new Set(
+              [...blacklistedETFs].filter((ticker) => known.has(ticker)),
+            );
+            persistBlacklist();
+            if (selectedETFs.size) {
+              selectedETFs = new Set(
+                [...selectedETFs].filter(
+                  (ticker) => !blacklistedETFs.has(ticker),
+                ),
+              );
+              if (
+                activeFundTicker &&
+                (blacklistedETFs.has(activeFundTicker) ||
+                  !selectedETFs.has(activeFundTicker))
+              ) {
+                activeFundTicker = [...selectedETFs][0] || null;
+              }
+              persistSelectedEtfs();
+            }
+          }
+
           renderSubtitle();
           renderTabs();
+          renderBlacklistPanel();
           await switchSheet(activeSheetName);
           applyRestoredSiteState();
           enableControls(currentFileName);
@@ -1712,7 +1950,7 @@
        * Renders the top tabs bar containing All ETFs with its select-all toggle.
        */
       function renderTopTabs() {
-        const catalogCount = staticCatalogSheet?.data?.length || 0;
+        const catalogCount = visibleCatalogFunds().length;
         const isCatalogActive = activeSheetName === "ETF Catalog";
         const allSelected =
           catalogCount > 0 && selectedETFs.size === catalogCount;
@@ -1915,7 +2153,7 @@
         }`;
 
         const isCatalog = activeSheetName === "ETF Catalog";
-        const allCount = staticCatalogSheet?.data?.length || 0;
+        const allCount = visibleCatalogFunds().length;
         const allSelected = allCount > 0 && selectedETFs.size === allCount;
 
         if (headers.length > 0) {
@@ -1978,13 +2216,20 @@
               isCatalog
                 ? `
               <td class="py-2.5 px-4 text-center">
-                <input data-checkbox="${escapeHtml(
-                  item.Ticker,
-                )}" type="checkbox" ${
-                  isSelected ? "checked" : ""
-                } class="w-4 h-4 accent-blue-600 cursor-pointer" aria-label="Use ${escapeHtml(
-                  item.Ticker,
-                )}" />
+                <div class="inline-flex items-center justify-center gap-1.5">
+                  <input data-checkbox="${escapeHtml(
+                    item.Ticker,
+                  )}" type="checkbox" ${
+                    isSelected ? "checked" : ""
+                  } class="w-4 h-4 accent-blue-600 cursor-pointer" aria-label="Use ${escapeHtml(
+                    item.Ticker,
+                  )}" />
+                  <button data-blacklist="${escapeHtml(
+                    item.Ticker,
+                  )}" class="w-4 h-4 rounded text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 leading-none transition" title="Blacklist ${escapeHtml(
+                    item.Ticker,
+                  )} — hide it from All ETFs">✕</button>
+                </div>
               </td>
             `
                 : ""
@@ -2028,8 +2273,18 @@
                   return;
                 }
                 if (e.target.closest("a")) return;
+                if (e.target.closest("button[data-blacklist]")) return;
                 const ticker = row.dataset.staticTicker;
                 if (ticker) toggleEtfSelection(ticker);
+              });
+            });
+
+          tableBody
+            .querySelectorAll("button[data-blacklist]")
+            .forEach((button) => {
+              button.addEventListener("click", (e) => {
+                e.stopPropagation();
+                blacklistTickers([button.dataset.blacklist || ""]);
               });
             });
         }
@@ -2190,9 +2445,11 @@
       }
 
       function getFilteredRows(sheet) {
+        const isCatalog = sheet === staticCatalogSheet;
+        const rows = isCatalog ? visibleCatalogFunds() : sheet.data;
         const query = searchInput.value.toLowerCase().trim();
-        if (!query) return sheet.data;
-        return sheet.data.filter((row) =>
+        if (!query) return rows;
+        return rows.filter((row) =>
           Object.values(row).some((value) =>
             String(value).toLowerCase().includes(query),
           ),
@@ -2422,6 +2679,20 @@
       });
 
       resetBtn.addEventListener("click", clearStorage);
+
+      blacklistBtn.addEventListener("click", () => {
+        const hidden = blacklistPanel.classList.toggle("hidden");
+        blacklistBtn.setAttribute("aria-expanded", String(!hidden));
+        renderBlacklistPanel();
+      });
+
+      blacklistAddBtn.addEventListener("click", submitBlacklistInput);
+
+      blacklistInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") submitBlacklistInput();
+      });
+
+      blacklistClearBtn.addEventListener("click", clearBlacklist);
     </script>
   </body>
 </html>
