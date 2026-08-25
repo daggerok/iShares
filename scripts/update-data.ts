@@ -1009,6 +1009,62 @@ function rangeLabel(range?: Range) {
   return `${range.min ?? ""}:${range.max ?? ""}`;
 }
 
+const HELP_FLAGS = new Set(["-h", "--help", "help"]);
+
+function wantsHelp(args: string[]): boolean {
+  return args.some((arg) => HELP_FLAGS.has(arg.toLowerCase()));
+}
+
+function printHelp(): void {
+  console.log(`Update iShares ETF static data (api/ishares/**).
+
+Usage:
+  bun scripts/update-data.ts [-h|--help]
+
+Configuration is read from environment variables (ISHARES_-prefixed aliases
+work too). All filters combine with AND logic; filters limit which funds get
+updated, while the published catalog keeps every fund and its previously
+stored data. A configured filter also skips funds that do not publish the
+metric.
+
+  MAX_FETCHES=0           Maximum fund update attempts this run; continue after
+                          the saved cursor in api/ishares/update-state.json
+                          (alias: ISHARES_LIMIT; 0 or empty = all)
+  REQUEST_SLEEP=0         Minimum seconds between outgoing request starts
+  AUM=":"                 Net-assets range min:max; bounds are USD amounts
+                          (300M, 2B) or nano/micro/small/mid/large presets
+  CONCURRENCY=4           Parallel fund update workers
+  HOLDINGS_PAGE_SIZE=250  Rows per generated holdings JSON page
+  HISTORY_PAGE_SIZE=1000  Rows per generated historical NAV JSON page
+  STORE_RAW_DOWNLOADS=    Keep source XLS files (true/yes/on/1)
+  MAX_RETRIES=2           Retries after the initial request
+  TICKERS=                Only update these tickers (spaces or commas)
+  DIVIDEND_YIELD=":"      12m trailing dividend yield range in %
+  PERFORMANCE_YTD=":"     YTD average-annual NAV performance range in %
+  PERFORMANCE_1Y=":"      1Y average-annual NAV performance range in %
+  PERFORMANCE_3Y=":"      3Y average-annual NAV performance (CAGR) range in %
+  PERFORMANCE_5Y=":"      5Y average-annual NAV performance (CAGR) range in %
+  PERFORMANCE_10Y=":"     10Y average-annual NAV performance (CAGR) range in %
+  TOTAL_RETURN_YTD=":"    YTD cumulative NAV total-return range in %
+  TOTAL_RETURN_1Y=":"     1Y cumulative NAV total-return (TR 1Y) range in %
+  TOTAL_RETURN_3Y=":"     3Y cumulative NAV total-return (TR 3Y) range in %
+  TOTAL_RETURN_5Y=":"     5Y cumulative NAV total-return (TR 5Y) range in %
+  TOTAL_RETURN_10Y=":"    10Y cumulative NAV total-return (TR 10Y) range in %
+
+Ranges use strict inclusive min:max syntax ("15:", ":20", "5:20", "-5%:7.5",
+":"); the colon is required.
+
+Examples:
+  TOTAL_RETURN_1Y="15:" ./scripts/update-data.ts
+      Update only funds whose 1-year Total Return (TR 1Y) is at least 15%;
+      funds with less than 15% are filtered out and keep their existing
+      stored data.
+  AUM="mid:" TICKERS="IVV AGG" ./scripts/update-data.ts
+      Update only IVV and AGG when they have >= $2B net assets.
+  MAX_FETCHES=20 ./scripts/update-data.ts
+      Refresh the next batch of 20 funds, resuming after the saved cursor.`);
+}
+
 function configLines(config: UpdaterConfig) {
   const lines = [
     `MAX_FETCHES=${config.maxFetches || "all"}`,
@@ -1089,6 +1145,10 @@ async function writeSummary(
 }
 
 async function main() {
+  if (wantsHelp(process.argv.slice(2))) {
+    printHelp();
+    return;
+  }
   const config = readConfig();
   logTag("config", configLines(config).join(" "));
   const waitForRequest = createRequestGate(config.requestSleepSeconds);
