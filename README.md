@@ -154,6 +154,7 @@ bun scripts/update-data.ts
 - Each fund update also downloads the product-page `fundHeader` component and stores the published 30-Day `secYield` (with `secYieldAsOf`) in `index.json` and in the fund's `meta.json`. Commodity and digital-asset funds (for example `IAU`, `SLV`, `IBIT`) do not publish the datapoint and keep `—`.
 - The UI fetches the first Holdings and Historical pages and appends more rows automatically as the table is scrolled; it does not show page-number controls.
 - The **Watchlist** tab aggregates the holdings of every selected ETF. Its **# ETFs** column counts how many of the selected ETFs currently hold each ticker, right after the **ETFs** badge column.
+- Any ETF can be **blacklisted**: click the small ✕ next to a fund's Use checkbox or type tickers into the **Blacklist** panel in the toolbar. Blacklisted ETFs disappear from All ETFs (and from selection); the list is kept per browser in localStorage and can be edited or cleared in the same panel.
 - The app keeps search and sort preferences in localStorage, reapplies them after reload, and clears the cached workbook before reloading when `Clear` is clicked.
 - GitHub Actions writes updated, unchanged, return-filtered, and failed counts to the workflow summary.
 - Updater logs are aligned (`[fund    ] ticker=IAU  168/480 status=unchanged`): one line per fund with its final status. Fund `start` lines and first-attempt `[fetch]` lines are suppressed; retries (`attempt=2/3`, `[retry]`), `[yield]` gaps, and `status=failed reason=…` stay visible.
