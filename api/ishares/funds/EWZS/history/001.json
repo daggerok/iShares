@@ -2,7 +2,7 @@
   "ticker": "EWZS",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 4001,
+  "totalRows": 4002,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Aug 24, 2026",
+      "NAV per Share": "12.397116",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "17050000",
+      "Non-FV NAV": "12.407775"
+    },
     {
       "As Of": "Aug 21, 2026",
       "NAV per Share": "12.385084",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "6500000",
       "Non-FV NAV": "13.640251"
-    },
-    {
-      "As Of": "Aug 30, 2022",
-      "NAV per Share": "13.865615",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "6800000",
-      "Non-FV NAV": "13.99337"
     }
   ]
 }

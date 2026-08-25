@@ -2,7 +2,7 @@
   "ticker": "IWN",
   "page": 4,
   "pageSize": 1000,
-  "totalRows": 6561,
+  "totalRows": 6562,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Sep 19, 2014",
+      "NAV per Share": "98.228234",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "58700000"
+    },
     {
       "As Of": "Sep 18, 2014",
       "NAV per Share": "99.155097",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "62.03793",
       "Ex-Dividends": "--",
       "Shares Outstanding": "66700000"
-    },
-    {
-      "As Of": "Sep 29, 2010",
-      "NAV per Share": "62.127092",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "63350000"
     }
   ]
 }

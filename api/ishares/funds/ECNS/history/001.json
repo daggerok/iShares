@@ -2,7 +2,7 @@
   "ticker": "ECNS",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 4001,
+  "totalRows": 4002,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Aug 24, 2026",
+      "NAV per Share": "29.120494",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "2250000",
+      "Non-FV NAV": "29.076377"
+    },
     {
       "As Of": "Aug 21, 2026",
       "NAV per Share": "29.54805",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "1600000",
       "Non-FV NAV": "34.68265"
-    },
-    {
-      "As Of": "Aug 30, 2022",
-      "NAV per Share": "34.146582",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "1600000",
-      "Non-FV NAV": "34.451787"
     }
   ]
 }

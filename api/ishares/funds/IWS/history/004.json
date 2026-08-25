@@ -2,7 +2,7 @@
   "ticker": "IWS",
   "page": 4,
   "pageSize": 1000,
-  "totalRows": 6363,
+  "totalRows": 6364,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Sep 19, 2014",
+      "NAV per Share": "72.237394",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "94350000"
+    },
     {
       "As Of": "Sep 18, 2014",
       "NAV per Share": "72.437435",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "40.396494",
       "Ex-Dividends": "--",
       "Shares Outstanding": "73900000"
-    },
-    {
-      "As Of": "Sep 29, 2010",
-      "NAV per Share": "40.394334",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "73750000"
     }
   ]
 }

@@ -2,7 +2,7 @@
   "ticker": "HDV",
   "page": 2,
   "pageSize": 1000,
-  "totalRows": 5480,
+  "totalRows": 5481,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Jul 05, 2023",
+      "NAV per Share": "20.190975",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "519750000"
+    },
     {
       "As Of": "Jul 04, 2023",
       "NAV per Share": "20.215223",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "16.53",
       "Ex-Dividends": "--",
       "Shares Outstanding": "330750000"
-    },
-    {
-      "As Of": "Oct 07, 2020",
-      "NAV per Share": "16.31",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "331000000"
     }
   ]
 }

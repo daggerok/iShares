@@ -2,7 +2,7 @@
   "ticker": "SOXX",
   "page": 2,
   "pageSize": 1000,
-  "totalRows": 8895,
+  "totalRows": 8896,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Feb 20, 2023",
+      "NAV per Share": "138.603888",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "51000000"
+    },
     {
       "As Of": "Feb 19, 2023",
       "NAV per Share": "138.603888",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "83.683333",
       "Ex-Dividends": "--",
       "Shares Outstanding": "33300000"
-    },
-    {
-      "As Of": "May 26, 2020",
-      "NAV per Share": "82.456667",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "34050000"
     }
   ]
 }

@@ -2,7 +2,7 @@
   "ticker": "EFG",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 5300,
+  "totalRows": 5301,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Aug 24, 2026",
+      "NAV per Share": "124.912522",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "136800000",
+      "Non-FV NAV": "124.938974"
+    },
     {
       "As Of": "Aug 21, 2026",
       "NAV per Share": "125.519381",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "118800000",
       "Non-FV NAV": "81.048074"
-    },
-    {
-      "As Of": "Aug 30, 2022",
-      "NAV per Share": "81.11305",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "118800000",
-      "Non-FV NAV": "81.310879"
     }
   ]
 }

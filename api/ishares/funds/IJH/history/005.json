@@ -2,7 +2,7 @@
   "ticker": "IJH",
   "page": 5,
   "pageSize": 1000,
-  "totalRows": 9200,
+  "totalRows": 9201,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Aug 17, 2014",
+      "NAV per Share": "27.89",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "765000000"
+    },
     {
       "As Of": "Aug 16, 2014",
       "NAV per Share": "27.89",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "16.77",
       "Ex-Dividends": "--",
       "Shares Outstanding": "541250000"
-    },
-    {
-      "As Of": "Nov 21, 2011",
-      "NAV per Share": "16.87",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "539250000"
     }
   ]
 }

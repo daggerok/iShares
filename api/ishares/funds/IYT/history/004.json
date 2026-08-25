@@ -2,7 +2,7 @@
   "ticker": "IYT",
   "page": 4,
   "pageSize": 1000,
-  "totalRows": 8079,
+  "totalRows": 8080,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Aug 30, 2017",
+      "NAV per Share": "41.9575",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "20200000"
+    },
     {
       "As Of": "Aug 29, 2017",
       "NAV per Share": "41.625",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "41.1275",
       "Ex-Dividends": "--",
       "Shares Outstanding": "49600000"
-    },
-    {
-      "As Of": "Dec 04, 2014",
-      "NAV per Share": "40.9725",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "49200000"
     }
   ]
 }
