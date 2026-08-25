@@ -10,6 +10,15 @@ open http://0:1234
 
 The published application is available at <https://daggerok.github.io/iShares/>.
 
+## Sibling applications
+
+| Application | Data provider | Repository |
+|---|---|---|
+| Amplify ETF Holdings to Watchlist | Amplify ETFs (Firestore data feed) | [daggerok/Amplify](https://github.com/daggerok/Amplify) · [published app](https://daggerok.github.io/Amplify/) |
+| iShares Excel .xls to Watchlist | iShares (BlackRock) product workbooks | [daggerok/iShares](https://github.com/daggerok/iShares) · [published app](https://daggerok.github.io/iShares/) |
+| SPDR ETF Holdings to Watchlist | SSGA / State Street public feeds | [daggerok/SPDR](https://github.com/daggerok/SPDR) · [published app](https://daggerok.github.io/SPDR/) |
+
+
 ## Updating the static iShares data
 
 Run the updater with Bun:
@@ -44,7 +53,7 @@ The **Update iShares ETF data** GitHub Actions workflow exposes the same setting
 
 A positive `MAX_FETCHES` is a batch size, not a permanent first-page limit. Eligible funds are kept in deterministic ticker order and the updater starts after `lastProcessedTicker` in `api/ishares/update-state.json`, wrapping to the beginning when it reaches the end. The state file is updated only for a bounded run that had candidates, so committing it lets the next run continue with the next batch. Delete that file to restart from the first eligible ticker. `MAX_FETCHES=0` still processes every eligible fund and does not move the bounded-run cursor.
 
-The committed cursor currently ends at `BEMB`, matching the 20-fund batch already present in the catalog; therefore the next default `MAX_FETCHES=20` run starts at the next ticker. A batch may still change up to 20 metadata files when those funds have new source data or have not yet received the fixed-size derived `returns` block. The `returns` block is replaced in place, never appended. Historical and distribution rows grow only when iShares publishes new rows, and paginated files grow only when a page-size boundary is crossed.
+The full active catalog (480 funds) is already published; the committed cursor currently ends at `GHYG`, so the next bounded run continues with the next ticker in deterministic order. A batch may still rewrite metadata files when those funds have new source data or have not yet received the fixed-size derived `returns` block. The `returns` block is replaced in place, never appended. Historical and distribution rows grow only when iShares publishes new rows, and paginated files grow only when a page-size boundary is crossed.
 
 ### Strict range syntax
 
@@ -156,6 +165,7 @@ bun scripts/update-data.ts
 - The **Watchlist** tab aggregates the holdings of every selected ETF. Its **# ETFs** column counts how many of the selected ETFs currently hold each ticker, right after the **ETFs** badge column.
 - Any ETF can be **blacklisted**: click the small ✕ next to a fund's Use checkbox or type tickers into the **Blacklist** panel in the toolbar. Blacklisted ETFs disappear from All ETFs (and from selection); the list is kept per browser in localStorage and can be edited or cleared in the same panel.
 - The app keeps search and sort preferences in localStorage, reapplies them after reload, and clears the cached workbook before reloading when `Clear` is clicked.
+- Only the table area scrolls: the app sizes `#table-scroll` to the remaining viewport height and contains overscroll, so the document does not jump up and down when the table is taller than the screen (same behaviour as daggerok/Amplify and daggerok/SPDR).
 - GitHub Actions writes updated, unchanged, return-filtered, and failed counts to the workflow summary.
 - Updater logs are aligned (`[fund    ] ticker=IAU  168/480 status=unchanged`): one line per fund with its final status. Fund `start` lines and first-attempt `[fetch]` lines are suppressed; retries (`attempt=2/3`, `[retry]`), `[yield]` gaps, and `status=failed reason=…` stay visible.
 - Range validation is centralized in `parseRange`; AUM's numeric/preset validation is centralized in `parseAumRange`. Add or change syntax there and update `scripts/update-data.test.ts` in the same PR.
@@ -181,7 +191,7 @@ git diff --check
 
 | Бренд                        | Фонды | Где брать данные |
 |------------------------------|---|---|
-| **SPDR / State Street** (14) | SPYM, SPYG, SPYD, SDY, XTL, XLK, XLF, XLV, XLY, XLU, XLC, XLI, XLP, XLE | [us.spdrs.com](https://us.spdrs.com/) · [каталог ssga.com](https://www.ssga.com/us/en/intermediary/etfs/fund-finder) · секторы: [selectsectorspdrs.com](https://www.selectsectorspdrs.com/) |
+| **SPDR / State Street** (14) ✅ | SPYM, SPYG, SPYD, SDY, XTL, XLK, XLF, XLV, XLY, XLU, XLC, XLI, XLP, XLE | [us.spdrs.com](https://us.spdrs.com/) · [каталог ssga.com](https://www.ssga.com/us/en/intermediary/etfs/fund-finder) · секторы: [selectsectorspdrs.com](https://www.selectsectorspdrs.com/) — весь каталог SSGA уже интегрирован в наше приложение [daggerok/SPDR](https://github.com/daggerok/SPDR) |
 | **Invesco** (14)             | QQQM, RSP, SPLV, SPHD, SPMO, SPHQ, SPGP, RPV, RPG, RWL, DBA, IDMO, IDHQ, IDLV | [invesco.com `?ticker=`](https://www.invesco.com/us/financial-products/etfs/product-detail?ticker=IDHQ) |
 | **iShares / BlackRock** (14) | IVV, SGOV, DGRO, SOXX, MTUM, DVY, HDV, IAUM, PICK (Global Metals & Mining), GARP (MSCI USA Quality GARP), SLVP (Global Silver Miners), RING (Global Gold Miners) | [www.ishares.com](https://www.ishares.com/) · XLS-экспорт holdings со страниц фондов (уже интегрирован в наше приложение, весь каталог)
 | **Vanguard** (10)            | VOO, VUG, VTV, VIG, VYM, VGT, MGK, VOOG, VIGI, VYMI | [investor.vanguard.com](https://investor.vanguard.com/investment-products/etfs) → `…/profile/VOO` |
@@ -207,7 +217,7 @@ git diff --check
 ## Brands list
 
 #	Бренд	Фонды из списка (кол-во)	Официальный сайт / страницы фондов
-1	SPDR / State Street — 14	SPYM (бывш. SPLG), SPYG, SPYD, SDY, XTL + секторы XLK, XLF, XLV, XLY, XLU, XLC, XLI, XLP, XLE	https://us.spdrs.com/ · каталог: https://www.ssga.com/us/en/intermediary/etfs/fund-finder · секторы: https://www.selectsectorspdrs.com/
+1	SPDR / State Street — 14 ✅	SPYM (бывш. SPLG), SPYG, SPYD, SDY, XTL + секторы XLK, XLF, XLV, XLY, XLU, XLC, XLI, XLP, XLE	https://us.spdrs.com/ · каталог: https://www.ssga.com/us/en/intermediary/etfs/fund-finder · секторы: https://www.selectsectorspdrs.com/ — весь каталог SSGA (179 фондов) уже интегрирован в наше приложение https://github.com/daggerok/SPDR
 2	Invesco — 14	QQQM, RSP, SPLV, SPHD, SPMO, SPHQ, SPGP, RPV, RPG, RWL, DBA, IDMO, IDHQ, IDLV	https://www.invesco.com/us/financial-products/etfs/product-detail?ticker=IDHQ (паттерн ?ticker={TICKER})
 3	iShares (BlackRock) — 12 ✅	IVV, SGOV, DGRO, SOXX, MTUM, DVY, HDV, IAUM, PICK (Global Metals & Mining), GARP (MSCI USA Quality GARP), SLVP (Global Silver Miners), RING (Global Gold Miners)	https://www.ishares.com/ — XLS-экспорт holdings со страниц фондов (уже интегрирован в наше приложение, весь каталог)
 4	Vanguard — 10	VOO, VUG, VTV, VIG, VYM, VGT, MGK, VOOG, VIGI, VYMI	https://investor.vanguard.com/investment-products/etfs — профиль фонда: …/etfs/profile/VOO

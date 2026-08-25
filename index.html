@@ -98,6 +98,18 @@
       tr {
         transition: background-color 0.15s ease;
       }
+      /*
+       * Scroll fix: only the table area scrolls. The JS layer sizes
+       * #table-scroll to the real remaining viewport height (the static
+       * 100vh-245px budget drifted when the toolbar wraps or a panel opens,
+       * letting the document overflow by a few pixels and producing a small
+       * up/down page shift while scrolling the table). Overscroll containment
+       * additionally stops wheel/trackpad momentum from chaining to the page.
+       */
+      #table-scroll {
+        overscroll-behavior: contain;
+      }
+
       .selected-row {
         background: #eff6ff !important;
       }
@@ -740,6 +752,19 @@
       const blacklistClearBtn = document.getElementById("blacklist-clear-btn");
       const blacklistChips = document.getElementById("blacklist-chips");
       const blacklistEmpty = document.getElementById("blacklist-empty");
+
+      /**
+       * Fits the table scroll container to the remaining viewport height so
+       * the document itself never needs to scroll when the table is tall.
+       * Called after every render, on resize, and whenever the layout above
+       * the table changes (wrapping toolbar, blacklist panel, detail tabs).
+       */
+      function fitTableScrollHeight() {
+        const rect = tableScroll.getBoundingClientRect();
+        const bottomPad = window.innerWidth < 640 ? 12 : 24;
+        const max = Math.max(240, window.innerHeight - rect.top - bottomPad);
+        tableScroll.style.maxHeight = `${max}px`;
+      }
 
       // =========================================================================
       // 5. Bootstrap Lifecycle
@@ -2398,6 +2423,7 @@
           .join("");
 
         animateTableUpdate();
+        fitTableScrollHeight();
       }
 
       function sortHeader(header) {
@@ -2684,7 +2710,15 @@
         const hidden = blacklistPanel.classList.toggle("hidden");
         blacklistBtn.setAttribute("aria-expanded", String(!hidden));
         renderBlacklistPanel();
+        fitTableScrollHeight();
       });
+
+      // Keep only the table scrolling: refit on viewport changes and whenever
+      // the content above the table (wrapping toolbar, panels) changes height.
+      window.addEventListener("resize", fitTableScrollHeight);
+      if (typeof ResizeObserver === "function") {
+        new ResizeObserver(() => fitTableScrollHeight()).observe(document.body);
+      }
 
       blacklistAddBtn.addEventListener("click", submitBlacklistInput);
 
