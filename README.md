@@ -10,6 +10,10 @@ open http://0:1234
 
 The published application is available at <https://daggerok.github.io/iShares/>.
 
+## Shared UI contract
+
+The common interaction and data-state rules are documented in [`docs/ui-contract.md`](./docs/ui-contract.md). New provider-specific behavior should preserve this contract.
+
 ## Sibling applications
 
 | Application | Data provider | Repository |
