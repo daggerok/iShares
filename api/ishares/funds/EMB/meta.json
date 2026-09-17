@@ -7,7 +7,7 @@
     "download": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239572&component=fundDownload&userType=individual"
   },
   "holdings": {
-    "totalRows": 619,
+    "totalRows": 623,
     "pageSize": 250,
     "pageCount": 3,
     "pages": [
@@ -17,7 +17,7 @@
     ]
   },
   "history": {
-    "totalRows": 4704,
+    "totalRows": 4720,
     "pageSize": 1000,
     "pageCount": 5,
     "pages": [
@@ -48,8 +48,8 @@
     "siCum": 136.190276
   },
   "secYield": {
-    "value": "5.96",
-    "asOf": "Aug 21, 2026"
+    "value": "6.11",
+    "asOf": "Sep 15, 2026"
   },
   "worksheets": {
     "Performance": {
@@ -957,6 +957,10 @@
         {
           "Fund Inception": "Jul 31, 2026",
           "12/17/2007": "-1.71"
+        },
+        {
+          "Fund Inception": "Aug 31, 2026",
+          "12/17/2007": "0.8"
         }
       ]
     },
@@ -972,6 +976,16 @@
         "Return of Capital"
       ],
       "rows": [
+        {
+          "Record Date": "Sep 01, 2026",
+          "Ex-Date": "Sep 01, 2026",
+          "Payable Date": "Sep 04, 2026",
+          "Total Distribution": "0.413677",
+          "Income": "0.413677",
+          "ST Cap Gains": "0",
+          "LT Cap Gains": "0",
+          "Return of Capital": "0"
+        },
         {
           "Record Date": "Aug 03, 2026",
           "Ex-Date": "Aug 03, 2026",

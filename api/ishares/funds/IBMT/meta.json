@@ -7,19 +7,20 @@
     "download": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=342151&component=fundDownload&userType=individual"
   },
   "holdings": {
-    "totalRows": 1184,
+    "totalRows": 1362,
     "pageSize": 250,
-    "pageCount": 5,
+    "pageCount": 6,
     "pages": [
       "./holdings/001.json",
       "./holdings/002.json",
       "./holdings/003.json",
       "./holdings/004.json",
-      "./holdings/005.json"
+      "./holdings/005.json",
+      "./holdings/006.json"
     ]
   },
   "history": {
-    "totalRows": 358,
+    "totalRows": 374,
     "pageSize": 1000,
     "pageCount": 1,
     "pages": [
@@ -46,8 +47,8 @@
     "siCum": 6.039542
   },
   "secYield": {
-    "value": "2.92",
-    "asOf": "Aug 21, 2026"
+    "value": "3.07",
+    "asOf": "Sep 15, 2026"
   },
   "worksheets": {
     "Performance": {
@@ -127,6 +128,10 @@
         {
           "Fund Inception": "Jul 31, 2026",
           "03/25/2025": "-1.162046"
+        },
+        {
+          "Fund Inception": "Aug 31, 2026",
+          "03/25/2025": "0.441977"
         }
       ]
     },
@@ -142,6 +147,16 @@
         "Return of Capital"
       ],
       "rows": [
+        {
+          "Record Date": "Sep 01, 2026",
+          "Ex-Date": "Sep 01, 2026",
+          "Payable Date": "Sep 04, 2026",
+          "Total Distribution": "0.054363",
+          "Income": "0.054363",
+          "ST Cap Gains": "0",
+          "LT Cap Gains": "0",
+          "Return of Capital": "0"
+        },
         {
           "Record Date": "Aug 03, 2026",
           "Ex-Date": "Aug 03, 2026",

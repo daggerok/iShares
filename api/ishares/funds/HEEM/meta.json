@@ -7,7 +7,7 @@
     "download": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=268704&component=fundDownload&userType=individual"
   },
   "holdings": {
-    "totalRows": 1401,
+    "totalRows": 1325,
     "pageSize": 250,
     "pageCount": 6,
     "pages": [
@@ -20,13 +20,14 @@
     ]
   },
   "history": {
-    "totalRows": 2999,
+    "totalRows": 3015,
     "pageSize": 1000,
-    "pageCount": 3,
+    "pageCount": 4,
     "pages": [
       "./history/001.json",
       "./history/002.json",
-      "./history/003.json"
+      "./history/003.json",
+      "./history/004.json"
     ]
   },
   "returns": {
@@ -49,8 +50,8 @@
     "siCum": 163.516431
   },
   "secYield": {
-    "value": "1.81",
-    "asOf": "Jul 31, 2026"
+    "value": "1.59",
+    "asOf": "Aug 31, 2026"
   },
   "worksheets": {
     "Performance": {
@@ -634,6 +635,10 @@
         {
           "Fund Inception": "Jul 31, 2026",
           "09/23/2014": "-8.019391"
+        },
+        {
+          "Fund Inception": "Aug 31, 2026",
+          "09/23/2014": "3.192575"
         }
       ]
     },
