@@ -3,10 +3,12 @@ import { describe, expect, test } from "bun:test";
 import {
   catalogFilterReasons,
   deriveReturnMetrics,
+  deriveDistributionFrequency,
   paginationPaths,
   parseAumRange,
   parseRange,
   parseSecYield,
+  parseWorkbook,
   readConfig,
   returnFilterReasons,
   selectUpdateBatch,
@@ -213,4 +215,45 @@ describe("sec yield", () => {
     expect(parseSecYield({ componentsByNameMap: {} })).toBeNull();
     expect(parseSecYield(null)).toBeNull();
   });
+});
+
+describe("distribution frequency", () => {
+  const sheet = (dates: string[], header = "Ex-Date") => ({
+    headers: [header], rows: dates.map((date) => ({ [header]: date })),
+  });
+  test("derives supported cadences from intervals, independent of row order", () => {
+    expect(deriveDistributionFrequency(sheet(["2026-01-02", "2026-02-02", "2026-03-02"]))).toBe("01 - Monthly");
+    expect(deriveDistributionFrequency(sheet(["2025-12-20", "2025-06-20", "2025-09-20"]))).toBe("04 - Quarterly");
+    expect(deriveDistributionFrequency(sheet(["2025-01-02", "2025-07-02", "2026-01-02"]))).toBe("06 - Semi-annually");
+    expect(deriveDistributionFrequency(sheet(["2024-12-20", "2025-12-20", "2026-12-20"], "Payable Date"))).toBe("12 - Annually");
+  });
+  test("does not guess with missing, invalid, duplicate or mixed history", () => {
+    expect(deriveDistributionFrequency()).toBe("00 - —");
+    expect(deriveDistributionFrequency(sheet([]))).toBe("00 - —");
+    expect(deriveDistributionFrequency(sheet(["", "--", "bad date"]))).toBe("00 - —");
+    expect(deriveDistributionFrequency(sheet(["2026-01-02", "2026-01-02", "2026-02-02"]))).toBe("00 - —");
+    expect(deriveDistributionFrequency(sheet(["2026-01-02", "2026-02-02", "2026-05-02"]))).toBe("99 - Irregular");
+    expect(deriveDistributionFrequency(sheet(["2026-01-01", "2026-01-08", "2026-01-15"]))).toBe("99 - Irregular");
+  });
+  test("prefers Ex-Date, falls back to Payable Date and deduplicates events", () => {
+    const rows = ["2026-01-02", "2026-02-02", "2026-03-02", "2026-03-02"].map((d) => ({ "Ex-Date": d, "Payable Date": "2026-04-01" }));
+    expect(deriveDistributionFrequency({ headers: ["Payable Date", "Ex-Date"], rows })).toBe("01 - Monthly");
+    expect(deriveDistributionFrequency({ headers: ["Ex-Date", "Payable Date"], rows: rows.map((r) => ({ "Ex-Date": "--", "Payable Date": r["Ex-Date"] })) })).toBe("01 - Monthly");
+  });
+});
+
+
+test("tickerless bond worksheet skips fund metadata and retains identifiers", () => {
+  const rows = [
+    ["Inception Date", "Sep 22, 2003"],
+    ["Number of Securities", "2"],
+    ["Name", "CUSIP", "Asset Class", "Market Value"],
+    ["Published bond", "123456789", "Fixed Income", "100"],
+    ["Cash", "--", "Cash", "20"],
+  ];
+  const xml = `<ss:Worksheet ss:Name="Holdings"><ss:Table>${rows.map((row) => `<ss:Row>${row.map((value) => `<ss:Cell><ss:Data ss:Type="String">${value}</ss:Data></ss:Cell>`).join("")}</ss:Row>`).join("")}</ss:Table></ss:Worksheet>`;
+  const sheet = parseWorkbook(xml).Holdings;
+  expect(sheet.headers).toEqual(rows[2]);
+  expect(sheet.rows).toHaveLength(2);
+  expect(sheet.rows[0].CUSIP).toBe("123456789");
 });

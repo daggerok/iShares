@@ -624,6 +624,12 @@ export function parseWorkbook(xml: string) {
       .filter((row) => row.some(Boolean));
     if (!rows.length) continue;
     let headerIndex = rows.findIndex((row) => row.some((value) => /^ticker$/i.test(value)));
+    // Bond exports may omit Ticker; do not mistake the introductory fund metadata
+    // for the holdings header and silently discard all security identifiers.
+    if (headerIndex < 0) headerIndex = rows.findIndex((row) =>
+      row.some((value) => /^(name|security name|cusip|isin|identifier|security[- ]id|sedol|figi)$/i.test(value))
+      && row.some((value) => /^(asset class|market value|weight \(%\))$/i.test(value)),
+    );
     if (headerIndex < 0) headerIndex = rows.findIndex((row) => row.length > 1);
     if (headerIndex < 0) continue;
     const headers = rows[headerIndex].map((value, index) => value || `Column ${index + 1}`);
@@ -646,6 +652,40 @@ function emptyMetrics(): MetricMap {
 
 function rounded(value: number) {
   return Math.round(value * 1_000_000) / 1_000_000;
+}
+
+/** Infer cadence conservatively from distinct payment events, never from payout amounts.
+ * Prefer Ex-Date for a consistent series; use Payable Date only if Ex-Date lacks
+ * three observations. Require two intervals and 80% agreement in the most recent
+ * 13 events. Broad day windows allow month lengths/holidays, not mixed cadences.
+ */
+export function deriveDistributionFrequency(distributions?: Sheet): string {
+  const unknown = "00 - —";
+  if (!distributions) return unknown;
+  let dates: number[] = [];
+  for (const label of ["ex-date", "payable date"]) {
+    const header = distributions.headers.find((h) => h.trim().toLowerCase() === label);
+    if (!header) continue;
+    dates = [...new Set(distributions.rows.map((row) => {
+      const value = String(row[header] || "").trim();
+      return value ? Date.parse(`${value} UTC`) : NaN;
+    }).filter(Number.isFinite))].sort((a, b) => b - a).slice(0, 13);
+    if (dates.length >= 3) break;
+  }
+  if (dates.length < 3) return unknown;
+  const gaps = dates.slice(1).map((date, i) => (dates[i] - date) / 86_400_000);
+  const ordered = [...gaps].sort((a, b) => a - b);
+  const middle = Math.floor(ordered.length / 2);
+  const median = ordered.length % 2 ? ordered[middle] : (ordered[middle - 1] + ordered[middle]) / 2;
+  const cadences: Array<[number, number, string]> = [
+    [20, 40, "01 - Monthly"],
+    [70, 110, "04 - Quarterly"],
+    [150, 215, "06 - Semi-annually"],
+    [330, 400, "12 - Annually"],
+  ];
+  const cadence = cadences.find(([min, max]) => median >= min && median <= max
+    && gaps.filter((gap) => gap >= min && gap <= max).length / gaps.length >= 0.8);
+  return cadence?.[2] || "99 - Irregular";
 }
 
 /** Derive quarter-end official-style NAV CAGR and cumulative total return metrics. */
@@ -902,6 +942,12 @@ async function updateFund(
   }
   const history = historyName ? worksheets[historyName] : undefined;
 
+  const distributionsName = Object.keys(worksheets).find(
+    (name) => name.trim().toLowerCase() === "distributions",
+  );
+  const distributions = { frequencyCode: deriveDistributionFrequency(
+    distributionsName ? worksheets[distributionsName] : undefined,
+  ) };
   const returns = deriveReturnMetrics(worksheets.Performance);
   const returnFailures = returnFilterReasons(returns, config);
   if (returnFailures.length) {
@@ -939,6 +985,7 @@ async function updateFund(
     history: historyPages.manifest,
     returns,
     secYield,
+    distributions,
     worksheets,
   };
   changed =
@@ -977,6 +1024,7 @@ async function updateFund(
       history: history?.rows.length || 0,
       secYield: secYield?.value ?? "",
       secYieldAsOf: secYield?.asOf ?? "",
+      distributions,
       nav: navValue === null ? "—" : `$${navValue.toFixed(2)}`,
       navValue,
       navAsOf: latestNavRow["As Of"] || "",

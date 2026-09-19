@@ -1,0 +1,534 @@
+// npm/bun install; playwright install chromium; bun run test:ui
+// Optional: BASE_URL, CHROMIUM_PATH, UI_TEST_CSS (offline Tailwind v3 build), UI_SCREENSHOTS.
+import { chromium } from "playwright";
+import assert from "node:assert/strict";
+import { readFile, mkdir } from "node:fs/promises";
+const browser = await chromium.launch({
+  headless: true,
+  executablePath: process.env.CHROMIUM_PATH || undefined,
+  args: ["--no-sandbox", "--disable-dev-shm-usage"],
+});
+const baseURL = process.env.BASE_URL || "http://127.0.0.1:8000";
+const errors = [];
+async function newPage() {
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 1000 },
+  });
+  if (process.env.UI_TEST_CSS) {
+    const css = await readFile(process.env.UI_TEST_CSS, "utf8");
+    await context.route("https://cdn.tailwindcss.com/**", (route) =>
+      route.fulfill({
+        contentType: "text/javascript",
+        body: `window.tailwind={};const style=document.createElement('style');style.textContent=${JSON.stringify(css)};document.head.append(style);`,
+      }),
+    );
+    await context.route("https://fonts.googleapis.com/**", (route) =>
+      route.fulfill({ body: "" }),
+    );
+  }
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  const page = await context.newPage();
+  page.on("pageerror", (error) => errors.push(error.message));
+  return page;
+}
+async function shot(page, name) {
+  if (!process.env.UI_SCREENSHOTS) return;
+  await mkdir(process.env.UI_SCREENSHOTS, { recursive: true });
+  await page.screenshot({ path: `${process.env.UI_SCREENSHOTS}/${name}.png` });
+}
+const tickers = Array.from({ length: 8 }, (_, i) => `T0${i + 1}`);
+const shared = [
+  { Ticker: "COMMON", Name: "Shared equity" },
+  { Ticker: "--", CUSIP: "BOND1", Name: "Bond security" },
+  { Ticker: "N/A", ISIN: "US1", Name: "International bond" },
+  { Ticker: "NA", "Security-ID": "ID1", Name: "Derivative" },
+  { Ticker: "NONE", SEDOL: "SED1", Name: "SEDOL security" },
+  { Ticker: "NULL", FIGI: "FIG1", Name: "FIGI security" },
+  { Ticker: "—", Name: "Cash reserve", "Asset Class": "Cash" },
+  { Ticker: "SAME", Name: "Ticker SAME" },
+  { Ticker: "", CUSIP: "SAME", Name: "CUSIP SAME" },
+];
+let concurrent = 0,
+  peak = 0;
+const requests = new Map();
+async function fixtures(page) {
+  await page.route("**/api/ishares/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    requests.set(path, (requests.get(path) || 0) + 1);
+    if (path.endsWith("/index.json"))
+      return route.fulfill({
+        json: {
+          funds: tickers.map((ticker, i) => ({
+            ticker,
+            name: `Fixture${i + 1} ETF`,
+            holdings: 609,
+            history: 1,
+            distributions: { frequencyCode: "04 - Quarterly" },
+          })),
+        },
+      });
+    const ticker = path.split("/")[4];
+    concurrent++;
+    peak = Math.max(peak, concurrent);
+    await new Promise((resolve) =>
+      setTimeout(resolve, path.includes("holdings/002") ? 300 : 60),
+    );
+    let json;
+    if (path.endsWith("meta.json"))
+      json = {
+        holdings: {
+          pages: [
+            "./holdings/001.json",
+            "./holdings/002.json",
+            "./holdings/003.json",
+          ],
+        },
+        history: { pages: ["./history/001.json"] },
+        worksheets: {
+          Performance: {
+            headers: ["Date", "Value"],
+            rows: [{ Date: "2026-01-01", Value: "100" }],
+          },
+          Distributions: {
+            headers: ["Ex-Date", "Total Distribution"],
+            rows: [{ "Ex-Date": "2026-01-02", "Total Distribution": "1" }],
+          },
+        },
+      };
+    else if (path.includes("history/"))
+      json = {
+        headers: ["As Of", "NAV per Share"],
+        rows: [{ "As Of": "2026-01-01", "NAV per Share": "100" }],
+      };
+    else {
+      const n = Number(path.match(/(\d+)\.json$/)[1]);
+      json = {
+        headers: ["Ticker", "Name", "Weight (%)", "Market Value"],
+        rows: [
+          ...Array.from({ length: 200 }, (_, i) => ({
+            Ticker: `${ticker}_${(n - 1) * 200 + i}`,
+            Name: `${ticker} security ${i}`,
+            "Weight (%)": "1",
+            "Market Value": "100",
+          })),
+          ...(n === 1 ? shared : []),
+        ],
+      };
+    }
+    concurrent--;
+    await route.fulfill({ json });
+  });
+}
+async function stickyCheck(page, theme, watchlist = false) {
+  if (
+    ((await page.locator("html").getAttribute("class")) || "").includes(
+      "dark",
+    ) !==
+    (theme === "dark")
+  )
+    await page.click("#theme-toggle");
+  await page.locator("#table-scroll").evaluate((el) => {
+    el.scrollTop = 0;
+    el.scrollLeft = el.scrollWidth;
+  });
+  await page.mouse.move(10, 10);
+  await page.waitForTimeout(400);
+  const result = await page.evaluate((watchlist) => {
+    const wrap = document
+      .getElementById("table-scroll")
+      .getBoundingClientRect();
+    const cls = watchlist ? ".watchlist-sticky-ticker" : ".catalog-sticky-col";
+    const read = (el) => ({
+      tag: el.tagName,
+      left: el.getBoundingClientRect().left - wrap.left,
+      bg: getComputedStyle(el).backgroundColor,
+      position: getComputedStyle(el).position,
+      z: getComputedStyle(el).zIndex,
+    });
+    return {
+      heads: [...document.querySelectorAll(`#table-head ${cls}`)].map(read),
+      cells: [
+        ...document.querySelectorAll(`#table-body tr:first-child ${cls}`),
+      ].map(read),
+      indexLeft:
+        document
+          .querySelector("#table-body tr:first-child td")
+          .getBoundingClientRect().left - wrap.left,
+      pageOverflow: document.documentElement.scrollWidth > innerWidth,
+    };
+  }, watchlist);
+  assert.equal(result.cells.length, watchlist ? 1 : 2);
+  assert.equal(result.pageOverflow, false);
+  assert.ok(result.indexLeft < 0, "row index must scroll away");
+  result.cells.forEach((cell, i) => {
+    assert.equal(cell.tag, "TD");
+    assert.equal(cell.position, "sticky");
+    assert.ok(Math.abs(cell.left - i * 80) <= 1, JSON.stringify(result));
+    assert.equal(cell.z, "20");
+    assert.ok(!cell.bg.startsWith("rgba"));
+  });
+  result.heads.forEach((cell) => {
+    assert.equal(cell.tag, "TH");
+    assert.equal(cell.z, "30");
+    assert.equal(
+      cell.bg,
+      theme === "dark" ? "rgb(14, 22, 41)" : "rgb(248, 250, 252)",
+    );
+  });
+  await shot(page, `${watchlist ? "watchlist" : "catalog"}-${theme}-right`);
+  // Hover has an opaque matching color; selected rows retain their selected color.
+  await page
+    .locator(
+      `#table-body tr:first-child ${watchlist ? ".watchlist-sticky-ticker" : ".catalog-sticky-use"}`,
+    )
+    .hover();
+  const bg = await page
+    .locator(
+      `#table-body tr:first-child ${watchlist ? ".watchlist-sticky-ticker" : ".catalog-sticky-use"}`,
+    )
+    .evaluate((el) => getComputedStyle(el).backgroundColor);
+  const selected =
+    !watchlist &&
+    (await page
+      .locator("#table-body tr:first-child")
+      .evaluate((el) => el.classList.contains("selected-row")));
+  assert.equal(
+    bg,
+    theme === "dark"
+      ? selected
+        ? "rgb(19, 32, 70)"
+        : "rgb(27, 36, 54)"
+      : selected
+        ? "rgb(239, 246, 255)"
+        : "rgb(248, 250, 252)",
+  );
+  // Vertical header remains above body cells too.
+  await page.locator("#table-scroll").evaluate((el) => {
+    el.scrollTop = 150;
+  });
+  assert.ok(
+    await page.locator("#table-head").evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const left = document
+        .getElementById("table-scroll")
+        .getBoundingClientRect().left;
+      return Boolean(
+        document.elementFromPoint(left + 30, r.top + 12)?.closest("thead"),
+      );
+    }),
+  );
+}
+try {
+  const page = await newPage();
+  await fixtures(page);
+  await page.goto(baseURL);
+  await page.waitForSelector('input[data-checkbox="T01"]');
+  assert.equal(await page.locator("input[data-checkbox]:checked").count(), 0);
+  // Row selection, filtered header selection, and whole-catalog toggle remain distinct.
+  await page.click('input[data-checkbox="T01"]');
+  await page.waitForFunction(() =>
+    document.querySelector('[data-tab="Watchlist"]').textContent.includes("+"),
+  );
+  await page.fill("#search-input", "Fixture2");
+  assert.equal(await page.locator("#select-all-checkbox").isChecked(), false);
+  await page.click("#select-all-checkbox");
+  assert.deepEqual(await page.evaluate(() => [...selectedETFs].sort()), [
+    "T01",
+    "T02",
+  ]);
+  await page.click("#select-all-checkbox");
+  assert.deepEqual(await page.evaluate(() => [...selectedETFs]), ["T01"]);
+  await page.click('[data-sort="Fund Name"]');
+  await page.click('[data-tab="Watchlist"]');
+  assert.equal(await page.inputValue("#search-input"), "");
+  await page.fill("#search-input", "security");
+  await page.click('[data-sort="Name"]');
+  await page.click("#all-etfs-toggle-btn");
+  assert.equal(await page.evaluate(() => activeSheetName), "Watchlist");
+  assert.equal(await page.evaluate(() => selectedETFs.size), 8);
+  // Detail pager and background loader deliberately overlap on the same ticker.
+  await page.evaluate(async () => {
+    activeFundTicker = "T03";
+    await Promise.all([
+      loadStaticFundSheets("T03", false),
+      loadNextHoldingsPage("T03"),
+      ensureHoldingsForSelected(),
+    ]);
+  });
+  await page.waitForFunction(
+    () =>
+      !isHoldingsLoading &&
+      [...selectedETFs].every((t) => holdingsState(t).complete),
+  );
+  assert.ok(peak <= 6, `peak loads ${peak}`);
+  assert.equal(
+    await page.evaluate(() => getDedupedWatchlistRows().length),
+    4809,
+  );
+  assert.equal(
+    await page.evaluate(
+      () =>
+        getDedupedWatchlistRows().find((r) => r.Ticker === "COMMON")["# ETFs"],
+    ),
+    8,
+  );
+  for (const [path, count] of requests)
+    if (path.includes("holdings/") || path.endsWith("meta.json"))
+      assert.equal(count, 1, `duplicate fetch: ${path}`);
+  assert.equal(
+    await page.locator("#table-body .watchlist-sticky-ticker").count(),
+    250,
+  );
+  const fullFiltered = await page.evaluate(
+    () => getFilteredWatchlistRows().length,
+  );
+  assert.equal(
+    await page.evaluate(() => generateFileContent().split("\n").length - 1),
+    fullFiltered,
+  );
+  await page.click("#copy-btn");
+  assert.equal(
+    (await page.evaluate(() => navigator.clipboard.readText())).split(", ")
+      .length,
+    fullFiltered,
+  );
+  const downloadPromise = page.waitForEvent("download");
+  await page.click("#export-txt-btn");
+  const download = await downloadPromise;
+  const text = await readFile(await download.path(), "utf8");
+  assert.equal(text.split("\n").length, fullFiltered);
+  await page.locator("#watchlist-more-btn").click();
+  assert.ok(
+    (await page.locator("#table-body .watchlist-sticky-ticker").count()) >= 500,
+  );
+  // Each tab's query/sort survives tab switches and a reload.
+  await page.click("#all-etfs-tab-btn");
+  assert.equal(await page.inputValue("#search-input"), "Fixture2");
+  assert.equal(await page.evaluate(() => sortKey), "Fund Name");
+  await page.reload();
+  await page.waitForSelector("#select-all-checkbox");
+  assert.equal(await page.inputValue("#search-input"), "Fixture2");
+  await page.click('[data-tab="Watchlist"]');
+  assert.equal(await page.inputValue("#search-input"), "security");
+  assert.equal(await page.evaluate(() => sortKey), "Name");
+  await page.waitForFunction(
+    () => !isHoldingsLoading && getDedupedWatchlistRows().length === 4809,
+  );
+  await page.fill("#search-input", "");
+  await stickyCheck(page, "light", true);
+  await stickyCheck(page, "dark", true);
+  // All ETFs toggle deselects globally without leaving Watchlist, even with a search.
+  await page.fill("#search-input", "COMMON");
+  await page.click("#all-etfs-toggle-btn");
+  assert.equal(await page.evaluate(() => activeSheetName), "Watchlist");
+  assert.equal(await page.evaluate(() => getDedupedWatchlistRows().length), 0);
+  await page.click("#all-etfs-tab-btn");
+  await page.fill("#search-input", "");
+  await stickyCheck(page, "light");
+  await stickyCheck(page, "dark");
+  // Select and blacklist while fully scrolled right: controls must remain hit-testable.
+  await page.locator("#table-scroll").evaluate((el) => {
+    el.scrollTop = 0;
+  });
+  await page.click('input[data-checkbox="T01"]');
+  assert.equal(
+    await page
+      .locator('tr[data-static-ticker="T01"] .catalog-sticky-use')
+      .evaluate((el) => getComputedStyle(el).backgroundColor),
+    "rgb(19, 32, 70)",
+  );
+  await page.click('button[data-blacklist="T01"]');
+  assert.equal(await page.locator('input[data-checkbox="T01"]').count(), 0);
+  assert.equal(await page.evaluate(() => selectedETFs.has("T01")), false);
+  await page.click("#blacklist-btn");
+  await page.waitForTimeout(100);
+  const mid = await page
+    .locator("#blacklist-panel")
+    .evaluate((el) => +getComputedStyle(el).opacity);
+  assert.ok(mid > 0 && mid < 1, `not animating: ${mid}`);
+  await page.waitForTimeout(400);
+  await page.fill("#blacklist-input", tickers.slice(1).join(", "));
+  await page.click("#blacklist-add-btn");
+  await page.waitForTimeout(400);
+  assert.ok(
+    await page
+      .locator("#blacklist-panel")
+      .evaluate((el) => el.scrollHeight <= el.clientHeight + 1),
+  );
+  await page.click('button[data-unblacklist="T02"]');
+  assert.equal(await page.locator('input[data-checkbox="T02"]').count(), 1);
+  await shot(page, "blacklist-expanded");
+  await page.click("#blacklist-clear-btn");
+  await page.click("#blacklist-btn");
+  await page.waitForTimeout(400);
+  assert.equal(
+    await page
+      .locator("#blacklist-panel")
+      .evaluate((el) => el.getBoundingClientRect().height),
+    0,
+  );
+  // Details never inherit pinned columns; independent tab search/sort also persists.
+  await page.locator("#table-scroll").evaluate((el) => {
+    el.scrollLeft = 0;
+  });
+  await page.click('[data-fund-view="T02"]');
+  await page.waitForFunction(() => activeSheetName === "Holdings");
+  assert.equal(
+    await page
+      .locator(
+        "#table-head .catalog-sticky-col, #table-body .watchlist-sticky-ticker",
+      )
+      .count(),
+    0,
+  );
+  await page.fill("#search-input", "T02");
+  await page.click('[data-sort="Name"]');
+  await page.click('[data-tab="Historical"]');
+  await page.fill("#search-input", "2026");
+  await page.click('[data-sort="As Of"]');
+  await page.click('[data-tab="Holdings"]');
+  assert.equal(await page.inputValue("#search-input"), "T02");
+  await page.reload();
+  await page.waitForSelector('[data-sort="Name"]');
+  assert.equal(await page.inputValue("#search-input"), "T02");
+  await page.click('[data-tab="Historical"]');
+  assert.equal(await page.inputValue("#search-input"), "2026");
+  await page.click("#reset-btn");
+  assert.equal(await page.evaluate(() => selectedETFs.size), 0);
+  // Upload a real SpreadsheetML-shaped test workbook; preserve tickerless securities.
+  const xml = `<ss:Workbook xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><ss:Worksheet ss:Name="Holdings"><ss:Table>${[
+    ["Ticker", "Name", "CUSIP"],
+    ["--", "Uploaded bond", "B1"],
+    ["USD", "Uploaded cash", ""],
+  ]
+    .map(
+      (row) =>
+        `<ss:Row>${row.map((v) => `<ss:Cell><ss:Data ss:Type="String">${v}</ss:Data></ss:Cell>`).join("")}</ss:Row>`,
+    )
+    .join("")}</ss:Table></ss:Worksheet></ss:Workbook>`;
+  await page.setInputFiles("#file-input", {
+    name: "sample.xls",
+    mimeType: "application/vnd.ms-excel",
+    buffer: Buffer.from(xml),
+  });
+  await page.waitForFunction(
+    () =>
+      isUploadedFile &&
+      workbookSheets.Holdings?.data.length === 2 &&
+      document.querySelectorAll("#table-body tr").length === 2,
+  );
+  assert.equal(await page.locator("#table-body tr").count(), 2);
+  assert.equal(
+    await page
+      .locator(
+        "#table-body .catalog-sticky-col, #table-body .watchlist-sticky-ticker",
+      )
+      .count(),
+    0,
+  );
+  console.log(
+    "PASS: scoped selection, serialized paging (peak <= 6), dedup fallbacks, partial counts, 250-row chunks/full exports, persisted tabs, pinned cells/themes, animation, and upload",
+  );
+  // Exercise the checked-in feed too (not just fixtures).
+  const real = await newPage();
+  await real.goto(baseURL);
+  await real.waitForSelector('input[data-checkbox="IVV"]');
+  assert.equal(await real.locator('[data-sort="Frequency"]').count(), 1);
+  await stickyCheck(real, "light");
+  await stickyCheck(real, "dark");
+  await real.fill("#search-input", "IVV");
+  await real.click('input[data-checkbox="IVV"]');
+  await real.click('[data-tab="Watchlist"]');
+  await real.waitForFunction(
+    () => !isHoldingsLoading && getDedupedWatchlistRows().length > 500,
+  );
+  await stickyCheck(real, "light", true);
+  await stickyCheck(real, "dark", true);
+  await real.click("#all-etfs-tab-btn");
+  await real.fill("#search-input", "not-a-fund");
+  assert.equal(
+    await real.locator("#table-body td").getAttribute("colspan"),
+    "25",
+  );
+  await real.fill("#search-input", "IVV");
+  assert.ok(
+    await real.evaluate(() =>
+      generateFileContent()
+        .split("\n")[0]
+        .includes("SEC Yield,Frequency,YTD Return"),
+    ),
+  );
+  // Wrapped chip lists must grow AND shrink smoothly, not just fade in/out.
+  await real.click("#blacklist-btn");
+  await real.waitForTimeout(400);
+  const initialHeight = await real
+    .locator("#blacklist-panel")
+    .evaluate((el) => el.getBoundingClientRect().height);
+  const manyTickers = await real.evaluate(() =>
+    visibleCatalogFunds()
+      .slice(0, 70)
+      .map((r) => r.Ticker)
+      .join(", "),
+  );
+  await real.fill("#blacklist-input", manyTickers);
+  await real.click("#blacklist-add-btn");
+  await real.waitForTimeout(400);
+  const expandedHeight = await real
+    .locator("#blacklist-panel")
+    .evaluate((el) => el.getBoundingClientRect().height);
+  assert.ok(expandedHeight > initialHeight);
+  await shot(real, "blacklist-wrapped");
+  await real.click("#blacklist-clear-btn");
+  await real.waitForTimeout(100);
+  const shrinkingHeight = await real
+    .locator("#blacklist-panel")
+    .evaluate((el) => el.getBoundingClientRect().height);
+  assert.ok(
+    shrinkingHeight > initialHeight && shrinkingHeight < expandedHeight,
+  );
+  await real.waitForTimeout(400);
+  assert.equal(
+    await real
+      .locator("#blacklist-panel")
+      .evaluate((el) => el.getBoundingClientRect().height),
+    initialHeight,
+  );
+  await real.emulateMedia({ reducedMotion: "reduce" });
+  assert.equal(
+    await real
+      .locator("#blacklist-panel")
+      .evaluate((el) => getComputedStyle(el).transitionDuration),
+    "0s",
+  );
+  await real.click("#blacklist-btn");
+
+  // Deselect while a page is in flight; it may populate cache but never aggregation.
+  const race = await newPage();
+  await fixtures(race);
+  await race.goto(baseURL);
+  await race.waitForSelector('input[data-checkbox="T01"]');
+  assert.equal(
+    await race.evaluate(() => {
+      toggleEtfSelection("T01");
+      return watchlistCountLabel();
+    }),
+    "Loading…",
+  );
+  await race.waitForFunction(() => holdingsState("T01").next === 1);
+  await race.evaluate(() => toggleEtfSelection("T01"));
+  await race.waitForFunction(() => holdingsJobs.size === 0);
+  assert.equal(await race.evaluate(() => getDedupedWatchlistRows().length), 0);
+  await race.evaluate(() => toggleEtfSelection("T01"));
+  await race.waitForFunction(() => holdingsState("T01").complete);
+  assert.equal(
+    await race.evaluate(() => getDedupedWatchlistRows().length),
+    609,
+  );
+
+  assert.deepEqual(errors, []);
+  console.log(
+    "PASS: checked-in 480-fund catalog + real IVV holdings, Frequency/export/empty state; no browser errors",
+  );
+} finally {
+  await browser.close();
+}
