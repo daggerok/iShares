@@ -2,43 +2,107 @@
   "ticker": "IBIM",
   "page": 1,
   "pageSize": 250,
-  "totalRows": 8,
+  "totalRows": 3,
   "headers": [
-    "Inception Date",
-    "Mar 25, 2026"
+    "Name",
+    "Sector",
+    "Asset Class",
+    "Market Value",
+    "Weight (%)",
+    "Notional Value",
+    "Par Value",
+    "Location",
+    "Exchange",
+    "Currency",
+    "Duration",
+    "YTM (%)",
+    "FX Rate",
+    "Maturity",
+    "Coupon (%)",
+    "Mod. Duration",
+    "Yield to Call (%)",
+    "Yield to Worst (%)",
+    "Real Duration",
+    "Real YTM (%)",
+    "Market Currency",
+    "Accrual Date",
+    "Effective Date"
   ],
   "rows": [
     {
-      "Inception Date": "Fund Holdings as of",
-      "Mar 25, 2026": "Sep 15, 2026"
+      "Name": "TREASURY (CPI) NOTE",
+      "Sector": "Treasury",
+      "Asset Class": "Fixed Income",
+      "Market Value": "17637968.13",
+      "Weight (%)": "72.9911",
+      "Notional Value": "17637968.13",
+      "Par Value": "18741548",
+      "Location": "United States",
+      "Exchange": "--",
+      "Currency": "USD",
+      "Duration": "8.34",
+      "YTM (%)": "4.93",
+      "FX Rate": "1",
+      "Maturity": "Jan 15, 2036",
+      "Coupon (%)": "1.88",
+      "Mod. Duration": "8.33",
+      "Yield to Call (%)": "--",
+      "Yield to Worst (%)": "2.67",
+      "Real Duration": "8.43",
+      "Real YTM (%)": "2.67",
+      "Market Currency": "USD",
+      "Accrual Date": "Jan 15, 2026",
+      "Effective Date": "Jan 30, 2026"
     },
     {
-      "Inception Date": "Number of Securities (excluding cash and derivatives)",
-      "Mar 25, 2026": "2.00"
+      "Name": "TREASURY (CPI) NOTE",
+      "Sector": "Treasury",
+      "Asset Class": "Fixed Income",
+      "Market Value": "6524644.07",
+      "Weight (%)": "27.0009",
+      "Notional Value": "6524644.07",
+      "Par Value": "6640569",
+      "Location": "United States",
+      "Exchange": "--",
+      "Currency": "USD",
+      "Duration": "8.56",
+      "YTM (%)": "4.97",
+      "FX Rate": "1",
+      "Maturity": "Jul 15, 2036",
+      "Coupon (%)": "2.38",
+      "Mod. Duration": "8.56",
+      "Yield to Call (%)": "--",
+      "Yield to Worst (%)": "2.66",
+      "Real Duration": "8.65",
+      "Real YTM (%)": "2.66",
+      "Market Currency": "USD",
+      "Accrual Date": "Jul 15, 2026",
+      "Effective Date": "Jul 31, 2026"
     },
     {
-      "Inception Date": "Shares Outstanding",
-      "Mar 25, 2026": "1,000,000.00"
-    },
-    {
-      "Inception Date": "Name",
-      "Mar 25, 2026": "Sector"
-    },
-    {
-      "Inception Date": "TREASURY (CPI) NOTE",
-      "Mar 25, 2026": "Treasury"
-    },
-    {
-      "Inception Date": "TREASURY (CPI) NOTE",
-      "Mar 25, 2026": "Treasury"
-    },
-    {
-      "Inception Date": "BLK CSH FND TREASURY SL AGENCY",
-      "Mar 25, 2026": "Cash and/or Derivatives"
-    },
-    {
-      "Inception Date": "USD CASH",
-      "Mar 25, 2026": "Cash and/or Derivatives"
+      "Name": "BLK CSH FND TREASURY SL AGENCY",
+      "Sector": "Cash and/or Derivatives",
+      "Asset Class": "Money Market",
+      "Market Value": "1933.23",
+      "Weight (%)": "0.008",
+      "Notional Value": "1933.23",
+      "Par Value": "1933",
+      "Location": "United States",
+      "Exchange": "--",
+      "Currency": "USD",
+      "Duration": "0.09",
+      "YTM (%)": "3.6",
+      "FX Rate": "1",
+      "Maturity": "-",
+      "Coupon (%)": "3.89",
+      "Mod. Duration": "0.1",
+      "Yield to Call (%)": "--",
+      "Yield to Worst (%)": "3.6",
+      "Real Duration": "0.1",
+      "Real YTM (%)": "3.6",
+      "Market Currency": "USD",
+      "Accrual Date": "--",
+      "Effective Date": "Feb 04, 2009"
     }
   ]
 }
