@@ -7,7 +7,7 @@
     "download": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239757&component=fundDownload&userType=individual"
   },
   "holdings": {
-    "totalRows": 26,
+    "totalRows": 23,
     "pageSize": 250,
     "pageCount": 1,
     "pages": [
@@ -15,7 +15,7 @@
     ]
   },
   "history": {
-    "totalRows": 5081,
+    "totalRows": 5083,
     "pageSize": 1000,
     "pageCount": 6,
     "pages": [
@@ -47,6 +47,9 @@
     "siCum": -39.336937
   },
   "secYield": null,
+  "distributions": {
+    "frequencyCode": "00 - —"
+  },
   "worksheets": {
     "Performance": {
       "headers": [
@@ -1020,8 +1023,5 @@
         }
       ]
     }
-  },
-  "distributions": {
-    "frequencyCode": "00 - —"
   }
 }

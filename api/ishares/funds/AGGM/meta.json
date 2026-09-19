@@ -7,7 +7,7 @@
     "download": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239462&component=fundDownload&userType=individual"
   },
   "holdings": {
-    "totalRows": 1920,
+    "totalRows": 1915,
     "pageSize": 250,
     "pageCount": 8,
     "pages": [
@@ -22,7 +22,7 @@
     ]
   },
   "history": {
-    "totalRows": 4957,
+    "totalRows": 4959,
     "pageSize": 1000,
     "pageCount": 5,
     "pages": [
@@ -53,8 +53,11 @@
     "siCum": 80.243201
   },
   "secYield": {
-    "value": "4.70",
-    "asOf": "Sep 15, 2026"
+    "value": "4.69",
+    "asOf": "Sep 17, 2026"
+  },
+  "distributions": {
+    "frequencyCode": "01 - Monthly"
   },
   "worksheets": {
     "Performance": {
@@ -3387,8 +3390,5 @@
         }
       ]
     }
-  },
-  "distributions": {
-    "frequencyCode": "01 - Monthly"
   }
 }
