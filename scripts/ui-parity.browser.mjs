@@ -525,6 +525,119 @@ try {
     609,
   );
 
+  // Reproduce filtered Catalog -> select visible -> Watchlist, including legacy migration.
+  const filters = await newPage();
+  await fixtures(filters);
+  await filters.addInitScript(() => {
+    if (localStorage.getItem("filter-test-seeded")) return;
+    localStorage.setItem("filter-test-seeded", "yes");
+    localStorage.setItem(
+      "ishares-searches",
+      JSON.stringify("old global filter"),
+    );
+    localStorage.setItem(
+      "ishares-site-state",
+      JSON.stringify({
+        activeSheet: "ETF Catalog",
+        tabs: {
+          "static:ETF Catalog": {
+            query: "Fixture1",
+            sortKey: "Ticker",
+            sortDir: "desc",
+          },
+        },
+      }),
+    );
+  });
+  await filters.goto(baseURL);
+  await filters.waitForSelector('input[data-checkbox="T01"]');
+  assert.equal(await filters.inputValue("#search-input"), "Fixture1");
+  assert.equal(await filters.locator("#search-clear-btn").isVisible(), true);
+  const inputBox = await filters.locator("#search-input").boundingBox();
+  const clearBox = await filters.locator("#search-clear-btn").boundingBox();
+  assert.ok(
+    clearBox.x >= inputBox.x &&
+      clearBox.x + clearBox.width < inputBox.x + inputBox.width / 2,
+    "clear control must be on the left of the input",
+  );
+  await filters.waitForTimeout(400);
+  await shot(filters, "search-clear-light");
+  await filters.click("#theme-toggle");
+  await filters.waitForTimeout(400);
+  await shot(filters, "search-clear-dark");
+  await filters.click("#select-all-checkbox");
+  assert.deepEqual(await filters.evaluate(() => [...selectedETFs]), ["T01"]);
+  await filters.click('[data-tab="Watchlist"]');
+  assert.equal(await filters.inputValue("#search-input"), "");
+  assert.equal(await filters.locator("#search-clear-btn").isVisible(), false);
+  await filters.fill("#search-input", "COMMON");
+  await filters.click('[data-sort="Name"]');
+  await filters.waitForFunction(() => !isHoldingsLoading);
+  const savedFilters = () =>
+    filters.evaluate(() =>
+      JSON.parse(localStorage.getItem("ishares-tab-filters")),
+    );
+  assert.deepEqual(await savedFilters(), {
+    "static:ETF Catalog": "Fixture1",
+    "static:Watchlist": "COMMON",
+  });
+  assert.deepEqual(
+    await filters.evaluate(
+      () => JSON.parse(localStorage.getItem("ishares-site-state")).sheetFilter,
+    ),
+    await savedFilters(),
+  );
+  await filters.reload();
+  await filters.waitForSelector('[data-sort="Name"]');
+  assert.equal(await filters.inputValue("#search-input"), "COMMON");
+  assert.equal(await filters.locator("#search-clear-btn").isVisible(), true);
+  await filters.click("#all-etfs-tab-btn");
+  assert.equal(await filters.inputValue("#search-input"), "Fixture1");
+  await filters.click("#search-clear-btn");
+  assert.equal(await filters.inputValue("#search-input"), "");
+  assert.equal(await filters.locator("#search-clear-btn").isVisible(), false);
+  assert.equal(
+    await filters.evaluate(() => document.activeElement.id),
+    "search-input",
+  );
+  assert.equal(await filters.locator("input[data-checkbox]").count(), 8);
+  assert.deepEqual(await savedFilters(), { "static:Watchlist": "COMMON" });
+  assert.equal(await filters.evaluate(() => sortKey), "Ticker");
+  await filters.reload();
+  await filters.waitForSelector("#select-all-checkbox");
+  assert.equal(await filters.inputValue("#search-input"), "");
+  await filters.click('[data-tab="Watchlist"]');
+  assert.equal(await filters.inputValue("#search-input"), "COMMON");
+  await filters.locator("#search-clear-btn").focus();
+  await filters.keyboard.press("Enter");
+  assert.equal(await filters.inputValue("#search-input"), "");
+  assert.equal(
+    await filters.evaluate(() => document.activeElement.id),
+    "search-input",
+  );
+  assert.deepEqual(await savedFilters(), {});
+  await filters.fill("#search-input", "security");
+  await filters.click("#all-etfs-tab-btn");
+  await filters.fill("#search-input", "Fixture2");
+  await filters.click("#reset-btn");
+  await filters.waitForFunction(
+    () => activeSheetName === "ETF Catalog" && selectedETFs.size === 0,
+  );
+  assert.deepEqual(await savedFilters(), {});
+  assert.equal(await filters.locator("#search-clear-btn").isVisible(), false);
+  assert.equal(
+    await filters.evaluate(() => tabStates["static:Watchlist"].sortKey),
+    "Name",
+  );
+  assert.equal(await filters.evaluate(() => sortKey), "Ticker");
+  assert.equal(
+    await filters.evaluate(() => localStorage.getItem("ishares-searches")),
+    JSON.stringify("old global filter"),
+  );
+  console.log(
+    "PASS: left-side filter clear (mouse/keyboard/focus), independent localStorage filters, legacy migration, reload, Clear preserving sorts",
+  );
+
   assert.deepEqual(errors, []);
   console.log(
     "PASS: checked-in 480-fund catalog + real IVV holdings, Frequency/export/empty state; no browser errors",

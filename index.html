@@ -369,14 +369,26 @@
         <div
           class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur"
         >
-          <!-- Search Input (Left) -->
-          <input
-            type="text"
-            id="search-input"
-            placeholder="Search ETFs, fund names, holdings, tickers, CUSIPs, ISINs..."
-            disabled
-            class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 w-full lg:w-80 focus:outline-none focus:border-blue-500 text-sm placeholder-slate-400 dark:placeholder-slate-500 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 transition"
-          />
+          <!-- Search Input (Left): clear only this tab's filter. -->
+          <div class="relative w-full lg:w-80 shrink-0">
+            <button
+              id="search-clear-btn"
+              type="button"
+              aria-label="Clear current tab filter"
+              title="Clear current tab filter"
+              class="hidden absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"
+            >
+              ×
+            </button>
+            <input
+              type="text"
+              id="search-input"
+              aria-label="Filter current tab"
+              placeholder="Search ETFs, fund names, holdings, tickers, CUSIPs, ISINs..."
+              disabled
+              class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:border-blue-500 text-sm placeholder-slate-400 dark:placeholder-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            />
+          </div>
 
           <!-- ETF Catalogue Tabs Bar (Center) -->
           <div
@@ -726,6 +738,7 @@
 
       const THEME_KEY = "ishares-theme";
       const SITE_STATE_KEY = "ishares-site-state";
+      const TAB_FILTERS_KEY = "ishares-tab-filters";
       const SELECTED_KEY = "ishares-selected-etfs";
       const BLACKLIST_KEY = "ishares-blacklisted-etfs";
       const ACTIVE_FUND_KEY = "ishares-active-fund";
@@ -831,6 +844,7 @@
       let isHoldingsLoading = false;
 
       let tabStates = {};
+      let tabFilters = {};
       let tabStateApplied = false;
       let navigationGeneration = 0;
       let detailGeneration = 0;
@@ -858,6 +872,7 @@
       const tableBody = document.getElementById("table-body");
       const tickerCount = document.getElementById("ticker-count");
       const searchInput = document.getElementById("search-input");
+      const searchClearBtn = document.getElementById("search-clear-btn");
       const tableScroll = document.getElementById("table-scroll");
       const staticLoadSentinel = document.getElementById(
         "static-load-sentinel",
@@ -1880,25 +1895,76 @@
         return `${isUploadedFile ? "upload" : "static"}:${activeSheetName}`;
       }
 
-      function restoreSiteState() {
+      function readStoredState(key) {
         try {
-          const saved = JSON.parse(
-            localStorage.getItem(SITE_STATE_KEY) || "{}",
-          );
-          tabStates =
-            saved.tabs && typeof saved.tabs === "object" ? saved.tabs : {};
-          // Migrate the former global preference to Catalog only, not every tab.
-          if (!saved.tabs) tabStates["static:ETF Catalog"] = saved;
-          if (typeof saved.activeSheet === "string")
-            activeSheetName = saved.activeSheet;
+          return JSON.parse(localStorage.getItem(key) || "null");
         } catch {
-          tabStates = {};
+          return null;
         }
+      }
+
+      function normalizeTabFilters(value) {
+        if (!value || typeof value !== "object" || Array.isArray(value))
+          return {};
+        return Object.fromEntries(
+          Object.entries(value)
+            .filter(
+              ([, query]) => typeof query === "string" && query.length > 0,
+            )
+            .map(([tab, query]) => [
+              /^(static|upload):/.test(tab) ? tab : `static:${tab}`,
+              query,
+            ]),
+        );
+      }
+
+      function restoreSiteState() {
+        const saved = readStoredState(SITE_STATE_KEY) || {};
+        tabStates =
+          saved.tabs &&
+          typeof saved.tabs === "object" &&
+          !Array.isArray(saved.tabs)
+            ? saved.tabs
+            : {};
+        // Migrate the former global preference to Catalog only, not every tab.
+        if (!saved.tabs) tabStates["static:ETF Catalog"] = saved;
+        const activeTab = saved.activeTab || saved.activeSheet;
+        if (typeof activeTab === "string") activeSheetName = activeTab;
+
+        if (localStorage.getItem(TAB_FILTERS_KEY) !== null) {
+          tabFilters = normalizeTabFilters(readStoredState(TAB_FILTERS_KEY));
+        } else {
+          // One-time migration: existing per-tab values win over older global searches.
+          const rawLegacy = localStorage.getItem("ishares-searches");
+          const legacy = readStoredState("ishares-searches") ?? rawLegacy;
+          const legacyFilters =
+            typeof legacy === "string"
+              ? { "static:ETF Catalog": legacy }
+              : normalizeTabFilters(legacy);
+          tabFilters = normalizeTabFilters({
+            ...legacyFilters,
+            ...Object.fromEntries(
+              Object.entries(tabStates)
+                .filter(([, state]) => typeof state?.query === "string")
+                .map(([tab, state]) => [tab, state.query]),
+            ),
+            ...normalizeTabFilters(saved.sheetFilter),
+          });
+          localStorage.setItem(TAB_FILTERS_KEY, JSON.stringify(tabFilters));
+        }
+      }
+
+      function syncSearchClearButton() {
+        searchClearBtn.classList.toggle(
+          "hidden",
+          searchInput.value.length === 0,
+        );
       }
 
       function restoreTabState() {
         const saved = tabStates[tabStateKey()] || {};
-        searchInput.value = typeof saved.query === "string" ? saved.query : "";
+        searchInput.value = tabFilters[tabStateKey()] || "";
+        syncSearchClearButton();
         sortKey =
           typeof saved.sortKey === "string"
             ? saved.sortKey
@@ -1919,6 +1985,9 @@
 
       function persistSiteState() {
         if (!tabStateApplied) return;
+        if (searchInput.value) tabFilters[tabStateKey()] = searchInput.value;
+        else delete tabFilters[tabStateKey()];
+        localStorage.setItem(TAB_FILTERS_KEY, JSON.stringify(tabFilters));
         tabStates[tabStateKey()] = {
           sortKey,
           sortDir,
@@ -1927,8 +1996,10 @@
         localStorage.setItem(
           SITE_STATE_KEY,
           JSON.stringify({
-            version: 2,
+            version: 3,
             tabs: tabStates,
+            sheetFilter: tabFilters,
+            activeTab: activeSheetName,
             activeSheet: activeSheetName,
           }),
         );
@@ -2347,6 +2418,17 @@
        * Clears storage and resets active selection/search.
        */
       async function clearStorage() {
+        tabFilters = {};
+        for (const state of Object.values(tabStates)) {
+          if (state && typeof state === "object") delete state.query;
+        }
+        searchInput.value = "";
+        syncSearchClearButton();
+        persistSiteState();
+        selectedETFs.clear();
+        activeFundTicker = null;
+        localStorage.removeItem(SELECTED_KEY);
+        localStorage.removeItem(ACTIVE_FUND_KEY);
         if (isUploadedFile) {
           resetBtn.disabled = true;
           try {
@@ -2359,11 +2441,6 @@
           return;
         }
 
-        selectedETFs.clear();
-        activeFundTicker = null;
-        localStorage.removeItem(SELECTED_KEY);
-        localStorage.removeItem(ACTIVE_FUND_KEY);
-        tabStates = {};
         tabStateApplied = false;
         await switchSheet("ETF Catalog");
         renderSubtitle();
@@ -2915,7 +2992,8 @@
         return [csvHeaders, ...csvRows].join("\n");
       }
 
-      searchInput.addEventListener("input", () => {
+      function applyActiveFilter() {
+        syncSearchClearButton();
         persistSiteState();
         if (activeSheetName === "Watchlist") {
           renderWatchlistTable();
@@ -2926,6 +3004,13 @@
           if (currentSheet)
             renderTable(getFilteredRows(currentSheet), currentSheet.headers);
         }
+      }
+
+      searchInput.addEventListener("input", applyActiveFilter);
+      searchClearBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        applyActiveFilter();
+        searchInput.focus();
       });
 
       exportCsvBtn.addEventListener("click", () => {

@@ -25,10 +25,15 @@ authoritative sources. No requested feature was skipped.
   retained. The body had actually used slate-900 despite the HTML anti-FOUC
   background being slate-950; it now uses slate-950 so the documented dark color
   stack is consistent. Other sheets have no pinned columns.
-- **Preferences:** versioned `ishares-site-state` stores query/sort per sheet,
-  separated between static and uploaded modes. Detail preferences intentionally
-  follow the sheet across funds; uploaded preferences follow the sheet across
-  files. Legacy global preferences migrate to Catalog only.
+- **Preferences:** `ishares-tab-filters` stores non-empty filters per sheet,
+  separated between static and uploaded modes. `ishares-site-state.sheetFilter`
+  mirrors those filters; the site-state blob also stores per-tab sorts and the
+  active tab. Existing saved per-tab queries and legacy global searches migrate
+  once (global queries go to Catalog only). A left-side × button clears only the
+  active tab's filter, immediately rerenders and refocuses the input; it hides
+  when the filter is empty. App-wide Clear clears all filters and selection but
+  retains remembered sorts. Detail preferences intentionally follow the sheet
+  across funds; uploaded preferences follow the sheet across files.
 - **Selection:** row toggles one fund; header toggles filtered/rendered catalog
   rows; All ETFs toggles the entire non-blacklisted catalog without navigating.
   ETF Catalog is a separate navigation button. Checked states use `.every()`.
@@ -107,3 +112,14 @@ setup was not changed. `test:ui` optionally accepts `CHROMIUM_PATH`,
 
 A structural comparison against Git HEAD verified that all 480 metadata files
 and the catalog are unchanged apart from `distributions.frequencyCode`.
+
+### Filter follow-up verification
+
+The browser suite also reproduces filtered Catalog → select visible rows →
+Watchlist with an empty initial Watchlist filter, then independent saved queries
+on both tabs after reload. It checks migration from existing site-state queries,
+`ishares-tab-filters` and its site-state mirror, mouse/keyboard activation of the
+left-side ×, restored input focus, immediate row refresh, active-tab-only clear,
+and app-wide Clear retaining sorts. Screenshots cover the new control in both
+themes. This follow-up does not claim completion of every remaining item from
+the fuller cross-repo audit (for example the dedicated tab-sorts storage format).
