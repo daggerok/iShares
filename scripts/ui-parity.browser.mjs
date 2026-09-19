@@ -243,9 +243,10 @@ try {
   assert.equal(await page.inputValue("#search-input"), "");
   await page.fill("#search-input", "security");
   await page.click('[data-sort="Name"]');
-  await page.click("#all-etfs-toggle-btn");
-  assert.equal(await page.evaluate(() => activeSheetName), "Watchlist");
+  await page.click("#select-all-toggle");
+  assert.equal(await page.evaluate(() => activeSheetName), "ETF Catalog");
   assert.equal(await page.evaluate(() => selectedETFs.size), 8);
+  await page.click('[data-tab="Watchlist"]');
   // Detail pager and background loader deliberately overlap on the same ticker.
   await page.evaluate(async () => {
     activeFundTicker = "T03";
@@ -317,10 +318,10 @@ try {
   await page.fill("#search-input", "");
   await stickyCheck(page, "light", true);
   await stickyCheck(page, "dark", true);
-  // All ETFs toggle deselects globally without leaving Watchlist, even with a search.
+  // The All ETFs checkbox deselects globally and returns to Catalog, even with a search.
   await page.fill("#search-input", "COMMON");
-  await page.click("#all-etfs-toggle-btn");
-  assert.equal(await page.evaluate(() => activeSheetName), "Watchlist");
+  await page.click("#select-all-toggle");
+  assert.equal(await page.evaluate(() => activeSheetName), "ETF Catalog");
   assert.equal(await page.evaluate(() => getDedupedWatchlistRows().length), 0);
   await page.click("#all-etfs-tab-btn");
   await page.fill("#search-input", "");
@@ -556,9 +557,9 @@ try {
   const inputBox = await filters.locator("#search-input").boundingBox();
   const clearBox = await filters.locator("#search-clear-btn").boundingBox();
   assert.ok(
-    clearBox.x >= inputBox.x &&
-      clearBox.x + clearBox.width < inputBox.x + inputBox.width / 2,
-    "clear control must be on the left of the input",
+    clearBox.x > inputBox.x + inputBox.width / 2 &&
+      clearBox.x + clearBox.width <= inputBox.x + inputBox.width,
+    "clear control must be on the right of the input",
   );
   await filters.waitForTimeout(400);
   await shot(filters, "search-clear-light");
@@ -635,7 +636,99 @@ try {
     JSON.stringify("old global filter"),
   );
   console.log(
-    "PASS: left-side filter clear (mouse/keyboard/focus), independent localStorage filters, legacy migration, reload, Clear preserving sorts",
+    "PASS: right-side filter clear (mouse/keyboard/focus), independent localStorage filters, legacy migration, reload, Clear preserving sorts",
+  );
+
+  // All ETFs text is navigation only; only its checkbox changes global selection.
+  const navigation = await newPage();
+  await fixtures(navigation);
+  await navigation.goto(baseURL);
+  await navigation.waitForSelector('input[data-checkbox="T01"]');
+  await navigation.click("#all-etfs-tab-btn");
+  assert.equal(await navigation.evaluate(() => selectedETFs.size), 0);
+  await navigation.click('button[data-blacklist="T08"]');
+  await navigation.fill("#search-input", "Fixture1");
+  await navigation.click('[data-fund-view="T01"]');
+  await navigation.waitForFunction(() => activeSheetName === "Holdings");
+
+  const assertCatalogActive = async () => {
+    await navigation.waitForFunction(
+      () =>
+        activeSheetName === "ETF Catalog" &&
+        document.querySelector("#select-all-checkbox"),
+    );
+    assert.equal(
+      await navigation
+        .locator("#all-etfs-tab-btn")
+        .getAttribute("aria-selected"),
+      "true",
+    );
+    assert.equal(
+      await navigation
+        .locator('#selected-tabs-bar [aria-selected="true"]')
+        .count(),
+      0,
+    );
+    assert.equal(await navigation.inputValue("#search-input"), "Fixture1");
+    assert.equal(await navigation.locator("input[data-checkbox]").count(), 1);
+  };
+  for (const tab of [
+    "Holdings",
+    "Historical",
+    "Performance",
+    "Distributions",
+    "Watchlist",
+  ]) {
+    await navigation.click(`[data-tab="${tab}"]`);
+    await navigation.fill("#search-input", `${tab} saved filter`);
+    await navigation.click("#all-etfs-tab-btn");
+    await assertCatalogActive();
+    assert.deepEqual(await navigation.evaluate(() => [...selectedETFs]), [
+      "T01",
+    ]);
+    assert.equal(
+      await navigation.locator("#select-all-toggle").isChecked(),
+      false,
+    );
+
+    await navigation.click(`[data-tab="${tab}"]`);
+    assert.equal(
+      await navigation.inputValue("#search-input"),
+      `${tab} saved filter`,
+    );
+    await navigation.click("#select-all-toggle");
+    await assertCatalogActive();
+    assert.deepEqual(
+      await navigation.evaluate(() => [...selectedETFs].sort()),
+      tickers.slice(0, 7),
+    );
+    assert.equal(
+      await navigation.locator("#select-all-toggle").isChecked(),
+      true,
+    );
+    // Repeated label clicks never deselect selected ETFs either.
+    await navigation.click("#all-etfs-tab-btn");
+    assert.equal(await navigation.evaluate(() => selectedETFs.size), 7);
+
+    await navigation.click(`[data-tab="${tab}"]`);
+    await navigation.click("#select-all-toggle");
+    await assertCatalogActive();
+    assert.equal(await navigation.evaluate(() => selectedETFs.size), 0);
+    assert.equal(
+      await navigation.locator("#select-all-toggle").isChecked(),
+      false,
+    );
+    await navigation.click('input[data-checkbox="T01"]');
+  }
+  // Keyboard activation of the label has the same navigation-only behavior.
+  await navigation.click('[data-tab="Watchlist"]');
+  await navigation.locator("#all-etfs-tab-btn").focus();
+  await navigation.keyboard.press("Enter");
+  await assertCatalogActive();
+  assert.deepEqual(await navigation.evaluate(() => [...selectedETFs]), ["T01"]);
+  await shot(navigation, "all-etfs-catalog-active");
+  console.log(
+    "PASS: All ETFs label navigates without selection; checkbox selects/deselects and navigates from all five detail/Watchlist tabs; blacklist and tab-local filters retained",
   );
 
   assert.deepEqual(errors, []);

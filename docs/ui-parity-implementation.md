@@ -29,14 +29,18 @@ authoritative sources. No requested feature was skipped.
   separated between static and uploaded modes. `ishares-site-state.sheetFilter`
   mirrors those filters; the site-state blob also stores per-tab sorts and the
   active tab. Existing saved per-tab queries and legacy global searches migrate
-  once (global queries go to Catalog only). A left-side × button clears only the
+  once (global queries go to Catalog only). A right-side × button clears only the
   active tab's filter, immediately rerenders and refocuses the input; it hides
   when the filter is empty. App-wide Clear clears all filters and selection but
   retains remembered sorts. Detail preferences intentionally follow the sheet
   across funds; uploaded preferences follow the sheet across files.
 - **Selection:** row toggles one fund; header toggles filtered/rendered catalog
-  rows; All ETFs toggles the entire non-blacklisted catalog without navigating.
-  ETF Catalog is a separate navigation button. Checked states use `.every()`.
+  rows. Clicking the All ETFs label/pill opens the catalog without changing
+  fund selection. Its checkbox toggles the entire non-blacklisted catalog and
+  opens the catalog too; both deactivate the previously active detail/Watchlist
+  tab and restore the catalog's own filter. There is no redundant ETF Catalog
+  button. Checked states use `.every()`. This navigation behavior supersedes
+  the original cross-repo requirement at the user's request.
 - **Watchlist:** one serialized chain per ticker is shared by detail and
   background holdings loads. Page state is read inside the chain; a six-slot
   limiter bounds parallel loads. Cache completion cannot re-select funds or
@@ -119,7 +123,18 @@ The browser suite also reproduces filtered Catalog → select visible rows →
 Watchlist with an empty initial Watchlist filter, then independent saved queries
 on both tabs after reload. It checks migration from existing site-state queries,
 `ishares-tab-filters` and its site-state mirror, mouse/keyboard activation of the
-left-side ×, restored input focus, immediate row refresh, active-tab-only clear,
+right-side ×, restored input focus, immediate row refresh, active-tab-only clear,
 and app-wide Clear retaining sorts. Screenshots cover the new control in both
 themes. This follow-up does not claim completion of every remaining item from
 the fuller cross-repo audit (for example the dedicated tab-sorts storage format).
+
+### All ETFs navigation follow-up
+
+The × is now on the right of the search input. The All ETFs text/pill is the
+catalog navigation control, not a global-selection toggle. The checkbox is the
+only global-selection control and now also navigates to Catalog. Browser tests
+exercise both paths from Holdings, History, Performance, Distributions and
+Watchlist, asserting that no old detail tab remains active, label clicks leave
+selection unchanged, checkbox scope excludes blacklisted funds regardless of
+the catalog filter, and each tab's saved query remains intact. Keyboard label
+activation and repeated label clicks with all funds selected are covered too.

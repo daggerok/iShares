@@ -376,7 +376,7 @@
               type="button"
               aria-label="Clear current tab filter"
               title="Clear current tab filter"
-              class="hidden absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"
+              class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"
             >
               ×
             </button>
@@ -386,7 +386,7 @@
               aria-label="Filter current tab"
               placeholder="Search ETFs, fund names, holdings, tickers, CUSIPs, ISINs..."
               disabled
-              class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:border-blue-500 text-sm placeholder-slate-400 dark:placeholder-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg pl-4 pr-10 py-2 w-full focus:outline-none focus:border-blue-500 text-sm placeholder-slate-400 dark:placeholder-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
             />
           </div>
 
@@ -2268,8 +2268,8 @@
           "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700";
 
         tabsBar.innerHTML = `
-          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs transition border whitespace-nowrap ${
-            allSelected ? activePill : inactivePill
+          <div id="all-etfs-pill" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs transition border whitespace-nowrap cursor-pointer ${
+            isCatalogActive ? activePill : inactivePill
           }">
             <input
               aria-label="Select all non-blacklisted ETFs"
@@ -2280,29 +2280,31 @@
               title="Select / Deselect all ETFs"
             />
             <button
-              id="all-etfs-toggle-btn"
-              class="font-medium hover:underline focus:outline-none"
+              id="all-etfs-tab-btn"
+              type="button"
+              aria-selected="${isCatalogActive}"
+              class="font-medium hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
             >
               All ETFs (${catalogCount})
             </button>
           </div>
-          <button id="all-etfs-tab-btn" aria-selected="${isCatalogActive}" class="px-3.5 py-1.5 rounded-full text-xs border ${isCatalogActive ? activePill : inactivePill}">ETF Catalog</button>
         `;
+        // The label/pill is navigation only; selection belongs exclusively to
+        // the checkbox. Do not wrap both in a label, which would toggle it too.
         tabsBar
-          .querySelector("#all-etfs-toggle-btn")
-          .addEventListener("click", () =>
-            toggleSelectAll(!allRowsSelected(visibleCatalogFunds())),
-          );
-
-        const allEtfsBtn = tabsBar.querySelector("#all-etfs-tab-btn");
-        allEtfsBtn?.addEventListener(
-          "click",
-          () => void switchSheet("ETF Catalog"),
-        );
+          .querySelector("#all-etfs-pill")
+          .addEventListener("click", (e) => {
+            if (e.target.closest("input")) return;
+            void switchSheet("ETF Catalog");
+          });
 
         const selectAllToggle = tabsBar.querySelector("#select-all-toggle");
-        selectAllToggle?.addEventListener("change", (e) => {
-          toggleSelectAll(e.target.checked);
+        selectAllToggle.addEventListener("change", (e) => {
+          const selectAll = e.target.checked;
+          // switchSheet saves the outgoing tab's query and activates Catalog
+          // synchronously, before selection refreshes the table/tab highlighting.
+          void switchSheet("ETF Catalog");
+          toggleSelectAll(selectAll);
         });
       }
 
