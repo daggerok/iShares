@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+import { hasOutputFilters, printConfig, printFilter, createReporter } from './update-output.ts';
 /// <reference types="node" />
 import {
   appendFile,
@@ -1198,7 +1199,7 @@ async function main() {
     return;
   }
   const config = readConfig();
-  logTag("config", configLines(config).join(" "));
+  printConfig("iShares", config);
   const waitForRequest = createRequestGate(config.requestSleepSeconds);
   const previous = JSON.parse(
     (await old(new URL("index.json", ROOT))) || '{"funds":[]}',
@@ -1251,23 +1252,18 @@ async function main() {
   const candidates = config.maxFetches
     ? selectUpdateBatch(catalogEligible, config.maxFetches, lastProcessedTicker)
     : catalogEligible;
-  logTag(
-    "filter",
-    `catalogEligible=${catalogEligible.length} selectedForUpdate=${candidates.length}${config.maxFetches ? ` startingAfter=${lastProcessedTicker || "start"}` : ""}`,
-  );
+  printFilter(catalogEligible.length, discovered.length, hasOutputFilters(config));
+  const output = createReporter(ROOT, candidates.length);
 
   const results = await mapWithConcurrency(
     candidates,
     config.concurrency,
     async (fund, index): Promise<UpdateResult> => {
       // No "start" line: a fund is visible exactly once, with its final status.
-      const at = `${logTicker(fund.ticker)} ${logProgress(index + 1, candidates.length)}`;
+      const before = await output.before(fund.ticker);
       try {
         const result = await updateFund(fund, config, waitForRequest);
-        logTag(
-          "fund",
-          `ticker=${at} status=${result.status}${result.reason ? ` reason=${result.reason}` : ""}`,
-        );
+        await output.result(fund.ticker, before, result.status === "failed" ? "failed" : result.status === "filtered" ? "skipped" : undefined, result.reason, { netAssets: fund.netAssets, trailingYield: fund.trailingYield });
         return result;
       } catch (error) {
         const result: UpdateResult = {
@@ -1275,7 +1271,7 @@ async function main() {
           status: "failed",
           reason: String(error),
         };
-        logTag("fund", `ticker=${at} status=failed reason=${result.reason}`, console.warn);
+        await output.result(fund.ticker, before, "failed", result.reason);
         return result;
       }
     },
