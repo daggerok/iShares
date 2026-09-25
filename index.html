@@ -334,7 +334,7 @@
             class="basis-full sm:basis-auto text-sm text-slate-500 dark:text-slate-400"
           >
             <span class="block sm:inline"
-              >Search iShares ETFs, select rows, then use the Watchlist tab.
+              >Search iShares ETFs, select ETFs via the “Use” checkbox, then use the Watchlist tab.
               Data comes from
               <a
                 href="./api/ishares/index.json"
@@ -1489,7 +1489,7 @@
           return;
         }
 
-        const baseText = `<span class="block sm:inline">Search iShares ETFs, select rows, then use the Watchlist tab. Data comes from <a href="./api/ishares/index.json" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">api/ishares/index.json</a> · Upload SpreadsheetML (.xls) file from iShares.</span>`;
+        const baseText = `<span class="block sm:inline">Search iShares ETFs, select ETFs via the “Use” checkbox, then use the Watchlist tab. Data comes from <a href="./api/ishares/index.json" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">api/ishares/index.json</a> · Upload SpreadsheetML (.xls) file from iShares.</span>`;
 
         const selected = selectedETFs.size;
         const catalogRows = visibleCatalogFunds();
@@ -2525,7 +2525,7 @@
           <tr data-static-ticker="${
             isCatalog ? escapeHtml(item.Ticker || "") : ""
           }" class="${
-            isCatalog ? "cursor-pointer " : ""
+            isCatalog ? "" : ""
           }hover:bg-slate-50 dark:hover:bg-slate-700/30 transition border-b border-slate-100 dark:border-slate-700/30 ${
             isSelected ? "selected-row" : ""
           }">
@@ -2582,22 +2582,22 @@
           .join("");
 
         if (isCatalog) {
-          tableBody
-            .querySelectorAll("tr[data-static-ticker]")
-            .forEach((row) => {
-              row.addEventListener("click", (e) => {
-                const fundViewBtn = e.target.closest("[data-fund-view]");
-                if (fundViewBtn) {
-                  const ticker = fundViewBtn.dataset.fundView;
-                  if (ticker) selectSingleFund(ticker);
-                  return;
-                }
-                if (e.target.closest("a")) return;
-                if (e.target.closest("button[data-blacklist]")) return;
-                const ticker = row.dataset.staticTicker;
-                if (ticker) toggleEtfSelection(ticker);
-              });
+          tableBody.querySelectorAll("[data-fund-view]").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const ticker = btn.dataset.fundView;
+              if (ticker) selectSingleFund(ticker);
             });
+          });
+
+          tableBody.querySelectorAll("input[data-checkbox]").forEach((checkbox) => {
+            checkbox.addEventListener("change", (e) => {
+              e.stopPropagation();
+              const ticker = checkbox.dataset.checkbox || checkbox.getAttribute("data-checkbox") || "";
+              if (ticker) toggleEtfSelection(ticker);
+            });
+            checkbox.addEventListener("click", (e) => e.stopPropagation());
+          });
 
           tableBody
             .querySelectorAll("button[data-blacklist]")

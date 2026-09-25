@@ -1,0 +1,62 @@
+{
+  "ticker": "AIBF",
+  "portfolioId": "353593",
+  "name": "iShares Future AI Beneficiaries ETF",
+  "source": {
+    "fundPage": "https://www.ishares.com/us/products/353593/ishares-future-ai-beneficiaries-etf",
+    "download": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=353593&component=fundDownload&userType=individual"
+  },
+  "holdings": {
+    "totalRows": 101,
+    "pageSize": 250,
+    "pageCount": 1,
+    "pages": [
+      "./holdings/001.json"
+    ]
+  },
+  "history": {
+    "totalRows": 8,
+    "pageSize": 1000,
+    "pageCount": 1,
+    "pages": [
+      "./history/001.json"
+    ]
+  },
+  "returns": {
+    "asOfDate": "",
+    "performance": {
+      "YTD": null,
+      "1Y": null,
+      "3Y": null,
+      "5Y": null,
+      "10Y": null
+    },
+    "totalReturn": {
+      "YTD": null,
+      "1Y": null,
+      "3Y": null,
+      "5Y": null,
+      "10Y": null
+    },
+    "siAnn": null,
+    "siCum": null
+  },
+  "secYield": null,
+  "distributions": {
+    "frequencyCode": "00 - —"
+  },
+  "worksheets": {
+    "Performance": {
+      "headers": [
+        "Fund Inception",
+        "09/22/2026"
+      ],
+      "rows": [
+        {
+          "Fund Inception": "Month End Date",
+          "09/22/2026": "Monthly Total (NAV) Return"
+        }
+      ]
+    }
+  }
+}
