@@ -7,17 +7,16 @@
     "download": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239775&component=fundDownload&userType=individual"
   },
   "holdings": {
-    "totalRows": 513,
+    "totalRows": 486,
     "pageSize": 250,
-    "pageCount": 3,
+    "pageCount": 2,
     "pages": [
       "./holdings/001.json",
-      "./holdings/002.json",
-      "./holdings/003.json"
+      "./holdings/002.json"
     ]
   },
   "history": {
-    "totalRows": 6580,
+    "totalRows": 6584,
     "pageSize": 1000,
     "pageCount": 7,
     "pages": [
