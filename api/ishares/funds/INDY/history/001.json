@@ -2,7 +2,7 @@
   "ticker": "INDY",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 4238,
+  "totalRows": 4239,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Sep 25, 2026",
+      "NAV per Share": "42.099687",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "12100000",
+      "Non-FV NAV": "42.042693"
+    },
     {
       "As Of": "Sep 24, 2026",
       "NAV per Share": "41.775368",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "13250000",
       "Non-FV NAV": "41.851466"
-    },
-    {
-      "As Of": "Sep 30, 2022",
-      "NAV per Share": "42.365672",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "13250000",
-      "Non-FV NAV": "42.687884"
     }
   ]
 }

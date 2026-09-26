@@ -2,7 +2,7 @@
   "ticker": "IEI",
   "page": 4,
   "pageSize": 1000,
-  "totalRows": 4963,
+  "totalRows": 4964,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 22, 2014",
+      "NAV per Share": "123.045525",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "33100000"
+    },
     {
       "As Of": "Oct 21, 2014",
       "NAV per Share": "123.194501",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "118.689376",
       "Ex-Dividends": "--",
       "Shares Outstanding": "11900000"
-    },
-    {
-      "As Of": "Nov 01, 2010",
-      "NAV per Share": "118.600599",
-      "Ex-Dividends": "0.183182",
-      "Shares Outstanding": "11600000"
     }
   ]
 }

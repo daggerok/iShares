@@ -2,7 +2,7 @@
   "ticker": "EPHE",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 4024,
+  "totalRows": 4025,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Sep 25, 2026",
+      "NAV per Share": "23.434276",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "5750000",
+      "Non-FV NAV": "23.413132"
+    },
     {
       "As Of": "Sep 24, 2026",
       "NAV per Share": "22.898136",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "4050000",
       "Non-FV NAV": "22.981871"
-    },
-    {
-      "As Of": "Oct 03, 2022",
-      "NAV per Share": "22.22551",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "4050000",
-      "Non-FV NAV": "22.133637"
     }
   ]
 }

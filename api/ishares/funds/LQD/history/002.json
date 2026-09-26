@@ -2,7 +2,7 @@
   "ticker": "LQD",
   "page": 2,
   "pageSize": 1000,
-  "totalRows": 6086,
+  "totalRows": 6087,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 03, 2022",
+      "NAV per Share": "103.786604",
+      "Ex-Dividends": "0.339207",
+      "Shares Outstanding": "310700000"
+    },
     {
       "As Of": "Sep 30, 2022",
       "NAV per Share": "102.553373",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "113.374788",
       "Ex-Dividends": "--",
       "Shares Outstanding": "283600000"
-    },
-    {
-      "As Of": "Oct 11, 2018",
-      "NAV per Share": "113.31105",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "285400000"
     }
   ]
 }

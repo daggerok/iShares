@@ -2,7 +2,7 @@
   "ticker": "URTH",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 3700,
+  "totalRows": 3701,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Sep 25, 2026",
+      "NAV per Share": "208.679238",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "39700000",
+      "Non-FV NAV": "208.518436"
+    },
     {
       "As Of": "Sep 24, 2026",
       "NAV per Share": "207.441665",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "18800000",
       "Non-FV NAV": "105.734247"
-    },
-    {
-      "As Of": "Oct 03, 2022",
-      "NAV per Share": "102.46514",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "18800000",
-      "Non-FV NAV": "102.293147"
     }
   ]
 }

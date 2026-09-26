@@ -2,7 +2,7 @@
   "ticker": "EEMS",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 3800,
+  "totalRows": 3801,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Sep 25, 2026",
+      "NAV per Share": "75.833419",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "5100000",
+      "Non-FV NAV": "75.629445"
+    },
     {
       "As Of": "Sep 24, 2026",
       "NAV per Share": "75.356626",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "6900000",
       "Non-FV NAV": "45.487917"
-    },
-    {
-      "As Of": "Sep 30, 2022",
-      "NAV per Share": "45.200072",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "6900000",
-      "Non-FV NAV": "45.443548"
     }
   ]
 }

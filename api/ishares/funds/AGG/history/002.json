@@ -2,7 +2,7 @@
   "ticker": "AGG",
   "page": 2,
   "pageSize": 1000,
-  "totalRows": 5791,
+  "totalRows": 5792,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 03, 2022",
+      "NAV per Share": "96.863617",
+      "Ex-Dividends": "0.210609",
+      "Shares Outstanding": "806900000"
+    },
     {
       "As Of": "Sep 30, 2022",
       "NAV per Share": "96.254466",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "104.770616",
       "Ex-Dividends": "--",
       "Shares Outstanding": "509900000"
-    },
-    {
-      "As Of": "Oct 11, 2018",
-      "NAV per Share": "104.829731",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "509700000"
     }
   ]
 }

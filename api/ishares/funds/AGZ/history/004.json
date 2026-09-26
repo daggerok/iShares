@@ -2,7 +2,7 @@
   "ticker": "AGZ",
   "page": 4,
   "pageSize": 1000,
-  "totalRows": 4500,
+  "totalRows": 4501,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 22, 2014",
+      "NAV per Share": "113.376037",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "3250000"
+    },
     {
       "As Of": "Oct 21, 2014",
       "NAV per Share": "113.508417",
@@ -6002,12 +6008,6 @@
       "As Of": "Nov 02, 2010",
       "NAV per Share": "111.435983",
       "Ex-Dividends": "--",
-      "Shares Outstanding": "3300000"
-    },
-    {
-      "As Of": "Nov 01, 2010",
-      "NAV per Share": "111.383142",
-      "Ex-Dividends": "0.159024",
       "Shares Outstanding": "3300000"
     }
   ]

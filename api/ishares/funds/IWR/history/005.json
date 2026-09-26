@@ -2,7 +2,7 @@
   "ticker": "IWR",
   "page": 5,
   "pageSize": 1000,
-  "totalRows": 6337,
+  "totalRows": 6338,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Nov 01, 2010",
+      "NAV per Share": "23.456676",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "233800000"
+    },
     {
       "As Of": "Oct 29, 2010",
       "NAV per Share": "23.46514",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "24.43",
       "Ex-Dividends": "--",
       "Shares Outstanding": "104000000"
-    },
-    {
-      "As Of": "Nov 09, 2006",
-      "NAV per Share": "24.3025",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "103600000"
     }
   ]
 }

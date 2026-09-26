@@ -2,7 +2,7 @@
   "ticker": "SUB",
   "page": 4,
   "pageSize": 1000,
-  "totalRows": 4500,
+  "totalRows": 4501,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 22, 2014",
+      "NAV per Share": "106.223914",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "8450000"
+    },
     {
       "As Of": "Oct 21, 2014",
       "NAV per Share": "106.238185",
@@ -6002,12 +6008,6 @@
       "As Of": "Nov 02, 2010",
       "NAV per Share": "105.686696",
       "Ex-Dividends": "--",
-      "Shares Outstanding": "4350000"
-    },
-    {
-      "As Of": "Nov 01, 2010",
-      "NAV per Share": "105.684356",
-      "Ex-Dividends": "0.104195",
       "Shares Outstanding": "4350000"
     }
   ]

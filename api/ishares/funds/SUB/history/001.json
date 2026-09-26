@@ -2,7 +2,7 @@
   "ticker": "SUB",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 4500,
+  "totalRows": 4501,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Sep 25, 2026",
+      "NAV per Share": "104.135884",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "112200000"
+    },
     {
       "As Of": "Sep 24, 2026",
       "NAV per Share": "104.346377",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "102.606299",
       "Ex-Dividends": "--",
       "Shares Outstanding": "87900000"
-    },
-    {
-      "As Of": "Oct 03, 2022",
-      "NAV per Share": "102.452936",
-      "Ex-Dividends": "0.096292",
-      "Shares Outstanding": "87700000"
     }
   ]
 }
