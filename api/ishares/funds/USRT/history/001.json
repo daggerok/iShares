@@ -2,7 +2,7 @@
   "ticker": "USRT",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 4883,
+  "totalRows": 4884,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Sep 25, 2026",
+      "NAV per Share": "62.331791",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "69550000"
+    },
     {
       "As Of": "Sep 24, 2026",
       "NAV per Share": "62.448191",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "49.224538",
       "Ex-Dividends": "--",
       "Shares Outstanding": "37250000"
-    },
-    {
-      "As Of": "Oct 03, 2022",
-      "NAV per Share": "48.317526",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "37200000"
     }
   ]
 }

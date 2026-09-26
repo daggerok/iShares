@@ -1,4 +1,130 @@
 #!/usr/bin/env bun
+import { readFile as outputReadFile, readdir as outputReadDir } from 'node:fs/promises';
+import { createHash as outputCreateHash } from 'node:crypto';
+import { join as outputJoin } from 'node:path';
+import { fileURLToPath as outputFileURLToPath } from 'node:url';
+
+// Console presentation; no changes to provider requests or persisted data.
+/** Presentation only: no requests, writes, filtering, or changes to updater state. */
+
+const outputClean = (value: unknown): string => String(value ?? 'null').replace(/[\r\n\t]+/g, ' ');
+/** Presentation only: per-fund retry and fallback notices are printed when VERBOSE is enabled. */
+const outputVerbose = (): boolean => /^(1|true|yes|on)$/i.test((globalThis as any).process?.env?.VERBOSE ?? '');
+function outputNote(message: string): void { if (outputVerbose()) console.warn(message); }
+/** Names are the canonical environment knobs, not internal parser properties. */
+function outputConfigEntries(config: Record<string, any>): [string, string][] {
+  const values = new Map<string, string>();
+  const aliases: Record<string, string> = {
+    requestSleepSeconds: 'REQUEST_SLEEP', categories: 'CATEGORY',
+    aumRange: 'AUM', terRange: 'TER', dividendYieldRange: 'DIVIDEND_YIELD', secYieldRange: 'SEC_YIELD',
+    performanceRanges: 'PERFORMANCE', totalReturnRanges: 'TOTAL_RETURN',
+    skipVanEck: 'SKIP_VANECK', skipProShares: 'SKIP_PROSHARES',
+    skipWisdomTree: 'SKIP_WISDOMTREE', skipGoldmanSachs: 'SKIP_GOLDMANSACHS',
+  };
+  const range = (v: any): string => v?.source ?? `${Number.isFinite(v?.min) ? v.min : ''}:${Number.isFinite(v?.max) ? v.max : ''}`;
+  for (const [key, value] of Object.entries(config)) {
+    const name = aliases[key] ?? key.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toUpperCase();
+    if (name === 'PERFORMANCE' || name === 'TOTAL_RETURN') {
+      for (const period of ['YTD', '1Y', '3Y', '5Y', '10Y']) values.set(`${name}_${period}`, range(value?.[period]));
+    } else if (['AUM', 'TER', 'DIVIDEND_YIELD', 'SEC_YIELD'].includes(name)) {
+      values.set(name, range(value));
+    } else {
+      values.set(name, value instanceof Set ? [...value].join(',') || 'all' : Array.isArray(value) ? value.join(',') || 'all' : outputClean(value));
+    }
+  }
+  const first = ['MAX_FETCHES', 'REQUEST_SLEEP', 'CONCURRENCY'];
+  return [...values].sort(([a], [b]) => {
+    const ai = first.indexOf(a), bi = first.indexOf(b);
+    return (ai < 0 ? first.length : ai) - (bi < 0 ? first.length : bi) || a.localeCompare(b);
+  });
+}
+function outputPrintConfig(brand: string, config: Record<string, any>): void {
+  const entries: [string, string][] = [...outputConfigEntries(config), ['VERBOSE', String(outputVerbose())]];
+  console.log(`[ config   ] ${brand} updater:\n${entries.map(([key, value]) => `              ${key}=${/TOKEN|PASSWORD|SECRET|COOKIE/i.test(key) ? '<redacted>' : outputClean(value)}`).join('\n')}`);
+}
+function outputHasOutputFilters(config: Record<string, any>): boolean {
+  return outputConfigEntries(config).some(([name, value]) =>
+    /^(TICKERS|CATEGORY|AUM|TER|DIVIDEND_YIELD|SEC_YIELD|PERFORMANCE_|TOTAL_RETURN_)/.test(name) &&
+    !['', ':', 'null', 'all'].includes(value));
+}
+function outputPrintFilter(selected: number, total: number, deferred = false): void {
+  console.log(`[ filter   ] ${selected} of ${total} funds ${deferred ? 'selected for evaluation (data-dependent filters applied per fund)' : 'pass filters'}`);
+}
+function outputStable(value: any): any {
+  if (Array.isArray(value)) return value.map(outputStable);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.keys(value).sort().filter(key => !['generatedAt', 'catalogReadAt'].includes(key)).map(key => [key, outputStable(value[key])]));
+  return value;
+}
+function outputContentKey(value: unknown): string { return JSON.stringify(outputStable(value)) ?? 'null'; }
+async function outputInspectFund(root: URL | string, ticker: string): Promise<{ digest: string; meta: any }> {
+  const dir = outputJoin(root instanceof URL ? outputFileURLToPath(root) : root, 'funds', ticker);
+  const hash = outputCreateHash('sha256');
+  async function visit(path: string): Promise<void> {
+    const entries = await outputReadDir(path, { withFileTypes: true }).catch(() => []);
+    for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+      if (entry.isDirectory()) await visit(outputJoin(path, entry.name));
+      else if (entry.name.endsWith('.json')) {
+        const text = await outputReadFile(outputJoin(path, entry.name), 'utf8').catch(() => '');
+        hash.update(outputJoin(path.slice(dir.length), entry.name));
+        try { hash.update(outputContentKey(JSON.parse(text))); } catch { hash.update(text); }
+      }
+    }
+  }
+  await visit(dir);
+  const meta = await outputReadFile(outputJoin(dir, 'meta.json'), 'utf8').then(JSON.parse).catch(() => ({}));
+  return { digest: hash.digest('hex'), meta };
+}
+const outputCount = (value: any): unknown => typeof value === 'number' ? value : Array.isArray(value) ? value.length : value?.totalRows ?? value?.rows?.length ?? null;
+const outputScalar = (value: any): any => value && typeof value === 'object' ? value.display ?? value.value ?? null : value;
+function outputMoney(value: any): string {
+  const raw = outputScalar(value);
+  if (raw === null || raw === undefined || raw === '—' || raw === '--') return 'null';
+  const text = String(raw).replace(/[$,\s]/g, '');
+  const match = text.match(/^([+-]?[\d.]+)([KMBT])?$/i);
+  if (!match) return outputClean(raw);
+  const number = Number(match[1]) * ({ K: 1e3, M: 1e6, B: 1e9, T: 1e12 }[match[2]?.toUpperCase() as 'K' | 'M' | 'B' | 'T'] ?? 1);
+  if (!Number.isFinite(number)) return 'null';
+  for (const [unit, scale] of [['T', 1e12], ['B', 1e9], ['M', 1e6], ['K', 1e3]] as const) {
+    if (Math.abs(number) >= scale) return `$${(number / scale).toFixed(1)}${unit}`;
+  }
+  return `$${number.toFixed(2)}`;
+}
+function outputFundLine(index: number, total: number, ticker: string, status: string, data: any = {}, reason?: unknown): string {
+  const width = Math.max(2, String(total).length);
+  const metrics = data.metrics ?? {};
+  // Presentation only. Keep valid zero/false values; omit unavailable fields.
+  // outputMoney returns the string 'null' for an unavailable monetary value.
+  const field = (key: string, value: unknown): string =>
+    value === null || value === undefined || value === 'null' ? '' : `${key}=${outputClean(value)}`;
+  const sources = [
+    field('official', data.officialHistoryCount),
+    field('yahoo', data.yahooHistoryCount),
+  ].filter(part => part !== '').join(' ');
+  const detail = [
+    field('port', data.portId ?? data.portfolioId),
+    field('history', outputCount(data.history ?? data.historyCount)),
+    sources ? `(${sources})` : '',
+    field('holdings', outputCount(data.holdings ?? data.holdingsCount)),
+    field('divs', outputCount(data.worksheets?.Distributions ?? data.distributions)),
+    field('netAssets', outputMoney(data.netAssets ?? data.aum)),
+    field('total', outputMoney(data.totalFundNetAssets ?? data.totalNetAssets)),
+    field('div', outputScalar(data.trailingYield ?? data.yields?.effectiveYield ?? data.yields?.dividendYield ?? data.dividendYield ?? metrics.dividendYield)),
+    field('sec', outputScalar(data.secYield ?? data.yields?.secYield ?? metrics.secYield)),
+    field('wp', data.workplaceRaw),
+  ].filter(part => part !== '').join(' ');
+  return `[ ${String(index).padStart(width)}/${String(total).padEnd(width)}  ] ${outputClean(ticker).padEnd(5)} ${status.padEnd(9)}${detail ? ` ${detail}` : ''}${reason ? ` reason=${outputClean(reason)}` : ''}`;
+}
+function outputCreateReporter(root: URL | string, total: number) {
+  let completed = 0;
+  return {
+    before: (ticker: string) => outputInspectFund(root, ticker),
+    async result(ticker: string, before: { digest: string }, status?: string, reason?: unknown, extra: any = {}) {
+      const after = await outputInspectFund(root, ticker);
+      console.log(outputFundLine(++completed, total, ticker, status ?? (before.digest === after.digest ? 'unchanged' : 'updated'), { ...after.meta, ...extra }, reason));
+    },
+  };
+}
+
 /// <reference types="node" />
 import {
   appendFile,
@@ -435,7 +561,7 @@ async function requestText(
     try {
       // First attempts stay silent: one status line per fund is enough.
       // Only retries are worth a line, next to the matching [retry] warning.
-      if (attempt > 1) {
+      if (attempt > 1 && outputVerbose()) {
         logTag("fetch", `ticker=${logTicker(label)} attempt=${attempt}/${attempts}`);
       }
       const response = await fetch(url, {
@@ -455,7 +581,7 @@ async function requestText(
       const retryAfter = error instanceof HttpError ? error.retryAfterMilliseconds : null;
       const backoff = Math.min(30_000, 1_000 * 2 ** (attempt - 1));
       const delay = Math.min(60_000, Math.max(backoff, retryAfter || 0));
-      logTag(
+      if (outputVerbose()) logTag(
         "retry",
         `ticker=${logTicker(label)} in=${Math.round(delay / 1_000)}s reason=${String(error)}`,
         console.warn,
@@ -923,7 +1049,7 @@ async function updateFund(
       JSON.parse(await requestText(fundHeader, fund.ticker, config, waitForRequest)),
     );
   } catch (error) {
-    logTag(
+    if (outputVerbose()) logTag(
       "yield",
       `ticker=${logTicker(fund.ticker)} sec yield unavailable: ${String(error)}`,
       console.warn,
@@ -1198,7 +1324,7 @@ async function main() {
     return;
   }
   const config = readConfig();
-  logTag("config", configLines(config).join(" "));
+  outputPrintConfig("iShares", config);
   const waitForRequest = createRequestGate(config.requestSleepSeconds);
   const previous = JSON.parse(
     (await old(new URL("index.json", ROOT))) || '{"funds":[]}',
@@ -1251,23 +1377,18 @@ async function main() {
   const candidates = config.maxFetches
     ? selectUpdateBatch(catalogEligible, config.maxFetches, lastProcessedTicker)
     : catalogEligible;
-  logTag(
-    "filter",
-    `catalogEligible=${catalogEligible.length} selectedForUpdate=${candidates.length}${config.maxFetches ? ` startingAfter=${lastProcessedTicker || "start"}` : ""}`,
-  );
+  outputPrintFilter(catalogEligible.length, discovered.length, outputHasOutputFilters(config));
+  const output = outputCreateReporter(ROOT, candidates.length);
 
   const results = await mapWithConcurrency(
     candidates,
     config.concurrency,
     async (fund, index): Promise<UpdateResult> => {
       // No "start" line: a fund is visible exactly once, with its final status.
-      const at = `${logTicker(fund.ticker)} ${logProgress(index + 1, candidates.length)}`;
+      const before = await output.before(fund.ticker);
       try {
         const result = await updateFund(fund, config, waitForRequest);
-        logTag(
-          "fund",
-          `ticker=${at} status=${result.status}${result.reason ? ` reason=${result.reason}` : ""}`,
-        );
+        await output.result(fund.ticker, before, result.status === "failed" ? "failed" : result.status === "filtered" ? "skipped" : undefined, result.reason, { netAssets: fund.netAssets, trailingYield: fund.trailingYield });
         return result;
       } catch (error) {
         const result: UpdateResult = {
@@ -1275,7 +1396,7 @@ async function main() {
           status: "failed",
           reason: String(error),
         };
-        logTag("fund", `ticker=${at} status=failed reason=${result.reason}`, console.warn);
+        await output.result(fund.ticker, before, "failed", result.reason);
         return result;
       }
     },

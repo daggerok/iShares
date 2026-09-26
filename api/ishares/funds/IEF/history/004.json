@@ -2,7 +2,7 @@
   "ticker": "IEF",
   "page": 4,
   "pageSize": 1000,
-  "totalRows": 6086,
+  "totalRows": 6087,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 22, 2014",
+      "NAV per Share": "105.875502",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "59900000"
+    },
     {
       "As Of": "Oct 21, 2014",
       "NAV per Share": "106.065356",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "98.683431",
       "Ex-Dividends": "--",
       "Shares Outstanding": "36100000"
-    },
-    {
-      "As Of": "Nov 01, 2010",
-      "NAV per Share": "98.401101",
-      "Ex-Dividends": "0.234653",
-      "Shares Outstanding": "35800000"
     }
   ]
 }

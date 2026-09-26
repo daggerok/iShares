@@ -2,7 +2,7 @@
   "ticker": "EUFN",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 4200,
+  "totalRows": 4201,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Sep 25, 2026",
+      "NAV per Share": "41.043477",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "99250000",
+      "Non-FV NAV": "40.82045"
+    },
     {
       "As Of": "Sep 24, 2026",
       "NAV per Share": "40.480289",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "79100000",
       "Non-FV NAV": "14.940612"
-    },
-    {
-      "As Of": "Oct 03, 2022",
-      "NAV per Share": "14.226144",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "79100000",
-      "Non-FV NAV": "14.192562"
     }
   ]
 }
