@@ -228,10 +228,10 @@ describe("distribution frequency", () => {
     expect(deriveDistributionFrequency(sheet(["2024-12-20", "2025-12-20", "2026-12-20"], "Payable Date"))).toBe("12 - Annually");
   });
   test("does not guess with missing, invalid, duplicate or mixed history", () => {
-    expect(deriveDistributionFrequency()).toBe("00 - —");
-    expect(deriveDistributionFrequency(sheet([]))).toBe("00 - —");
-    expect(deriveDistributionFrequency(sheet(["", "--", "bad date"]))).toBe("00 - —");
-    expect(deriveDistributionFrequency(sheet(["2026-01-02", "2026-01-02", "2026-02-02"]))).toBe("00 - —");
+    expect(deriveDistributionFrequency()).toBe("00 - None");
+    expect(deriveDistributionFrequency(sheet([]))).toBe("00 - None");
+    expect(deriveDistributionFrequency(sheet(["", "--", "bad date"]))).toBe("00 - None");
+    expect(deriveDistributionFrequency(sheet(["2026-01-02", "2026-01-02", "2026-02-02"]))).toBe("00 - None");
     expect(deriveDistributionFrequency(sheet(["2026-01-02", "2026-02-02", "2026-05-02"]))).toBe("99 - Irregular");
     expect(deriveDistributionFrequency(sheet(["2026-01-01", "2026-01-08", "2026-01-15"]))).toBe("99 - Irregular");
   });
@@ -256,4 +256,14 @@ test("tickerless bond worksheet skips fund metadata and retains identifiers", ()
   expect(sheet.headers).toEqual(rows[2]);
   expect(sheet.rows).toHaveLength(2);
   expect(sheet.rows[0].CUSIP).toBe("123456789");
+});
+
+
+import { test as frequencyLabelTest, expect as frequencyLabelExpect } from 'bun:test';
+frequencyLabelTest('missing frequency uses None in generated labels and UI fallback', async () => {
+  const updater = await import('./update-data');
+  frequencyLabelExpect(updater.deriveDistributionFrequency()).toBe('00 - None');
+  frequencyLabelExpect(updater.deriveDistributionFrequency({ headers: ['Ex-Date'], rows: [] } as any)).toBe('00 - None');
+  const html = await Bun.file(new URL('../index.html', import.meta.url)).text();
+  frequencyLabelExpect(html).toContain('Frequency: fund.distributions?.frequencyCode || "00 - None"');
 });
