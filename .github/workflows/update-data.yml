@@ -132,7 +132,7 @@ jobs:
       TOTAL_RETURN_5Y: ${{ inputs.total_return_5y || '' }}
       TOTAL_RETURN_10Y: ${{ inputs.total_return_10y || '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
       - name: Test updater
         run: bun test scripts/update-data.test.ts
