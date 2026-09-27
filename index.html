@@ -1592,7 +1592,7 @@
                 Expense: fund.netExpenseRatio || fund.grossExpenseRatio || "—",
                 "Dividend Yield": fund.trailingYield || "—",
                 "SEC Yield": fund.secYield || "—",
-                Frequency: fund.distributions?.frequencyCode || "00 - —",
+                Frequency: fund.distributions?.frequencyCode || "00 - None",
                 "YTD Return": formatPercent(totalReturn.YTD ?? fund.ytdReturn),
                 "TR 1Y": formatPercent(totalReturn["1Y"]),
                 "TR 3Y": formatPercent(totalReturn["3Y"]),

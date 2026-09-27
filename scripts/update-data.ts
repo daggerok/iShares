@@ -794,7 +794,7 @@ function rounded(value: number) {
  * 13 events. Broad day windows allow month lengths/holidays, not mixed cadences.
  */
 export function deriveDistributionFrequency(distributions?: Sheet): string {
-  const unknown = "00 - —";
+  const unknown = "00 - None";
   if (!distributions) return unknown;
   let dates: number[] = [];
   for (const label of ["ex-date", "payable date"]) {
