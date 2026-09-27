@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+/// <reference types="node" />
 import { readFile as outputReadFile, readdir as outputReadDir } from 'node:fs/promises';
 import { createHash as outputCreateHash } from 'node:crypto';
 import { join as outputJoin } from 'node:path';
@@ -125,7 +126,6 @@ function outputCreateReporter(root: URL | string, total: number) {
   };
 }
 
-/// <reference types="node" />
 import {
   appendFile,
   mkdir,
