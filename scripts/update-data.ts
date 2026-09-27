@@ -534,17 +534,25 @@ function retryable(error: unknown) {
   return error.status === 408 || error.status === 425 || error.status === 429 || error.status >= 500;
 }
 
-function createRequestGate(seconds: number) {
+// One pacing lane per concurrent worker. A single shared tail-chain
+// serialized every request through one FIFO regardless of concurrency;
+// CONCURRENCY workers now each get their own paced lane, so concurrency
+// actually multiplies throughput as documented instead of only overlapping
+// wait time.
+function createRequestGate(seconds: number, laneCount = 1) {
   const interval = seconds * 1_000;
-  let nextStart = 0;
-  let tail = Promise.resolve();
+  const count = Math.max(1, laneCount);
+  const nextStart = new Array(count).fill(0);
+  const tails = new Array(count).fill(null).map(() => Promise.resolve());
   return () => {
-    const turn = tail.then(async () => {
-      const wait = Math.max(0, nextStart - Date.now());
+    let lane = 0;
+    for (let i = 1; i < count; i++) if (nextStart[i] < nextStart[lane]) lane = i;
+    const turn = tails[lane].then(async () => {
+      const wait = Math.max(0, nextStart[lane] - Date.now());
       if (wait) await sleep(wait);
-      nextStart = Date.now() + interval;
+      nextStart[lane] = Date.now() + interval;
     });
-    tail = turn.catch(() => undefined);
+    tails[lane] = turn.catch(() => undefined);
     return turn;
   };
 }
@@ -1325,7 +1333,7 @@ async function main() {
   }
   const config = readConfig();
   outputPrintConfig("iShares", config);
-  const waitForRequest = createRequestGate(config.requestSleepSeconds);
+  const waitForRequest = createRequestGate(config.requestSleepSeconds, config.concurrency);
   const previous = JSON.parse(
     (await old(new URL("index.json", ROOT))) || '{"funds":[]}',
   );
