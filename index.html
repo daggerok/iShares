@@ -291,7 +291,22 @@
         }
       }
     </style>
-  </head>
+  <style id="catalog-summary-styles">
+    #app-subtitle:empty { display: none; }
+    #ticker-count { cursor: help; font-family: inherit; }
+    #ticker-count:focus-visible { outline: 2px solid #3b82f6; outline-offset: 3px; }
+    #app-summary[hidden] { display: none; }
+    #app-summary {
+      box-sizing: border-box; position: fixed; z-index: 100; display: block;
+      width: min(42rem, calc(100vw - 2rem)); max-height: min(70vh, 32rem);
+      overflow: auto; overflow-wrap: anywhere; padding: 1rem;
+      border: 1px solid #cbd5e1; border-radius: .75rem;
+      background: #fff; color: #334155; font-size: .875rem; line-height: 1.5;
+      box-shadow: 0 12px 30px rgb(15 23 42 / .2);
+    }
+    .dark #app-summary { background: #0f172a; color: #cbd5e1; border-color: #475569; }
+  </style>
+</head>
   <body
     class="min-h-screen font-sans bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300"
   >
@@ -332,7 +347,16 @@
           <span
             id="app-subtitle"
             class="basis-full sm:basis-auto text-sm text-slate-500 dark:text-slate-400"
+          ></span>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <button type="button" aria-controls="app-summary" aria-expanded="false" aria-label="ETF catalog information"
+            id="ticker-count"
+            class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-semibold px-3.5 py-1.5 rounded-full border border-blue-200 dark:border-blue-500/30"
           >
+            0 items
+          </button>
+        <span id="app-summary" role="region" aria-label="ETF catalog information" hidden>
             <span class="block sm:inline"
               >Search iShares ETFs, select ETFs via the “Use” checkbox, then use the Watchlist tab.
               Data comes from
@@ -345,14 +369,6 @@
               >
               · Upload SpreadsheetML (.xls) file from iShares.</span
             >
-          </span>
-        </div>
-        <div class="flex items-center gap-3 shrink-0">
-          <span
-            id="ticker-count"
-            class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-semibold px-3.5 py-1.5 rounded-full border border-blue-200 dark:border-blue-500/30"
-          >
-            0 items
           </span>
           <button
             id="theme-toggle"
@@ -1481,7 +1497,29 @@
       /**
        * Updates the dynamic header subtitle with selected fund links.
        */
-      function renderSubtitle() {
+      function renderHeaderSummary(subtitle, tickers, activeTicker, activate) {
+        const panel = document.getElementById('app-summary');
+        if (!panel) return;
+        // Move existing nodes: provenance links and their handlers remain intact.
+        panel.replaceChildren(...Array.from(subtitle.childNodes));
+        subtitle.replaceChildren();
+        const selected = [...tickers].sort();
+        if (!selected.length) return;
+        subtitle.append(document.createTextNode(`${selected.length} selected: `));
+        selected.forEach((ticker, index) => {
+          if (index) subtitle.append(document.createTextNode(', '));
+          const link = document.createElement('a');
+          link.href = '#';
+          link.dataset.headerFund = ticker;
+          link.title = `View ${ticker} details`;
+          link.className = `font-semibold ${ticker === activeTicker ? 'text-blue-700 dark:text-blue-300 underline' : 'text-blue-600 dark:text-blue-400 hover:underline'}`;
+          link.textContent = ticker;
+          link.addEventListener('click', event => { event.preventDefault(); activate(ticker); });
+          subtitle.append(link);
+        });
+      }
+
+      function renderSubtitleDetails() {
         if (isUploadedFile) {
           appSubtitle.innerHTML = `<span class="block sm:inline">· Uploaded SpreadsheetML (.xls) file: <strong>${escapeHtml(
             currentFileName,
@@ -1521,6 +1559,11 @@
         }
 
         appSubtitle.innerHTML = `${baseText}${selectionItem}`;
+      }
+
+      function renderSubtitle() {
+        renderSubtitleDetails();
+        renderHeaderSummary(appSubtitle, isUploadedFile ? [] : selectedETFs, activeFundTicker, selectSingleFund);
       }
 
       // =========================================================================
@@ -3107,5 +3150,59 @@
 
       blacklistClearBtn.addEventListener("click", clearBlacklist);
     </script>
-  </body>
+  <script id="catalog-summary-behavior">
+    (() => {
+      const trigger = document.getElementById('ticker-count');
+      const panel = document.getElementById('app-summary');
+      if (!trigger || !panel) return;
+      let pinned = false;
+      let closeTimer;
+      const position = () => {
+        const rect = trigger.getBoundingClientRect();
+        panel.style.left = `${Math.max(16, Math.min(rect.right - panel.offsetWidth, innerWidth - panel.offsetWidth - 16))}px`;
+        panel.style.top = `${Math.max(16, Math.min(rect.bottom + 8, innerHeight - panel.offsetHeight - 16))}px`;
+      };
+      const show = () => {
+        clearTimeout(closeTimer);
+        panel.hidden = false;
+        trigger.setAttribute('aria-expanded', 'true');
+        position();
+      };
+      const hide = () => {
+        clearTimeout(closeTimer);
+        panel.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+      };
+      const scheduleHide = () => {
+        clearTimeout(closeTimer);
+        closeTimer = setTimeout(() => {
+          const focused = document.activeElement;
+          if (!pinned && !trigger.matches(':hover') && !panel.matches(':hover') &&
+              focused !== trigger && !panel.contains(focused)) hide();
+        }, 150);
+      };
+      trigger.addEventListener('pointerenter', event => { if (event.pointerType !== 'touch') show(); });
+      panel.addEventListener('pointerenter', () => clearTimeout(closeTimer));
+      trigger.addEventListener('pointerleave', scheduleHide);
+      panel.addEventListener('pointerleave', scheduleHide);
+      trigger.addEventListener('focus', show);
+      panel.addEventListener('focusin', show);
+      trigger.addEventListener('blur', scheduleHide);
+      panel.addEventListener('focusout', scheduleHide);
+      trigger.addEventListener('click', () => { pinned = !pinned; if (pinned) show(); else hide(); });
+      document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return;
+        pinned = false;
+        if (panel.contains(document.activeElement)) trigger.focus();
+        hide();
+      });
+      document.addEventListener('pointerdown', event => {
+        if (!trigger.contains(event.target) && !panel.contains(event.target)) { pinned = false; hide(); }
+      });
+      addEventListener('resize', () => { if (!panel.hidden) position(); });
+      addEventListener('scroll', () => { if (!panel.hidden) position(); }, { passive: true });
+      if (typeof ResizeObserver === 'function') new ResizeObserver(() => { if (!panel.hidden) position(); }).observe(panel);
+    })();
+  </script>
+</body>
 </html>
