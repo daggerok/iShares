@@ -1,15 +1,4 @@
 #!/usr/bin/env bun
-// Checked-in JSON is the runtime default; any nonblank environment value wins.
-import { readFileSync as readUpdaterConfig } from 'node:fs';
-try {
-  const updaterDefaults = JSON.parse(readUpdaterConfig(new URL('./update-data.config.json', import.meta.url), 'utf8')) as Record<string, unknown>;
-  for (const [key, value] of Object.entries(updaterDefaults)) {
-    const current = process.env[key];
-    if ((current === undefined || current.trim() === '') && value !== null && value !== undefined) process.env[key] = String(value);
-  }
-} catch (error) {
-  if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-}
 /// <reference types="node" />
 import { readFile as outputReadFile, readdir as outputReadDir } from 'node:fs/promises';
 import { createHash as outputCreateHash } from 'node:crypto';
@@ -1214,11 +1203,11 @@ function printHelp(): void {
 Usage:
   bun scripts/update-data.ts [-h|--help]
 
-Configuration is read from environment variables (ISHARES_-prefixed aliases
-work too). All filters combine with AND logic; filters limit which funds get
-updated, while the published catalog keeps every fund and its previously
-stored data. A configured filter also skips funds that do not publish the
-metric.
+Defaults live in scripts/update-data.config.json; environment variables
+(ISHARES_-prefixed aliases work too) override the file. All filters combine
+with AND logic; filters limit which funds get updated, while the published
+catalog keeps every fund and its previously stored data. A configured filter
+also skips funds that do not publish the metric.
 
   MAX_FETCHES=0           Maximum fund update attempts this run; continue after
                           the saved cursor in api/ishares/update-state.json
@@ -1243,6 +1232,7 @@ metric.
   TOTAL_RETURN_3Y=":"     3Y cumulative NAV total-return (TR 3Y) range in %
   TOTAL_RETURN_5Y=":"     5Y cumulative NAV total-return (TR 5Y) range in %
   TOTAL_RETURN_10Y=":"    10Y cumulative NAV total-return (TR 10Y) range in %
+  VERBOSE=false           Print per-fund retry and fallback notices
 
 Ranges use strict inclusive min:max syntax ("15:", ":20", "5:20", "-5%:7.5",
 ":"); the colon is required.
@@ -1337,12 +1327,86 @@ async function writeSummary(
   await appendFile(summaryPath, `${markdown.join("\n")}\n`);
 }
 
+// File defaults and explicit overrides, same mechanism as the sibling updaters:
+// allowlisted scalar controls only, so GitHub Actions can resolve them without
+// interpolating user input into bash. Precedence: config file < advanced JSON <
+// nonblank inputs < environment (`ISHARES_<KEY>` wins over `<KEY>`; the legacy
+// aliases ISHARES_LIMIT and HISTORICAL_PAGE_SIZE still work).
+export const CONTROL_NAMES = [
+  "MAX_FETCHES", "REQUEST_SLEEP", "AUM", "CONCURRENCY", "HOLDINGS_PAGE_SIZE", "HISTORY_PAGE_SIZE",
+  "STORE_RAW_DOWNLOADS", "MAX_RETRIES", "TICKERS", "DIVIDEND_YIELD",
+  ...["PERFORMANCE", "TOTAL_RETURN"].flatMap((prefix) =>
+    RETURN_PERIODS.map((period) => `${prefix}_${period}`)),
+  "VERBOSE",
+] as const;
+export type ControlName = (typeof CONTROL_NAMES)[number];
+export const CONFIG_FILE_URL = new URL("./update-data.config.json", import.meta.url);
+const LEGACY_ALIASES: Record<string, string[]> = {
+  MAX_FETCHES: ["ISHARES_LIMIT"],
+  HISTORY_PAGE_SIZE: ["HISTORICAL_PAGE_SIZE"],
+};
+
+export function resolveControls(
+  file: unknown = {},
+  advanced: unknown = {},
+  inputs: unknown = {},
+  env: Record<string, string | undefined> = {},
+): Record<string, string> {
+  const result: Record<string, string> = {};
+  const known = new Set<string>(CONTROL_NAMES);
+  const apply = (value: unknown, skipEmpty = false): void => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      throw new Error("Configuration must be a JSON object");
+    }
+    for (const [key, raw] of Object.entries(value)) {
+      if (!known.has(key)) throw new Error(`Unknown updater control: ${key}`);
+      if (skipEmpty && (raw === "" || raw === undefined || raw === null)) continue;
+      if (!["string", "number", "boolean"].includes(typeof raw)) {
+        throw new Error(`${key}: expected string, number or boolean`);
+      }
+      const text = String(raw);
+      if (/[\r\n\0]/.test(text)) throw new Error(`${key}: multiline/control characters are not allowed`);
+      result[key] = text;
+    }
+  };
+  apply(file);
+  apply(advanced);
+  apply(inputs, true);
+  for (const key of CONTROL_NAMES) {
+    const value = [`ISHARES_${key}`, key, ...(LEGACY_ALIASES[key] ?? [])]
+      .map((name) => env[name])
+      .find((candidate) => candidate !== undefined);
+    if (value !== undefined) apply({ [key]: value });
+  }
+  for (const key of ["STORE_RAW_DOWNLOADS", "VERBOSE"]) {
+    if (result[key] && !/^(0|1|true|false|yes|no|y|n|on|off)$/i.test(result[key])) {
+      throw new Error(`${key}: expected boolean`);
+    }
+  }
+  readConfig(result); // validate integers, sleep and every min:max filter before any request or write
+  return result;
+}
+
+export async function runtimeControls(
+  env: Record<string, string | undefined> = process.env,
+): Promise<Record<string, string>> {
+  let file: unknown = {};
+  try {
+    file = JSON.parse(await readFile(CONFIG_FILE_URL, "utf8"));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+  return resolveControls(file, {}, {}, env);
+}
+
 async function main() {
   if (wantsHelp(process.argv.slice(2))) {
     printHelp();
     return;
   }
-  const config = readConfig();
+  const controls = await runtimeControls();
+  if (controls.VERBOSE !== undefined) process.env.VERBOSE = controls.VERBOSE;
+  const config = readConfig(controls);
   outputPrintConfig("iShares", config);
   const waitForRequest = createRequestGate(config.requestSleepSeconds, config.concurrency);
   const previous = JSON.parse(
