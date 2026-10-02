@@ -198,7 +198,9 @@ type PageManifest = {
 type UpdateScope = {
   tickers: string[];
   aumRange: AumRange | null;
+  terRange: Range | null;
   dividendYieldRange: Range | null;
+  secYieldRange: Range | null;
   performanceRanges: RangeMap;
   totalReturnRanges: RangeMap;
 };
@@ -219,7 +221,9 @@ export type UpdaterConfig = {
   storeRawDownloads: boolean;
   maxRetries: number;
   tickers: string[];
+  terRange?: Range;
   dividendYieldRange?: Range;
+  secYieldRange?: Range;
   performanceRanges: RangeMap;
   totalReturnRanges: RangeMap;
 };
@@ -426,7 +430,7 @@ export function readConfig(
     storeRawDownloads: TRUTHY.has(
       envValue(env, "STORE_RAW_DOWNLOADS", ["ISHARES_STORE_RAW_DOWNLOADS"]).toLowerCase(),
     ),
-    maxRetries: parseInteger(envValue(env, "MAX_RETRIES"), "MAX_RETRIES", 2, 0),
+    maxRetries: parseInteger(envValue(env, "MAX_RETRIES"), "MAX_RETRIES", 2, 1),
     tickers: [
       ...new Set(
         envValue(env, "TICKERS")
@@ -436,10 +440,12 @@ export function readConfig(
           .filter(Boolean),
       ),
     ],
+    terRange: parseRange(envValue(env, "TER"), "TER"),
     dividendYieldRange: parseRange(
       envValue(env, "DIVIDEND_YIELD"),
       "DIVIDEND_YIELD",
     ),
+    secYieldRange: parseRange(envValue(env, "SEC_YIELD"), "SEC_YIELD"),
     performanceRanges: parseRanges(env, "PERFORMANCE"),
     totalReturnRanges: parseRanges(env, "TOTAL_RETURN"),
   };
@@ -478,6 +484,12 @@ export function catalogFilterReasons(fund: Fund, config: UpdaterConfig) {
         reasons.push("maximum AUM");
       }
     }
+  }
+
+  if (config.terRange) {
+    const ter = parseDataNumber(fund.netExpenseRatio) ?? parseDataNumber(fund.grossExpenseRatio);
+    if (ter === null) reasons.push("expense ratio unavailable");
+    else if (!inRange(ter, config.terRange)) reasons.push("expense ratio range");
   }
 
   if (config.dividendYieldRange) {
@@ -619,7 +631,9 @@ function updateScope(config: UpdaterConfig): UpdateScope {
   return {
     tickers: [...config.tickers],
     aumRange: config.aumRange ?? null,
+    terRange: config.terRange ?? null,
     dividendYieldRange: config.dividendYieldRange ?? null,
+    secYieldRange: config.secYieldRange ?? null,
     performanceRanges: config.performanceRanges,
     totalReturnRanges: config.totalReturnRanges,
   };
@@ -1084,6 +1098,11 @@ async function updateFund(
   ) };
   const returns = deriveReturnMetrics(worksheets.Performance);
   const returnFailures = returnFilterReasons(returns, config);
+  if (config.secYieldRange) {
+    const value = parseDataNumber(secYield?.value);
+    if (value === null) returnFailures.push("SEC yield unavailable");
+    else if (!inRange(value, config.secYieldRange)) returnFailures.push(`SEC_YIELD=${value}`);
+  }
   if (returnFailures.length) {
     return {
       ticker: fund.ticker,
@@ -1219,9 +1238,11 @@ also skips funds that do not publish the metric.
   HOLDINGS_PAGE_SIZE=250  Rows per generated holdings JSON page
   HISTORY_PAGE_SIZE=1000  Rows per generated historical NAV JSON page
   STORE_RAW_DOWNLOADS=    Keep source XLS files (true/yes/on/1)
-  MAX_RETRIES=2           Retries after the initial request
+  MAX_RETRIES=2           Retries after the initial request (integer >= 1)
   TICKERS=                Only update these tickers (spaces or commas)
+  TER=":"                 Net expense ratio range in % (gross when net is missing)
   DIVIDEND_YIELD=":"      12m trailing dividend yield range in %
+  SEC_YIELD=":"           30-day SEC yield range in % (checked after download)
   PERFORMANCE_YTD=":"     YTD average-annual NAV performance range in %
   PERFORMANCE_1Y=":"      1Y average-annual NAV performance range in %
   PERFORMANCE_3Y=":"      3Y average-annual NAV performance (CAGR) range in %
@@ -1259,7 +1280,9 @@ function configLines(config: UpdaterConfig) {
     `STORE_RAW_DOWNLOADS=${config.storeRawDownloads}`,
     `MAX_RETRIES=${config.maxRetries}`,
     `TICKERS=${config.tickers.join(" ") || "all"}`,
+    `TER=${rangeLabel(config.terRange)}`,
     `DIVIDEND_YIELD=${rangeLabel(config.dividendYieldRange)}`,
+    `SEC_YIELD=${rangeLabel(config.secYieldRange)}`,
   ];
   for (const period of RETURN_PERIODS) {
     lines.push(`PERFORMANCE_${period}=${rangeLabel(config.performanceRanges[period])}`);
@@ -1334,7 +1357,7 @@ async function writeSummary(
 // aliases ISHARES_LIMIT and HISTORICAL_PAGE_SIZE still work).
 export const CONTROL_NAMES = [
   "MAX_FETCHES", "REQUEST_SLEEP", "AUM", "CONCURRENCY", "HOLDINGS_PAGE_SIZE", "HISTORY_PAGE_SIZE",
-  "STORE_RAW_DOWNLOADS", "MAX_RETRIES", "TICKERS", "DIVIDEND_YIELD",
+  "STORE_RAW_DOWNLOADS", "MAX_RETRIES", "TICKERS", "TER", "DIVIDEND_YIELD", "SEC_YIELD",
   ...["PERFORMANCE", "TOTAL_RETURN"].flatMap((prefix) =>
     RETURN_PERIODS.map((period) => `${prefix}_${period}`)),
   "VERBOSE",
