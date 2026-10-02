@@ -68,6 +68,7 @@ Returns and NAV are the official figures from the iShares workbook with their as
 | `STORE_RAW_DOWNLOADS` | `false` | Keep the source XLS workbooks (`true`/`yes`/`on`/`1`). |
 | `MAX_RETRIES` | `2` | Retries after the initial request (integer >= 1). Only network errors and HTTP 408/425/429/5xx are retried with exponential backoff. |
 | `VERBOSE` | `false` | Print per-fund retry and fallback notices. |
+| `USE_SYSTEM_CA` | `auto` | TLS trust store: `auto` restarts the updater once with Bun's `--use-system-ca` when a request fails with an untrusted-certificate error; `true` always uses the system CA store; `false` never restarts. Not an individual workflow input: use `advanced`, the config file or the CLI environment. |
 
 `TICKERS` combines with the AUM, yield and return filters using AND logic; it does not override them.
 
