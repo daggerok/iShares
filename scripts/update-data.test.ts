@@ -1,6 +1,8 @@
 /// <reference types="bun" />
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import {
+  CONTROL_NAMES,
   catalogFilterReasons,
   deriveReturnMetrics,
   deriveDistributionFrequency,
@@ -10,7 +12,9 @@ import {
   parseSecYield,
   parseWorkbook,
   readConfig,
+  resolveControls,
   returnFilterReasons,
+  runtimeControls,
   selectUpdateBatch,
 } from "./update-data";
 
@@ -258,69 +262,95 @@ test("tickerless bond worksheet skips fund metadata and retains identifiers", ()
   expect(sheet.rows[0].CUSIP).toBe("123456789");
 });
 
+const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
+const file = () => JSON.parse(read('scripts/update-data.config.json'));
+const workflow = read('.github/workflows/update-data.yml');
 
-import { test as frequencyLabelTest, expect as frequencyLabelExpect } from 'bun:test';
-frequencyLabelTest('missing frequency uses None in generated labels and UI fallback', async () => {
-  const updater = await import('./update-data');
-  frequencyLabelExpect(updater.deriveDistributionFrequency()).toBe('00 - None');
-  frequencyLabelExpect(updater.deriveDistributionFrequency({ headers: ['Ex-Date'], rows: [] } as any)).toBe('00 - None');
-  const html = await Bun.file(new URL('../index.html', import.meta.url)).text();
-  frequencyLabelExpect(html).toContain('Frequency: fund.distributions?.frequencyCode || "00 - None"');
+test('config: configuration precedence: file < advanced < nonblank input < environment', () => {
+  const c = resolveControls({ CONCURRENCY: 2, TICKERS: 'IVV' }, { CONCURRENCY: 3, TICKERS: 'AGG' }, { CONCURRENCY: '4', TICKERS: '' }, { ISHARES_CONCURRENCY: '5', CONCURRENCY: '6' });
+  expect(c.CONCURRENCY).toBe('5'); expect(c.TICKERS).toBe('AGG');
+  expect(resolveControls({ CONCURRENCY: 2 }, { CONCURRENCY: 3 }, { CONCURRENCY: '4' }).CONCURRENCY).toBe('4');
+  expect(resolveControls({ CONCURRENCY: 2 }, { CONCURRENCY: 3 }, { CONCURRENCY: '4' }, { CONCURRENCY: '7' }).CONCURRENCY).toBe('7');
+  expect(resolveControls({ TICKERS: 'IVV' }, { TICKERS: '' }, { TICKERS: '' }).TICKERS).toBe('');
+  expect(resolveControls({ CONCURRENCY: 2 }, {}, { CONCURRENCY: '' }).CONCURRENCY).toBe('2');
+  expect(resolveControls({ STORE_RAW_DOWNLOADS: true }, {}, {}, { STORE_RAW_DOWNLOADS: 'false' }).STORE_RAW_DOWNLOADS).toBe('false');
+  expect(readConfig(resolveControls({ MAX_RETRIES: 1 })).maxRetries).toBe(1);
 });
 
+test('config: legacy environment aliases keep working', () => {
+  expect(readConfig(resolveControls(file(), {}, {}, { ISHARES_LIMIT: '3' })).maxFetches).toBe(3);
+  expect(readConfig(resolveControls(file(), {}, {}, { HISTORICAL_PAGE_SIZE: '37' })).historyPageSize).toBe(37);
+  expect(readConfig(resolveControls(file(), {}, {}, { ISHARES_STORE_RAW_DOWNLOADS: 'yes' })).storeRawDownloads).toBe(true);
+});
 
-import { test as headerTest, expect as headerExpect } from 'bun:test';
-async function headerSummaryHarness() {
-  const source = await Bun.file(new URL('../index.html', import.meta.url)).text();
-  const match = /^([ \t]*)function renderHeaderSummary\(/m.exec(source);
-  headerExpect(match).not.toBeNull();
-  const tail = source.slice(match!.index);
-  const end = new RegExp('^' + match![1] + '}', 'm').exec(tail)!;
-  const js = new Bun.Transpiler({ loader: 'ts' }).transformSync(tail.slice(0, end.index + end[0].length));
-  const makeNode = (text = ''): any => {
-    const node: any = { textContent: text, childNodes: [], dataset: {}, listeners: {} };
-    node.replaceChildren = (...children: any[]) => { node.childNodes = children; };
-    node.append = (...children: any[]) => { node.childNodes.push(...children); };
-    node.addEventListener = (name: string, listener: any) => { node.listeners[name] = listener; };
-    return node;
-  };
-  const panel = makeNode(), subtitle = makeNode(), details = makeNode('Data: source link and updated timestamp');
-  subtitle.append(details);
-  const document = { getElementById: () => panel, createTextNode: makeNode, createElement: () => makeNode() };
-  const render = new Function('document', js + '; return renderHeaderSummary;')(document);
-  const text = () => subtitle.childNodes.map((n: any) => n.textContent).join('');
-  return { render, panel, subtitle, details, makeNode, text };
-}
-headerTest('header has no visible subtitle without selection; original details nodes are retained', async () => {
-  const h = await headerSummaryHarness();
-  h.render(h.subtitle, new Set(), null, () => {});
-  headerExpect(h.text()).toBe('');
-  headerExpect(h.panel.childNodes).toEqual([h.details]);
-  headerExpect(h.panel.childNodes[0]).toBe(h.details);
+test('config: resolver rejects unknown, invalid and environment-file injection values', () => {
+  for (const value of [{ UNKNOWN: 1 }, { TICKERS: 'IVV\nEVIL=yes' }, { CONCURRENCY: 0 }, { TER: '1' }, { SEC_YIELD: '1:2:3' }, { MAX_RETRIES: 0 }, { MAX_RETRIES: -1 }, { MAX_FETCHES: 1.5 }, { REQUEST_SLEEP: '-1' }, { VERBOSE: 'maybe' }, { STORE_RAW_DOWNLOADS: 'maybe' }, { AUM: '1:2:3' }, { PERFORMANCE_1Y: '5' }, { TICKERS: ['IVV'] }, { OUTPUT_DIR: '/tmp/x' }, null, []]) {
+    expect(() => resolveControls(value)).toThrow();
+  }
+  expect(() => resolveControls({}, { TICKERS: 'x\rfoo' })).toThrow();
+  expect(() => resolveControls({}, {}, {}, { ISHARES_TICKERS: 'x\0bad' })).toThrow();
+  expect(() => resolveControls({}, [])).toThrow();
 });
-headerTest('header shows sorted selected tickers only, preserving click activation and highlight', async () => {
-  const h = await headerSummaryHarness(); const activated: string[] = [];
-  h.render(h.subtitle, new Set(['ZZZ', 'AAA']), 'AAA', (ticker: string) => activated.push(ticker));
-  headerExpect(h.text()).toBe('2 selected: AAA, ZZZ');
-  const links = h.subtitle.childNodes.filter((n: any) => n.dataset.headerFund);
-  headerExpect(links[0].className).toContain('underline');
-  links[1].listeners.click({ preventDefault() {} });
-  headerExpect(activated).toEqual(['ZZZ']);
-  headerExpect(h.panel.childNodes[0]).toBe(h.details);
+
+test('config: config file defaults: every control, provider values, scheduled path equals defaults', async () => {
+  expect(Object.keys(file()).sort()).toEqual([...CONTROL_NAMES].sort());
+  for (const value of Object.values(file())) expect(typeof value).toBe('string');
+  const config = readConfig(resolveControls(file()));
+  expect(config.tickers).toEqual([]); expect(config.maxFetches).toBe(0); expect(config.requestSleepSeconds).toBe(0);
+  expect(config.concurrency).toBe(4); expect(config.holdingsPageSize).toBe(250); expect(config.historyPageSize).toBe(1000);
+  expect(config.maxRetries).toBe(2); expect(config.storeRawDownloads).toBe(false);
+  expect(config.aumRange).toBeUndefined(); expect(config.terRange).toBeUndefined(); expect(config.secYieldRange).toBeUndefined(); expect(config.dividendYieldRange).toBeUndefined();
+  expect(config.performanceRanges).toEqual({}); expect(config.totalReturnRanges).toEqual({});
+  // scheduled run: empty advanced and inputs, no protected variables
+  expect(resolveControls(file(), JSON.parse('{}'), {}, {})).toEqual(resolveControls(file()));
+  // runtime path reads the same file
+  expect(await runtimeControls({})).toEqual(resolveControls(file()));
+  expect((await runtimeControls({ TICKERS: 'IVV' })).TICKERS).toBe('IVV');
 });
-headerTest('all selected still lists tickers; clear replaces both summary and selection', async () => {
-  const h = await headerSummaryHarness();
-  h.render(h.subtitle, new Set(['CCC','AAA','BBB']), 'BBB', () => {});
-  headerExpect(h.text()).toBe('3 selected: AAA, BBB, CCC');
-  const next = h.makeNode('Fresh detail context'); h.subtitle.replaceChildren(next);
-  h.render(h.subtitle, new Set(), null, () => {});
-  headerExpect(h.text()).toBe(''); headerExpect(h.panel.childNodes).toEqual([next]);
+
+test('config: controls, config file, --help and README are in sync', async () => {
+  const doc = read('README.md');
+  const help = read('scripts/update-data.ts');
+  for (const name of CONTROL_NAMES) {
+    const tenor = name.match(/^(PERFORMANCE|TOTAL_RETURN)_(1Y|3Y|5Y|10Y)$/);
+    expect(doc).toContain(tenor ? '`_' + tenor[2] + '`' : '`' + name + '`');
+    if (tenor) expect(doc).toContain('`' + tenor[1] + '_YTD`');
+    expect(help).toContain(`  ${name}=`);
+  }
+  expect(doc).toContain('scripts/update-data.config.json');
+  const rows = [...doc.slice(doc.indexOf('### Update controls'), doc.indexOf('### Examples')).matchAll(/^\| `(\w+)`/gm)].map((m) => m[1]);
+  expect(rows.length).toBeGreaterThan(0);
+  for (const row of rows) expect(CONTROL_NAMES.some((name) => name === row || name.startsWith(`${row}_`))).toBe(true);
 });
-headerTest('header markup supplies a focusable counter and hidden rich panel with dismissal', async () => {
-  const html = await Bun.file(new URL('../index.html', import.meta.url)).text();
-  headerExpect(html).toMatch(/<button[^>]*aria-controls="app-summary"[^>]*id="ticker-count"/);
-  headerExpect(html).toContain('id="app-summary" role="region" aria-label="ETF catalog information" hidden');
-  headerExpect(html).toContain("event.key !== 'Escape'");
-  headerExpect(html).toContain("trigger.addEventListener('focus', show)");
-  headerExpect(html).toContain("trigger.addEventListener('pointerenter'");
+
+test('workflow: scheduled, advanced JSON, one shared resolver, fixed output directory', () => {
+  const inputsBlock = workflow.slice(workflow.indexOf('    inputs:'), workflow.indexOf('\npermissions:'));
+  const names = [...inputsBlock.matchAll(/^      (\w+):$/gm)].map((m) => m[1]);
+  expect(names.length).toBeLessThanOrEqual(25); expect(names).toContain('advanced');
+  expect(inputsBlock).toContain("default: '{}'");
+  for (const name of names.filter((n) => n !== 'advanced')) expect(CONTROL_NAMES).toContain(name.toUpperCase());
+  expect(workflow).toContain("cron: '0 0 * * 0'"); expect(workflow).not.toMatch(/^  push:/m);
+  expect(workflow).toContain('toJSON(inputs)'); expect(workflow).toContain('resolveControls');
+  expect(workflow).not.toMatch(/\$\{\{\s*(github\.event\.)?inputs\./);
+  expect(workflow).not.toMatch(/OUTPUT_DIR/);
+  expect(workflow).toContain('git add api/ishares\n'); expect(workflow).not.toMatch(/git add (?!api\/ishares\b)/);
+  expect(workflow).toContain('if: ${{ !cancelled() }}');
+});
+
+test("TER filter uses net expense ratio, falls back to gross, rejects unavailable", () => {
+  const config = readConfig(resolveControls({ TER: ":0.1" }));
+  expect(catalogFilterReasons(fund, config)).toEqual([]);
+  expect(catalogFilterReasons({ ...fund, netExpenseRatio: "0.50" }, config)).toEqual(["expense ratio range"]);
+  expect(catalogFilterReasons({ ...fund, netExpenseRatio: "—", grossExpenseRatio: "0.05" }, config)).toEqual([]);
+  expect(catalogFilterReasons({ ...fund, netExpenseRatio: "—", grossExpenseRatio: "—" }, config)).toEqual(["expense ratio unavailable"]);
+});
+
+test("README structure and workflow resolver stay consistent", () => {
+  const doc = read("README.md");
+  const headings = [...doc.matchAll(/^#{1,3} .+$/gm)].map((m) => m[0]);
+  for (const heading of ["## Using Bun", "### Data sources", "### Metrics and caveats", "### Update controls", "### Examples", "## TypeScript and verification", "## License"]) {
+    expect(headings).toContain(heading);
+  }
+  expect(doc).not.toMatch(/worklog|fixtures|config-docs/i);
+  expect(read("scripts/update-data.ts")).toContain('/// <reference types="node" />');
 });

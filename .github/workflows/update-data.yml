@@ -1,150 +1,189 @@
 name: Update iShares ETF data
+
 on:
-  # Weekly refresh (every Sunday at 00:00 UTC) plus manual runs.
   schedule:
     - cron: '0 0 * * 0'
   workflow_dispatch:
     inputs:
       max_fetches:
-        description: "Batch size; continue after the saved ticker cursor; empty or 0 means all"
+        description: "Batch size; continue after the saved ticker cursor; empty or 0 means all; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       request_sleep:
-        description: "Seconds between outgoing request starts"
+        description: "Seconds between outgoing request starts; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       aum:
-        description: "AUM min:max; bounds may be amounts or nano/micro/small/mid/large"
+        description: "AUM min:max; bounds may be amounts or nano/micro/small/mid/large; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       concurrency:
-        description: "Parallel fund update workers"
+        description: "Parallel fund update workers; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       holdings_page_size:
-        description: "Rows in each generated current-holdings JSON page"
+        description: "Rows in each generated current-holdings JSON page; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       history_page_size:
-        description: "Rows in each generated historical NAV JSON page"
+        description: "Rows in each generated historical NAV JSON page; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       store_raw_downloads:
-        description: "Store source XLS files (true/yes/on/1)"
+        description: "Store source XLS files (true/yes/on/1); blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       max_retries:
-        description: "Retries after the initial request (default 2)"
+        description: "Retries after the initial request (integer >= 1, default 2); blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       tickers:
-        description: "Only update these tickers, separated by spaces or commas"
+        description: "Only update these tickers, separated by spaces or commas; blank inherits scripts/update-data.config.json"
+        required: false
+        default: ""
+        type: string
+      ter:
+        description: "Net expense ratio range in %: min:max, min:, :max, or :; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       dividend_yield:
-        description: "12m trailing dividend yield range: min:max, min:, :max, or :"
+        description: "12m trailing dividend yield range: min:max, min:, :max, or :; blank inherits scripts/update-data.config.json"
+        required: false
+        default: ""
+        type: string
+      sec_yield:
+        description: "30-day SEC yield range in %: min:max, min:, :max, or :; checked after download; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       performance_ytd:
-        description: "YTD NAV performance range: min:max, min:, :max, or :; colon required"
+        description: "YTD NAV performance range: min:max, min:, :max, or :; colon required; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       performance_1y:
-        description: "1Y average-annual NAV performance range; colon required"
+        description: "1Y average-annual NAV performance range; colon required; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       performance_3y:
-        description: "3Y average-annual NAV performance/CAGR range; colon required"
+        description: "3Y average-annual NAV performance/CAGR range; colon required; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       performance_5y:
-        description: "5Y average-annual NAV performance/CAGR range; colon required"
+        description: "5Y average-annual NAV performance/CAGR range; colon required; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       performance_10y:
-        description: "10Y average-annual NAV performance/CAGR range; colon required"
+        description: "10Y average-annual NAV performance/CAGR range; colon required; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       total_return_ytd:
-        description: "YTD cumulative NAV total-return range; colon required"
+        description: "YTD cumulative NAV total-return range; colon required; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       total_return_1y:
-        description: "1Y cumulative NAV total-return range; colon required"
+        description: "1Y cumulative NAV total-return range; colon required; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       total_return_3y:
-        description: "3Y cumulative NAV total-return range; colon required"
+        description: "3Y cumulative NAV total-return range; colon required; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       total_return_5y:
-        description: "5Y cumulative NAV total-return range; colon required"
+        description: "5Y cumulative NAV total-return range; colon required; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
       total_return_10y:
-        description: "10Y cumulative NAV total-return range; colon required"
+        description: "10Y cumulative NAV total-return range; colon required; blank inherits scripts/update-data.config.json"
         required: false
         default: ""
         type: string
-permissions: { contents: write }
-concurrency: { group: update-data, cancel-in-progress: false }
+      verbose:
+        description: "Print per-fund retry and fallback notices (true/yes/on/1); blank inherits scripts/update-data.config.json"
+        required: false
+        default: ""
+        type: string
+      advanced:
+        description: 'JSON object of supported control overrides not exposed above (keys are UPPER_CASE control names, values are scalars); nonblank individual inputs win'
+        required: false
+        default: '{}'
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
 jobs:
-  update:
+  update-data:
     runs-on: ubuntu-latest
-    env:
-      MAX_FETCHES: ${{ inputs.max_fetches || '' }}
-      REQUEST_SLEEP: ${{ inputs.request_sleep || '' }}
-      AUM: ${{ inputs.aum || '' }}
-      CONCURRENCY: ${{ inputs.concurrency || '' }}
-      HOLDINGS_PAGE_SIZE: ${{ inputs.holdings_page_size || '' }}
-      HISTORY_PAGE_SIZE: ${{ inputs.history_page_size || '' }}
-      STORE_RAW_DOWNLOADS: ${{ inputs.store_raw_downloads || '' }}
-      MAX_RETRIES: ${{ inputs.max_retries || '' }}
-      TICKERS: ${{ inputs.tickers || '' }}
-      DIVIDEND_YIELD: ${{ inputs.dividend_yield || '' }}
-      PERFORMANCE_YTD: ${{ inputs.performance_ytd || '' }}
-      PERFORMANCE_1Y: ${{ inputs.performance_1y || '' }}
-      PERFORMANCE_3Y: ${{ inputs.performance_3y || '' }}
-      PERFORMANCE_5Y: ${{ inputs.performance_5y || '' }}
-      PERFORMANCE_10Y: ${{ inputs.performance_10y || '' }}
-      TOTAL_RETURN_YTD: ${{ inputs.total_return_ytd || '' }}
-      TOTAL_RETURN_1Y: ${{ inputs.total_return_1y || '' }}
-      TOTAL_RETURN_3Y: ${{ inputs.total_return_3y || '' }}
-      TOTAL_RETURN_5Y: ${{ inputs.total_return_5y || '' }}
-      TOTAL_RETURN_10Y: ${{ inputs.total_return_10y || '' }}
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
-      - uses: oven-sh/setup-bun@v2
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Test updater
-        run: bun test scripts/update-data.test.ts
-      - name: Update data
-        run: bun scripts/update-data.ts
-      - name: Commit changed data
+      - name: Run updater unit tests
+        run: bun test
+      - name: Resolve file defaults and manual overrides
+        env:
+          DISPATCH_INPUTS: ${{ toJSON(inputs) }}
+        run: |
+          bun --eval '
+            import { resolveControls } from "./scripts/update-data.ts";
+            import { appendFile } from "node:fs/promises";
+            // schedule runs have no dispatch inputs: file defaults apply as-is
+            const inputs = JSON.parse(process.env.DISPATCH_INPUTS || "{}");
+            const advanced = JSON.parse(inputs.advanced || "{}");
+            const individual = Object.fromEntries(Object.entries(inputs)
+              .filter(([key]) => key !== "advanced")
+              .map(([key, value]) => [key.toUpperCase(), value]));
+            const file = await Bun.file("scripts/update-data.config.json").json();
+            // Protected repository Actions variables: highest precedence, applied only when nonblank (never printed).
+            const protectedVars = {};
+            const controls = resolveControls(file, advanced, individual, protectedVars);
+            await appendFile(process.env.GITHUB_ENV,
+              Object.entries(controls).map(([key, value]) => `${key}=${value}\n`).join(""));
+          '
+      - name: Generate api/ishares static data
+        run: bun ./scripts/update-data.ts
+      - name: Commit updated data
+        if: ${{ !cancelled() }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           git add api/ishares
-          git diff --cached --quiet && exit 0
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git commit -m 'Update iShares ETF data'
-          git push
+          if git diff --cached --quiet -- api/ishares; then
+            echo "api/ishares is already up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(data): update iShares ETF data"
+          # Runtime-only auth; no token/header stored in URL, file or Git config.
+          git -c credential.helper= -c credential.helper='!f() { if test "$1" = get; then printf "username=x-access-token\npassword=%s\n" "$GITHUB_TOKEN"; fi; }; f' push
