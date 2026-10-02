@@ -14,14 +14,14 @@
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239726&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239726&userType=individual&component=fundHeader",
-    "categorySource": "derived from the holdings market-value mix",
+    "categorySource": "iShares product header asset class",
     "holdingsSource": "iShares full holdings workbook (product-data fund download)",
     "historySource": "iShares daily NAV per share history (same workbook; official NAV, not market price)",
     "provider": "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)"
   },
   "identifiers": {
-    "cusip": null,
-    "isin": null,
+    "cusip": "464287200",
+    "isin": "US4642872000",
     "indexTicker": null
   },
   "inception": {
