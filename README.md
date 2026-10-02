@@ -23,7 +23,7 @@ bun scripts/update-data.ts
 
 Run `bun scripts/update-data.ts --help` to print every control with its default and usage examples.
 
-Defaults live in `scripts/update-data.config.json` (every control, all values strings). Explicit environment variables override the file; an `ISHARES_<KEY>` alias (for example `ISHARES_CONCURRENCY`) wins over the plain `<KEY>`, and the legacy `ISHARES_LIMIT` and `HISTORICAL_PAGE_SIZE` aliases still work. The **Update iShares ETF data** GitHub Actions workflow uses the same `resolveControls` function as the CLI: individual `workflow_dispatch` inputs are blank by default and inherit the file, and the `advanced` input accepts a JSON object with any control (for example `{"STORE_RAW_DOWNLOADS":"true"}`). Precedence: file defaults < advanced JSON < nonblank inputs < protected Actions variable or environment. Unknown keys, non-scalar values and multiline values are rejected. All supplied filters use **AND** logic.
+Defaults live in `scripts/update-data.config.json` (every control, all values strings). An explicitly set environment variable overrides the file (an empty value clears the control); an `ISHARES_<KEY>` alias (for example `ISHARES_CONCURRENCY`) wins over the plain `<KEY>`, and the legacy `ISHARES_LIMIT` and `HISTORICAL_PAGE_SIZE` aliases still work. The **Update iShares ETF data** GitHub Actions workflow uses the same `resolveControls` function as the CLI: individual `workflow_dispatch` inputs are blank by default and inherit the file, and the `advanced` input accepts a JSON object with any control (for example `{"STORE_RAW_DOWNLOADS":"true"}`). Precedence: file defaults < advanced JSON < nonblank inputs < protected Actions variable or environment. Unknown keys, non-scalar values and multiline values are rejected. All supplied filters use **AND** logic.
 
 ### Data sources
 
@@ -57,14 +57,16 @@ Returns and NAV are the official figures from the iShares workbook with their as
 | `REQUEST_SLEEP` | `0` | Minimum delay in seconds between outgoing request starts, including retries. |
 | `CONCURRENCY` | `4` | Number of parallel fund update workers. Request starts are still globally spaced by `REQUEST_SLEEP`. |
 | `AUM` | `:` | Net Assets range. Each bound may be a USD amount or `K`/`M`/`B`/`T`, or one of `nano`, `micro`, `small`, `mid`, `large`. |
+| `TER` | `:` | Net expense ratio percentage range (gross when net is not published); funds without it are skipped when set. |
 | `DIVIDEND_YIELD` | `:` | Dividend-yield percentage range. |
+| `SEC_YIELD` | `:` | 30-day SEC yield percentage range, checked after the fund header is read; funds that do not publish it are skipped when set. |
 | `TICKERS` | all | Space-, comma- or semicolon-separated ticker allowlist, e.g. `IVV DGRO DVY HDV`. |
 | `PERFORMANCE_YTD` / `_1Y` / `_3Y` / `_5Y` / `_10Y` | `:` | Average-annual NAV performance ranges in % (the colon is required). |
 | `TOTAL_RETURN_YTD` / `_1Y` / `_3Y` / `_5Y` / `_10Y` | `:` | Cumulative NAV total-return ranges in % (the colon is required). |
 | `HOLDINGS_PAGE_SIZE` | `250` | Rows in each generated current-holdings JSON page. |
 | `HISTORY_PAGE_SIZE` | `1000` | Rows in each generated historical NAV JSON page. |
 | `STORE_RAW_DOWNLOADS` | `false` | Keep the source XLS workbooks (`true`/`yes`/`on`/`1`). |
-| `MAX_RETRIES` | `2` | Retries after the initial request. Only network errors and HTTP 408/425/429/5xx are retried with exponential backoff. |
+| `MAX_RETRIES` | `2` | Retries after the initial request (integer >= 1). Only network errors and HTTP 408/425/429/5xx are retried with exponential backoff. |
 | `VERBOSE` | `false` | Print per-fund retry and fallback notices. |
 
 `TICKERS` combines with the AUM, yield and return filters using AND logic; it does not override them.
@@ -91,7 +93,7 @@ bun build --target=bun scripts/update-data.ts --outfile=/dev/null
 git diff --check
 ```
 
-`bun test` also covers the config, `--help` and README parity and the workflow shape (`scripts/config-docs.test.ts`).
+`bun test` also covers the config, `--help` and README parity and the workflow shape
 
 ## Brands table
 
@@ -116,7 +118,7 @@ git diff --check
 | **ProShares** | [proshares.com](https://www.proshares.com/our-etfs/find-proshares-etfs) \| [ProShares](https://daggerok.github.io/ProShares/) |
 | **Schwab** | [schwabassetmanagement.com](https://www.schwabassetmanagement.com/products) \| [Schwab](https://daggerok.github.io/Schwab/) |
 | **SPDR** | [ssga.com](https://www.ssga.com/us/en/intermediary/etfs/fund-finder) \| [SPDR](https://daggerok.github.io/SPDR/) |
-| **Sprott ETFs** | [sprottetfs.com](https://sprottetfs.com/) \| [Sprott](https://daggerok.github.io/Sprott/) (deployment pending) |
+| **Sprott ETFs** | [sprottetfs.com](https://sprottetfs.com/) \| [Sprott](https://daggerok.github.io/Sprott/) |
 | **Tema ETFs** | [temaetfs.com](https://temaetfs.com/funds) \| [Tema](https://daggerok.github.io/Tema/) |
 | **Themes ETFs** | [themesetfs.com/etfs](https://themesetfs.com/etfs) \| [Themes](https://daggerok.github.io/Themes/) |
 | **VanEck** | [vaneck.com](https://www.vaneck.com/us/en/etf-mutual-fund-finder/) \| [VanEck](https://daggerok.github.io/VanEck/) |
