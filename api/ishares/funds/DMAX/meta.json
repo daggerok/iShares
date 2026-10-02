@@ -1,29 +1,91 @@
 {
   "ticker": "DMAX",
-  "portfolioId": "340392",
   "name": "iShares Large Cap Max Buffer Dec ETF",
+  "category": "Equity",
+  "categoryPath": "Equity",
+  "providerIds": {
+    "ticker": "DMAX",
+    "portfolioId": "340392",
+    "name": "iShares Large Cap Max Buffer Dec ETF",
+    "fundPage": "https://www.ishares.com/us/products/340392/ishares-large-cap-max-buffer-dec-etf"
+  },
   "source": {
     "fundPage": "https://www.ishares.com/us/products/340392/ishares-large-cap-max-buffer-dec-etf",
-    "download": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=340392&component=fundDownload&userType=individual"
+    "catalog": "https://www.ishares.com/us/products/etf-investments",
+    "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=340392&component=fundDownload&userType=individual",
+    "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=340392&userType=individual&component=fundHeader",
+    "categorySource": "derived from the holdings market-value mix",
+    "holdingsSource": "iShares full holdings workbook (product-data fund download)",
+    "historySource": "iShares daily NAV per share history (same workbook; official NAV, not market price)",
+    "provider": "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)"
   },
-  "holdings": {
-    "totalRows": 7,
-    "pageSize": 250,
-    "pageCount": 1,
-    "pages": [
-      "./holdings/001.json"
-    ]
+  "identifiers": {
+    "cusip": null,
+    "isin": null,
+    "indexTicker": null
   },
-  "history": {
-    "totalRows": 436,
-    "pageSize": 1000,
-    "pageCount": 1,
-    "pages": [
-      "./history/001.json"
-    ]
+  "inception": {
+    "fundInceptionDate": "2024-12-31",
+    "shareClassInceptionDate": null,
+    "exchange": null
+  },
+  "expenseRatio": {
+    "display": "0.50%",
+    "value": 0.5,
+    "gross": 0.53,
+    "net": 0.5
+  },
+  "nav": {
+    "display": "$27.84",
+    "value": 27.842521,
+    "asOfDate": "Sep 25 2026"
+  },
+  "marketPrice": {
+    "display": "—",
+    "value": null,
+    "asOfDate": null
+  },
+  "premiumDiscount": {
+    "display": "—",
+    "value": null
+  },
+  "aum": {
+    "display": "$136.99 M",
+    "value": 136985205,
+    "asOfDate": null,
+    "source": "ishares.com product table Net Assets (USD)"
+  },
+  "yields": {
+    "dividendYield": 0.87,
+    "dividendYieldText": "0.87%",
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Aug 31, 2026",
+    "secYield": 0.7,
+    "secYieldText": "0.70%",
+    "secYieldKind": "official 30-day SEC yield, as of Aug 31, 2026"
   },
   "returns": {
-    "asOfDate": "Jun 30, 2026",
+    "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
+    "monthEnd": {
+      "asOfDate": "Jun 30 2026",
+      "ytd": 2.682094,
+      "yr1": 7.218388,
+      "yr3": null,
+      "yr5": null,
+      "yr10": null,
+      "sinceInception": 7.010168
+    },
+    "quarterEnd": {
+      "asOfDate": "Jun 30 2026",
+      "ytd": 2.682094,
+      "yr1": 7.218388,
+      "yr3": null,
+      "yr5": null,
+      "yr10": null,
+      "sinceInception": 7.010168
+    }
+  },
+  "officialReturns": {
+    "asOfDate": "2026-06-30",
     "performance": {
       "YTD": 2.682094,
       "1Y": 7.218388,
@@ -41,12 +103,54 @@
     "siAnn": 7.010168,
     "siCum": 10.697438
   },
-  "secYield": {
-    "value": "0.70",
-    "asOf": "Aug 31, 2026"
-  },
   "distributions": {
-    "frequencyCode": "00 - None"
+    "frequency": "None",
+    "frequencyCode": "00 - None",
+    "paymentsPerYear": null,
+    "headers": [
+      "Record Date",
+      "Ex-Date",
+      "Payable Date",
+      "Total Distribution",
+      "Income",
+      "ST Cap Gains",
+      "LT Cap Gains",
+      "Return of Capital"
+    ],
+    "rows": [
+      [
+        "Dec 23, 2025",
+        "Dec 23, 2025",
+        "Dec 29, 2025",
+        "0.314681",
+        "0.240646",
+        "0.029873",
+        "0.044162",
+        "0"
+      ]
+    ]
+  },
+  "holdings": {
+    "totalRows": 7,
+    "pageSize": 250,
+    "pageCount": 1,
+    "pages": [
+      "./holdings/001.json"
+    ],
+    "asOfDate": null,
+    "asOf": null,
+    "source": "iShares full holdings workbook (product-data fund download)",
+    "status": "available"
+  },
+  "history": {
+    "totalRows": 436,
+    "pageSize": 1000,
+    "pageCount": 1,
+    "pages": [
+      "./history/001.json"
+    ],
+    "asOf": "Sep 25 2026",
+    "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {
     "Performance": {
@@ -142,30 +246,6 @@
         {
           "Fund Inception": "Aug 31, 2026",
           "12/31/2024": "0.767"
-        }
-      ]
-    },
-    "Distributions": {
-      "headers": [
-        "Record Date",
-        "Ex-Date",
-        "Payable Date",
-        "Total Distribution",
-        "Income",
-        "ST Cap Gains",
-        "LT Cap Gains",
-        "Return of Capital"
-      ],
-      "rows": [
-        {
-          "Record Date": "Dec 23, 2025",
-          "Ex-Date": "Dec 23, 2025",
-          "Payable Date": "Dec 29, 2025",
-          "Total Distribution": "0.314681",
-          "Income": "0.240646",
-          "ST Cap Gains": "0.029873",
-          "LT Cap Gains": "0.044162",
-          "Return of Capital": "0"
         }
       ]
     }

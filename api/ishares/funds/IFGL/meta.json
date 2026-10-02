@@ -1,34 +1,91 @@
 {
   "ticker": "IFGL",
-  "portfolioId": "239540",
   "name": "iShares International Developed Real Estate ETF",
+  "category": "Equity",
+  "categoryPath": "Equity",
+  "providerIds": {
+    "ticker": "IFGL",
+    "portfolioId": "239540",
+    "name": "iShares International Developed Real Estate ETF",
+    "fundPage": "https://www.ishares.com/us/products/239540/ishares-international-developed-real-estate-etf"
+  },
   "source": {
     "fundPage": "https://www.ishares.com/us/products/239540/ishares-international-developed-real-estate-etf",
-    "download": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239540&component=fundDownload&userType=individual"
+    "catalog": "https://www.ishares.com/us/products/etf-investments",
+    "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239540&component=fundDownload&userType=individual",
+    "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239540&userType=individual&component=fundHeader",
+    "categorySource": "derived from the holdings market-value mix",
+    "holdingsSource": "iShares full holdings workbook (product-data fund download)",
+    "historySource": "iShares daily NAV per share history (same workbook; official NAV, not market price)",
+    "provider": "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)"
   },
-  "holdings": {
-    "totalRows": 284,
-    "pageSize": 250,
-    "pageCount": 2,
-    "pages": [
-      "./holdings/001.json",
-      "./holdings/002.json"
-    ]
+  "identifiers": {
+    "cusip": null,
+    "isin": null,
+    "indexTicker": null
   },
-  "history": {
-    "totalRows": 4752,
-    "pageSize": 1000,
-    "pageCount": 5,
-    "pages": [
-      "./history/001.json",
-      "./history/002.json",
-      "./history/003.json",
-      "./history/004.json",
-      "./history/005.json"
-    ]
+  "inception": {
+    "fundInceptionDate": "2007-11-12",
+    "shareClassInceptionDate": null,
+    "exchange": null
+  },
+  "expenseRatio": {
+    "display": "0.50%",
+    "value": 0.5,
+    "gross": 0.5,
+    "net": 0.5
+  },
+  "nav": {
+    "display": "$20.96",
+    "value": 20.956813,
+    "asOfDate": "Sep 25 2026"
+  },
+  "marketPrice": {
+    "display": "—",
+    "value": null,
+    "asOfDate": null
+  },
+  "premiumDiscount": {
+    "display": "—",
+    "value": null
+  },
+  "aum": {
+    "display": "$77.54 M",
+    "value": 77540207,
+    "asOfDate": null,
+    "source": "ishares.com product table Net Assets (USD)"
+  },
+  "yields": {
+    "dividendYield": 4.13,
+    "dividendYieldText": "4.13%",
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Aug 31, 2026",
+    "secYield": 2.62,
+    "secYieldText": "2.62%",
+    "secYieldKind": "official 30-day SEC yield, as of Aug 31, 2026"
   },
   "returns": {
-    "asOfDate": "Jun 30, 2026",
+    "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
+    "monthEnd": {
+      "asOfDate": "Jun 30 2026",
+      "ytd": -1.604546,
+      "yr1": 2.505246,
+      "yr3": 7.814008,
+      "yr5": -2.097223,
+      "yr10": 1.648386,
+      "sinceInception": 0.624052
+    },
+    "quarterEnd": {
+      "asOfDate": "Jun 30 2026",
+      "ytd": -1.604546,
+      "yr1": 2.505246,
+      "yr3": 7.814008,
+      "yr5": -2.097223,
+      "yr10": 1.648386,
+      "sinceInception": 0.624052
+    }
+  },
+  "officialReturns": {
+    "asOfDate": "2026-06-30",
     "performance": {
       "YTD": -1.604546,
       "1Y": 2.505246,
@@ -46,12 +103,809 @@
     "siAnn": 0.624052,
     "siCum": 12.25572
   },
-  "secYield": {
-    "value": "2.62",
-    "asOf": "Aug 31, 2026"
-  },
   "distributions": {
-    "frequencyCode": "04 - Quarterly"
+    "frequency": "Quarterly",
+    "frequencyCode": "04 - Quarterly",
+    "paymentsPerYear": 4,
+    "headers": [
+      "Record Date",
+      "Ex-Date",
+      "Payable Date",
+      "Total Distribution",
+      "Income",
+      "ST Cap Gains",
+      "LT Cap Gains",
+      "Return of Capital"
+    ],
+    "rows": [
+      [
+        "Sep 15, 2026",
+        "Sep 15, 2026",
+        "Sep 18, 2026",
+        "0.202021",
+        "0.202021",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 15, 2026",
+        "Jun 15, 2026",
+        "Jun 18, 2026",
+        "0.319801",
+        "0.319801",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 17, 2026",
+        "Mar 17, 2026",
+        "Mar 20, 2026",
+        "0.119606",
+        "0.119606",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 15, 2025",
+        "Dec 15, 2025",
+        "Dec 18, 2025",
+        "0.311819",
+        "0.311819",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 16, 2025",
+        "Sep 16, 2025",
+        "Sep 19, 2025",
+        "0.17973",
+        "0.17973",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 16, 2025",
+        "Jun 16, 2025",
+        "Jun 20, 2025",
+        "0.264788",
+        "0.264788",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 18, 2025",
+        "Mar 18, 2025",
+        "Mar 21, 2025",
+        "0.101102",
+        "0.101102",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 17, 2024",
+        "Dec 17, 2024",
+        "Dec 20, 2024",
+        "0.212166",
+        "0.212166",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 25, 2024",
+        "Sep 25, 2024",
+        "Sep 30, 2024",
+        "0.209044",
+        "0.209044",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 11, 2024",
+        "Jun 11, 2024",
+        "Jun 17, 2024",
+        "0.399941",
+        "0.399941",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 22, 2024",
+        "Mar 21, 2024",
+        "Mar 27, 2024",
+        "0.111377",
+        "0.111377",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 21, 2023",
+        "Dec 20, 2023",
+        "Dec 27, 2023",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 27, 2023",
+        "Sep 26, 2023",
+        "Oct 02, 2023",
+        "0.202021",
+        "0.202021",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 08, 2023",
+        "Jun 07, 2023",
+        "Jun 13, 2023",
+        "0.194147",
+        "0.194147",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 24, 2023",
+        "Mar 23, 2023",
+        "Mar 29, 2023",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 14, 2022",
+        "Dec 13, 2022",
+        "Dec 19, 2022",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 27, 2022",
+        "Sep 26, 2022",
+        "Sep 30, 2022",
+        "0.199909",
+        "0.199909",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 10, 2022",
+        "Jun 09, 2022",
+        "Jun 15, 2022",
+        "0.220206",
+        "0.220206",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 25, 2022",
+        "Mar 24, 2022",
+        "Mar 30, 2022",
+        "0.167804",
+        "0.167804",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 14, 2021",
+        "Dec 13, 2021",
+        "Dec 17, 2021",
+        "0.174523",
+        "0.174523",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 27, 2021",
+        "Sep 24, 2021",
+        "Sep 30, 2021",
+        "0.315066",
+        "0.315066",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 11, 2021",
+        "Jun 10, 2021",
+        "Jun 16, 2021",
+        "0.238683",
+        "0.238683",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 26, 2021",
+        "Mar 25, 2021",
+        "Mar 31, 2021",
+        "0.198477",
+        "0.198477",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 15, 2020",
+        "Dec 14, 2020",
+        "Dec 18, 2020",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 24, 2020",
+        "Sep 23, 2020",
+        "Sep 29, 2020",
+        "0.205096",
+        "0.205096",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 16, 2020",
+        "Jun 15, 2020",
+        "Jun 19, 2020",
+        "0.16778",
+        "0.16778",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 26, 2020",
+        "Mar 25, 2020",
+        "Mar 31, 2020",
+        "0.216535",
+        "0.216535",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 17, 2019",
+        "Dec 16, 2019",
+        "Dec 20, 2019",
+        "1.148285",
+        "1.148285",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 25, 2019",
+        "Sep 24, 2019",
+        "Sep 30, 2019",
+        "0.578507",
+        "0.578507",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 18, 2019",
+        "Jun 17, 2019",
+        "Jun 21, 2019",
+        "0.347841",
+        "0.347841",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 21, 2019",
+        "Mar 20, 2019",
+        "Mar 26, 2019",
+        "0.220932",
+        "0.220932",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 19, 2018",
+        "Dec 18, 2018",
+        "Dec 24, 2018",
+        "0.315293",
+        "0.315293",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 27, 2018",
+        "Sep 26, 2018",
+        "Oct 02, 2018",
+        "0.182048",
+        "0.182048",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 20, 2018",
+        "Jun 19, 2018",
+        "Jun 25, 2018",
+        "0.407378",
+        "0.407378",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 23, 2018",
+        "Mar 22, 2018",
+        "Mar 28, 2018",
+        "0.202616",
+        "0.202616",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 22, 2017",
+        "Dec 21, 2017",
+        "Dec 28, 2017",
+        "0.796628",
+        "0.796628",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 27, 2017",
+        "Sep 26, 2017",
+        "Sep 29, 2017",
+        "0.179298",
+        "0.179298",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 22, 2017",
+        "Jun 20, 2017",
+        "Jun 26, 2017",
+        "0.299794",
+        "0.299794",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 28, 2017",
+        "Mar 24, 2017",
+        "Mar 30, 2017",
+        "0.194148",
+        "0.194148",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 27, 2016",
+        "Dec 22, 2016",
+        "Dec 29, 2016",
+        "1.297615",
+        "1.297615",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 28, 2016",
+        "Sep 26, 2016",
+        "Sep 30, 2016",
+        "0.216758",
+        "0.216758",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 23, 2016",
+        "Jun 21, 2016",
+        "Jun 27, 2016",
+        "0.299689",
+        "0.299689",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 28, 2016",
+        "Mar 23, 2016",
+        "Mar 30, 2016",
+        "0.203374",
+        "0.203374",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 23, 2015",
+        "Dec 21, 2015",
+        "Dec 28, 2015",
+        "0.169891",
+        "0.169891",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 29, 2015",
+        "Sep 25, 2015",
+        "Oct 01, 2015",
+        "0.198187",
+        "0.198187",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 26, 2015",
+        "Jun 24, 2015",
+        "Jun 30, 2015",
+        "0.494128",
+        "0.494128",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 27, 2015",
+        "Mar 25, 2015",
+        "Mar 31, 2015",
+        "0.170223",
+        "0.170223",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 23, 2014",
+        "Dec 19, 2014",
+        "Dec 29, 2014",
+        "0.221492",
+        "0.221492",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 26, 2014",
+        "Sep 24, 2014",
+        "Oct 01, 2014",
+        "0.184453",
+        "0.184453",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 26, 2014",
+        "Jun 24, 2014",
+        "Jul 01, 2014",
+        "0.4754",
+        "0.4754",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 27, 2014",
+        "Mar 25, 2014",
+        "Apr 01, 2014",
+        "0.189193",
+        "0.189193",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 19, 2013",
+        "Dec 17, 2013",
+        "Dec 27, 2013",
+        "2.640782",
+        "2.640782",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Oct 02, 2013",
+        "Sep 30, 2013",
+        "Oct 04, 2013",
+        "0.30799",
+        "0.30799",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 27, 2013",
+        "Jun 25, 2013",
+        "Jul 02, 2013",
+        "0.470253",
+        "0.470253",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 26, 2013",
+        "Mar 22, 2013",
+        "Mar 28, 2013",
+        "0.185328",
+        "0.185328",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 18, 2012",
+        "Dec 14, 2012",
+        "Dec 24, 2012",
+        "1.088108",
+        "1.088108",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 26, 2012",
+        "Sep 24, 2012",
+        "Sep 28, 2012",
+        "0.159719",
+        "0.159719",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 22, 2012",
+        "Jun 20, 2012",
+        "Jun 27, 2012",
+        "0.442727",
+        "0.442727",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 27, 2012",
+        "Mar 23, 2012",
+        "Mar 29, 2012",
+        "0.216552",
+        "0.216552",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 21, 2011",
+        "Dec 19, 2011",
+        "Dec 29, 2011",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 26, 2011",
+        "Sep 22, 2011",
+        "Sep 29, 2011",
+        "0.179073",
+        "0.179073",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 23, 2011",
+        "Jun 21, 2011",
+        "Jun 27, 2011",
+        "0.719204",
+        "0.719204",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 28, 2011",
+        "Mar 24, 2011",
+        "Mar 30, 2011",
+        "0.181961",
+        "0.181961",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 22, 2010",
+        "Dec 20, 2010",
+        "Dec 30, 2010",
+        "0.859181",
+        "0.859181",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 24, 2010",
+        "Sep 22, 2010",
+        "Sep 29, 2010",
+        "0.239051",
+        "0.239051",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 23, 2010",
+        "Jun 21, 2010",
+        "Jun 25, 2010",
+        "0.650689",
+        "0.650689",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 26, 2010",
+        "Mar 24, 2010",
+        "Mar 30, 2010",
+        "0.18681",
+        "0.18681",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 23, 2009",
+        "Dec 21, 2009",
+        "Dec 31, 2009",
+        "1.181983",
+        "1.181983",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 23, 2009",
+        "Sep 21, 2009",
+        "Sep 28, 2009",
+        "0.270908",
+        "0.270908",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 24, 2009",
+        "Jun 22, 2009",
+        "Jun 26, 2009",
+        "0.4033",
+        "0.4033",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 26, 2009",
+        "Mar 24, 2009",
+        "Mar 30, 2009",
+        "0.21",
+        "0.21",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 24, 2008",
+        "Dec 22, 2008",
+        "Dec 31, 2008",
+        "0.261928",
+        "0.261928",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Sep 24, 2008",
+        "Sep 22, 2008",
+        "Sep 26, 2008",
+        "0.252969",
+        "0.252969",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Jun 27, 2008",
+        "Jun 25, 2008",
+        "Jun 30, 2008",
+        "0.488523",
+        "0.488523",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Mar 28, 2008",
+        "Mar 26, 2008",
+        "Mar 31, 2008",
+        "0.1625",
+        "0.1625",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 27, 2007",
+        "Dec 24, 2007",
+        "Jan 04, 2008",
+        "0.242221",
+        "0.242221",
+        "0",
+        "0",
+        "0"
+      ]
+    ]
+  },
+  "holdings": {
+    "totalRows": 284,
+    "pageSize": 250,
+    "pageCount": 2,
+    "pages": [
+      "./holdings/001.json",
+      "./holdings/002.json"
+    ],
+    "asOfDate": null,
+    "asOf": null,
+    "source": "iShares full holdings workbook (product-data fund download)",
+    "status": "available"
+  },
+  "history": {
+    "totalRows": 4752,
+    "pageSize": 1000,
+    "pageCount": 5,
+    "pages": [
+      "./history/001.json",
+      "./history/002.json",
+      "./history/003.json",
+      "./history/004.json",
+      "./history/005.json"
+    ],
+    "asOf": "Sep 25 2026",
+    "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {
     "Performance": {
@@ -967,780 +1821,6 @@
         {
           "Fund Inception": "Aug 31, 2026",
           "11/12/2007": "-3.294843"
-        }
-      ]
-    },
-    "Distributions": {
-      "headers": [
-        "Record Date",
-        "Ex-Date",
-        "Payable Date",
-        "Total Distribution",
-        "Income",
-        "ST Cap Gains",
-        "LT Cap Gains",
-        "Return of Capital"
-      ],
-      "rows": [
-        {
-          "Record Date": "Sep 15, 2026",
-          "Ex-Date": "Sep 15, 2026",
-          "Payable Date": "Sep 18, 2026",
-          "Total Distribution": "0.202021",
-          "Income": "0.202021",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 15, 2026",
-          "Ex-Date": "Jun 15, 2026",
-          "Payable Date": "Jun 18, 2026",
-          "Total Distribution": "0.319801",
-          "Income": "0.319801",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 17, 2026",
-          "Ex-Date": "Mar 17, 2026",
-          "Payable Date": "Mar 20, 2026",
-          "Total Distribution": "0.119606",
-          "Income": "0.119606",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 15, 2025",
-          "Ex-Date": "Dec 15, 2025",
-          "Payable Date": "Dec 18, 2025",
-          "Total Distribution": "0.311819",
-          "Income": "0.311819",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 16, 2025",
-          "Ex-Date": "Sep 16, 2025",
-          "Payable Date": "Sep 19, 2025",
-          "Total Distribution": "0.17973",
-          "Income": "0.17973",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 16, 2025",
-          "Ex-Date": "Jun 16, 2025",
-          "Payable Date": "Jun 20, 2025",
-          "Total Distribution": "0.264788",
-          "Income": "0.264788",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 18, 2025",
-          "Ex-Date": "Mar 18, 2025",
-          "Payable Date": "Mar 21, 2025",
-          "Total Distribution": "0.101102",
-          "Income": "0.101102",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 17, 2024",
-          "Ex-Date": "Dec 17, 2024",
-          "Payable Date": "Dec 20, 2024",
-          "Total Distribution": "0.212166",
-          "Income": "0.212166",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 25, 2024",
-          "Ex-Date": "Sep 25, 2024",
-          "Payable Date": "Sep 30, 2024",
-          "Total Distribution": "0.209044",
-          "Income": "0.209044",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 11, 2024",
-          "Ex-Date": "Jun 11, 2024",
-          "Payable Date": "Jun 17, 2024",
-          "Total Distribution": "0.399941",
-          "Income": "0.399941",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 22, 2024",
-          "Ex-Date": "Mar 21, 2024",
-          "Payable Date": "Mar 27, 2024",
-          "Total Distribution": "0.111377",
-          "Income": "0.111377",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 21, 2023",
-          "Ex-Date": "Dec 20, 2023",
-          "Payable Date": "Dec 27, 2023",
-          "Total Distribution": "0",
-          "Income": "0",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 27, 2023",
-          "Ex-Date": "Sep 26, 2023",
-          "Payable Date": "Oct 02, 2023",
-          "Total Distribution": "0.202021",
-          "Income": "0.202021",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 08, 2023",
-          "Ex-Date": "Jun 07, 2023",
-          "Payable Date": "Jun 13, 2023",
-          "Total Distribution": "0.194147",
-          "Income": "0.194147",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 24, 2023",
-          "Ex-Date": "Mar 23, 2023",
-          "Payable Date": "Mar 29, 2023",
-          "Total Distribution": "0",
-          "Income": "0",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 14, 2022",
-          "Ex-Date": "Dec 13, 2022",
-          "Payable Date": "Dec 19, 2022",
-          "Total Distribution": "0",
-          "Income": "0",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 27, 2022",
-          "Ex-Date": "Sep 26, 2022",
-          "Payable Date": "Sep 30, 2022",
-          "Total Distribution": "0.199909",
-          "Income": "0.199909",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 10, 2022",
-          "Ex-Date": "Jun 09, 2022",
-          "Payable Date": "Jun 15, 2022",
-          "Total Distribution": "0.220206",
-          "Income": "0.220206",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 25, 2022",
-          "Ex-Date": "Mar 24, 2022",
-          "Payable Date": "Mar 30, 2022",
-          "Total Distribution": "0.167804",
-          "Income": "0.167804",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 14, 2021",
-          "Ex-Date": "Dec 13, 2021",
-          "Payable Date": "Dec 17, 2021",
-          "Total Distribution": "0.174523",
-          "Income": "0.174523",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 27, 2021",
-          "Ex-Date": "Sep 24, 2021",
-          "Payable Date": "Sep 30, 2021",
-          "Total Distribution": "0.315066",
-          "Income": "0.315066",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 11, 2021",
-          "Ex-Date": "Jun 10, 2021",
-          "Payable Date": "Jun 16, 2021",
-          "Total Distribution": "0.238683",
-          "Income": "0.238683",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 26, 2021",
-          "Ex-Date": "Mar 25, 2021",
-          "Payable Date": "Mar 31, 2021",
-          "Total Distribution": "0.198477",
-          "Income": "0.198477",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 15, 2020",
-          "Ex-Date": "Dec 14, 2020",
-          "Payable Date": "Dec 18, 2020",
-          "Total Distribution": "0",
-          "Income": "0",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 24, 2020",
-          "Ex-Date": "Sep 23, 2020",
-          "Payable Date": "Sep 29, 2020",
-          "Total Distribution": "0.205096",
-          "Income": "0.205096",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 16, 2020",
-          "Ex-Date": "Jun 15, 2020",
-          "Payable Date": "Jun 19, 2020",
-          "Total Distribution": "0.16778",
-          "Income": "0.16778",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 26, 2020",
-          "Ex-Date": "Mar 25, 2020",
-          "Payable Date": "Mar 31, 2020",
-          "Total Distribution": "0.216535",
-          "Income": "0.216535",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 17, 2019",
-          "Ex-Date": "Dec 16, 2019",
-          "Payable Date": "Dec 20, 2019",
-          "Total Distribution": "1.148285",
-          "Income": "1.148285",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 25, 2019",
-          "Ex-Date": "Sep 24, 2019",
-          "Payable Date": "Sep 30, 2019",
-          "Total Distribution": "0.578507",
-          "Income": "0.578507",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 18, 2019",
-          "Ex-Date": "Jun 17, 2019",
-          "Payable Date": "Jun 21, 2019",
-          "Total Distribution": "0.347841",
-          "Income": "0.347841",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 21, 2019",
-          "Ex-Date": "Mar 20, 2019",
-          "Payable Date": "Mar 26, 2019",
-          "Total Distribution": "0.220932",
-          "Income": "0.220932",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 19, 2018",
-          "Ex-Date": "Dec 18, 2018",
-          "Payable Date": "Dec 24, 2018",
-          "Total Distribution": "0.315293",
-          "Income": "0.315293",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 27, 2018",
-          "Ex-Date": "Sep 26, 2018",
-          "Payable Date": "Oct 02, 2018",
-          "Total Distribution": "0.182048",
-          "Income": "0.182048",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 20, 2018",
-          "Ex-Date": "Jun 19, 2018",
-          "Payable Date": "Jun 25, 2018",
-          "Total Distribution": "0.407378",
-          "Income": "0.407378",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 23, 2018",
-          "Ex-Date": "Mar 22, 2018",
-          "Payable Date": "Mar 28, 2018",
-          "Total Distribution": "0.202616",
-          "Income": "0.202616",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 22, 2017",
-          "Ex-Date": "Dec 21, 2017",
-          "Payable Date": "Dec 28, 2017",
-          "Total Distribution": "0.796628",
-          "Income": "0.796628",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 27, 2017",
-          "Ex-Date": "Sep 26, 2017",
-          "Payable Date": "Sep 29, 2017",
-          "Total Distribution": "0.179298",
-          "Income": "0.179298",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 22, 2017",
-          "Ex-Date": "Jun 20, 2017",
-          "Payable Date": "Jun 26, 2017",
-          "Total Distribution": "0.299794",
-          "Income": "0.299794",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 28, 2017",
-          "Ex-Date": "Mar 24, 2017",
-          "Payable Date": "Mar 30, 2017",
-          "Total Distribution": "0.194148",
-          "Income": "0.194148",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 27, 2016",
-          "Ex-Date": "Dec 22, 2016",
-          "Payable Date": "Dec 29, 2016",
-          "Total Distribution": "1.297615",
-          "Income": "1.297615",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 28, 2016",
-          "Ex-Date": "Sep 26, 2016",
-          "Payable Date": "Sep 30, 2016",
-          "Total Distribution": "0.216758",
-          "Income": "0.216758",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 23, 2016",
-          "Ex-Date": "Jun 21, 2016",
-          "Payable Date": "Jun 27, 2016",
-          "Total Distribution": "0.299689",
-          "Income": "0.299689",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 28, 2016",
-          "Ex-Date": "Mar 23, 2016",
-          "Payable Date": "Mar 30, 2016",
-          "Total Distribution": "0.203374",
-          "Income": "0.203374",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 23, 2015",
-          "Ex-Date": "Dec 21, 2015",
-          "Payable Date": "Dec 28, 2015",
-          "Total Distribution": "0.169891",
-          "Income": "0.169891",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 29, 2015",
-          "Ex-Date": "Sep 25, 2015",
-          "Payable Date": "Oct 01, 2015",
-          "Total Distribution": "0.198187",
-          "Income": "0.198187",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 26, 2015",
-          "Ex-Date": "Jun 24, 2015",
-          "Payable Date": "Jun 30, 2015",
-          "Total Distribution": "0.494128",
-          "Income": "0.494128",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 27, 2015",
-          "Ex-Date": "Mar 25, 2015",
-          "Payable Date": "Mar 31, 2015",
-          "Total Distribution": "0.170223",
-          "Income": "0.170223",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 23, 2014",
-          "Ex-Date": "Dec 19, 2014",
-          "Payable Date": "Dec 29, 2014",
-          "Total Distribution": "0.221492",
-          "Income": "0.221492",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 26, 2014",
-          "Ex-Date": "Sep 24, 2014",
-          "Payable Date": "Oct 01, 2014",
-          "Total Distribution": "0.184453",
-          "Income": "0.184453",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 26, 2014",
-          "Ex-Date": "Jun 24, 2014",
-          "Payable Date": "Jul 01, 2014",
-          "Total Distribution": "0.4754",
-          "Income": "0.4754",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 27, 2014",
-          "Ex-Date": "Mar 25, 2014",
-          "Payable Date": "Apr 01, 2014",
-          "Total Distribution": "0.189193",
-          "Income": "0.189193",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 19, 2013",
-          "Ex-Date": "Dec 17, 2013",
-          "Payable Date": "Dec 27, 2013",
-          "Total Distribution": "2.640782",
-          "Income": "2.640782",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Oct 02, 2013",
-          "Ex-Date": "Sep 30, 2013",
-          "Payable Date": "Oct 04, 2013",
-          "Total Distribution": "0.30799",
-          "Income": "0.30799",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 27, 2013",
-          "Ex-Date": "Jun 25, 2013",
-          "Payable Date": "Jul 02, 2013",
-          "Total Distribution": "0.470253",
-          "Income": "0.470253",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 26, 2013",
-          "Ex-Date": "Mar 22, 2013",
-          "Payable Date": "Mar 28, 2013",
-          "Total Distribution": "0.185328",
-          "Income": "0.185328",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 18, 2012",
-          "Ex-Date": "Dec 14, 2012",
-          "Payable Date": "Dec 24, 2012",
-          "Total Distribution": "1.088108",
-          "Income": "1.088108",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 26, 2012",
-          "Ex-Date": "Sep 24, 2012",
-          "Payable Date": "Sep 28, 2012",
-          "Total Distribution": "0.159719",
-          "Income": "0.159719",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 22, 2012",
-          "Ex-Date": "Jun 20, 2012",
-          "Payable Date": "Jun 27, 2012",
-          "Total Distribution": "0.442727",
-          "Income": "0.442727",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 27, 2012",
-          "Ex-Date": "Mar 23, 2012",
-          "Payable Date": "Mar 29, 2012",
-          "Total Distribution": "0.216552",
-          "Income": "0.216552",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 21, 2011",
-          "Ex-Date": "Dec 19, 2011",
-          "Payable Date": "Dec 29, 2011",
-          "Total Distribution": "0",
-          "Income": "0",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 26, 2011",
-          "Ex-Date": "Sep 22, 2011",
-          "Payable Date": "Sep 29, 2011",
-          "Total Distribution": "0.179073",
-          "Income": "0.179073",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 23, 2011",
-          "Ex-Date": "Jun 21, 2011",
-          "Payable Date": "Jun 27, 2011",
-          "Total Distribution": "0.719204",
-          "Income": "0.719204",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 28, 2011",
-          "Ex-Date": "Mar 24, 2011",
-          "Payable Date": "Mar 30, 2011",
-          "Total Distribution": "0.181961",
-          "Income": "0.181961",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 22, 2010",
-          "Ex-Date": "Dec 20, 2010",
-          "Payable Date": "Dec 30, 2010",
-          "Total Distribution": "0.859181",
-          "Income": "0.859181",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 24, 2010",
-          "Ex-Date": "Sep 22, 2010",
-          "Payable Date": "Sep 29, 2010",
-          "Total Distribution": "0.239051",
-          "Income": "0.239051",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 23, 2010",
-          "Ex-Date": "Jun 21, 2010",
-          "Payable Date": "Jun 25, 2010",
-          "Total Distribution": "0.650689",
-          "Income": "0.650689",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 26, 2010",
-          "Ex-Date": "Mar 24, 2010",
-          "Payable Date": "Mar 30, 2010",
-          "Total Distribution": "0.18681",
-          "Income": "0.18681",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 23, 2009",
-          "Ex-Date": "Dec 21, 2009",
-          "Payable Date": "Dec 31, 2009",
-          "Total Distribution": "1.181983",
-          "Income": "1.181983",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 23, 2009",
-          "Ex-Date": "Sep 21, 2009",
-          "Payable Date": "Sep 28, 2009",
-          "Total Distribution": "0.270908",
-          "Income": "0.270908",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 24, 2009",
-          "Ex-Date": "Jun 22, 2009",
-          "Payable Date": "Jun 26, 2009",
-          "Total Distribution": "0.4033",
-          "Income": "0.4033",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 26, 2009",
-          "Ex-Date": "Mar 24, 2009",
-          "Payable Date": "Mar 30, 2009",
-          "Total Distribution": "0.21",
-          "Income": "0.21",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 24, 2008",
-          "Ex-Date": "Dec 22, 2008",
-          "Payable Date": "Dec 31, 2008",
-          "Total Distribution": "0.261928",
-          "Income": "0.261928",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Sep 24, 2008",
-          "Ex-Date": "Sep 22, 2008",
-          "Payable Date": "Sep 26, 2008",
-          "Total Distribution": "0.252969",
-          "Income": "0.252969",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Jun 27, 2008",
-          "Ex-Date": "Jun 25, 2008",
-          "Payable Date": "Jun 30, 2008",
-          "Total Distribution": "0.488523",
-          "Income": "0.488523",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Mar 28, 2008",
-          "Ex-Date": "Mar 26, 2008",
-          "Payable Date": "Mar 31, 2008",
-          "Total Distribution": "0.1625",
-          "Income": "0.1625",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 27, 2007",
-          "Ex-Date": "Dec 24, 2007",
-          "Payable Date": "Jan 04, 2008",
-          "Total Distribution": "0.242221",
-          "Income": "0.242221",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
         }
       ]
     }
