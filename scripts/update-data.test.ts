@@ -1,8 +1,10 @@
 /// <reference types="bun" />
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import {
   CONTROL_NAMES,
+  installSystemCa,
+  isCertError,
   catalogFilterReasons,
   deriveReturnMetrics,
   deriveDistributionFrequency,
@@ -353,4 +355,57 @@ test("README structure and workflow resolver stay consistent", () => {
   }
   expect(doc).not.toMatch(/worklog|fixtures|config-docs/i);
   expect(read("scripts/update-data.ts")).toContain('/// <reference types="node" />');
+});
+
+describe("system CA", () => {
+  const realFetch = globalThis.fetch;
+  afterEach(() => { globalThis.fetch = realFetch; });
+  const noReexec = () => { throw new Error("reexec"); };
+
+  test("USE_SYSTEM_CA resolver: auto/true/false case-insensitive, rejects others, default auto", () => {
+    expect(resolveControls(file()).USE_SYSTEM_CA).toBe("auto");
+    for (const mode of ["auto", "true", "false", "TRUE", "Auto"]) {
+      expect(resolveControls(file(), { USE_SYSTEM_CA: mode }).USE_SYSTEM_CA).toBe(mode.toLowerCase());
+    }
+    expect(() => resolveControls(file(), { USE_SYSTEM_CA: "maybe" })).toThrow();
+    expect(() => resolveControls(file(), {}, {}, { USE_SYSTEM_CA: "maybe" })).toThrow();
+  });
+
+  test("isCertError detects certificate errors, including causes", () => {
+    expect(isCertError({ code: "UNABLE_TO_GET_ISSUER_CERT_LOCALLY" })).toBe(true);
+    expect(isCertError(new Error("unable to get local issuer certificate"))).toBe(true);
+    expect(isCertError(Object.assign(new Error("fetch failed"), { cause: { code: "SELF_SIGNED_CERT_IN_CHAIN" } }))).toBe(true);
+    expect(isCertError({ code: "ECONNRESET" })).toBe(false);
+    expect(isCertError(new Error("HTTP 403"))).toBe(false);
+  });
+
+  test("installSystemCa leaves fetch alone for mode false or an already active store", () => {
+    installSystemCa("false", noReexec, false);
+    expect(globalThis.fetch).toBe(realFetch);
+    installSystemCa("auto", noReexec, true);
+    expect(globalThis.fetch).toBe(realFetch);
+  });
+
+  test("installSystemCa mode true restarts immediately", () => {
+    let calls = 0;
+    installSystemCa("true", (() => { calls++; return undefined as never; }), false);
+    expect(calls).toBe(1);
+  });
+
+  test("installSystemCa mode auto restarts once on a cert error only", async () => {
+    let calls = 0;
+    const reexec = (() => { calls++; return undefined as never; });
+    let failure: unknown = Object.assign(new Error("fetch failed"), { code: "UNABLE_TO_GET_ISSUER_CERT_LOCALLY" });
+    globalThis.fetch = (async () => { if (failure) throw failure; return new Response("ok"); }) as typeof fetch;
+    installSystemCa("auto", reexec, false);
+    expect(globalThis.fetch).not.toBe(realFetch);
+    await globalThis.fetch("https://example.test");
+    expect(calls).toBe(1);
+    failure = new Error("ECONNRESET");
+    await expect(globalThis.fetch("https://example.test")).rejects.toThrow("ECONNRESET");
+    expect(calls).toBe(1);
+    failure = null;
+    expect(await (await globalThis.fetch("https://example.test")).text()).toBe("ok");
+    expect(calls).toBe(1);
+  });
 });

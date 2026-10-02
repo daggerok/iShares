@@ -135,6 +135,42 @@ import {
   writeFile,
 } from "node:fs/promises";
 
+// --- TLS trust store (identical in every ETF repo) ---
+const SYSTEM_CA_MARKER = 'ETF_UPDATER_SYSTEM_CA';
+const CERT_ERROR = /UNABLE_TO_GET_ISSUER_CERT|UNABLE_TO_VERIFY_LEAF_SIGNATURE|SELF_SIGNED_CERT|CERT_HAS_EXPIRED|unable to get (?:local )?issuer certificate|self[- ]signed certificate|certificate has expired/i;
+
+export function isCertError(error: unknown): boolean {
+  const e = error as { code?: unknown; message?: unknown; cause?: unknown } | null;
+  return CERT_ERROR.test(`${String(e?.code ?? '')} ${String(e?.message ?? '')}`) || (e?.cause ? isCertError(e.cause) : false);
+}
+
+export function systemCaActive(env: Record<string, string | undefined> = process.env, execArgv: string[] = process.execArgv): boolean {
+  return execArgv.includes('--use-system-ca') || env.NODE_USE_SYSTEM_CA === '1' || env[SYSTEM_CA_MARKER] === '1';
+}
+
+export function reexecWithSystemCa(): never {
+  const child = Bun.spawnSync([process.execPath, '--use-system-ca', ...process.argv.slice(1)], {
+    env: { ...process.env, [SYSTEM_CA_MARKER]: '1' },
+    stdio: ['inherit', 'inherit', 'inherit'],
+  });
+  process.exit(child.exitCode ?? 1);
+}
+
+/** mode: auto (restart once on an untrusted-certificate error), true (restart now), false (never). */
+export function installSystemCa(mode: string, reexec: () => never = reexecWithSystemCa, active: boolean = systemCaActive()): void {
+  if (mode === 'false' || active) return;
+  if (mode === 'true') reexec();
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async (...args: Parameters<typeof fetch>) => {
+    try { return await realFetch(...args); }
+    catch (error) {
+      if (!isCertError(error)) throw error;
+      console.error('[ notice   ] TLS certificate not trusted; restarting once with --use-system-ca');
+      return reexec();
+    }
+  }) as typeof fetch;
+}
+
 const ROOT = new URL("../api/ishares/", import.meta.url);
 const RAW = new URL("../api/ishares/raw/", import.meta.url);
 const UPDATE_STATE = new URL("update-state.json", ROOT);
@@ -1254,6 +1290,8 @@ also skips funds that do not publish the metric.
   TOTAL_RETURN_5Y=":"     5Y cumulative NAV total-return (TR 5Y) range in %
   TOTAL_RETURN_10Y=":"    10Y cumulative NAV total-return (TR 10Y) range in %
   VERBOSE=false           Print per-fund retry and fallback notices
+  USE_SYSTEM_CA=auto      TLS trust store: auto (restart once with --use-system-ca on an
+                          untrusted-certificate error), true (always), false (never)
 
 Ranges use strict inclusive min:max syntax ("15:", ":20", "5:20", "-5%:7.5",
 ":"); the colon is required.
@@ -1360,7 +1398,7 @@ export const CONTROL_NAMES = [
   "STORE_RAW_DOWNLOADS", "MAX_RETRIES", "TICKERS", "TER", "DIVIDEND_YIELD", "SEC_YIELD",
   ...["PERFORMANCE", "TOTAL_RETURN"].flatMap((prefix) =>
     RETURN_PERIODS.map((period) => `${prefix}_${period}`)),
-  "VERBOSE",
+  "VERBOSE", "USE_SYSTEM_CA",
 ] as const;
 export type ControlName = (typeof CONTROL_NAMES)[number];
 export const CONFIG_FILE_URL = new URL("./update-data.config.json", import.meta.url);
@@ -1406,6 +1444,13 @@ export function resolveControls(
       throw new Error(`${key}: expected boolean`);
     }
   }
+  if (result.USE_SYSTEM_CA !== undefined) {
+    const mode = result.USE_SYSTEM_CA.toLowerCase();
+    if (!["auto", "true", "false"].includes(mode)) {
+      throw new Error("USE_SYSTEM_CA: expected auto, true or false");
+    }
+    result.USE_SYSTEM_CA = mode;
+  }
   readConfig(result); // validate integers, sleep and every min:max filter before any request or write
   return result;
 }
@@ -1429,6 +1474,7 @@ async function main() {
   }
   const controls = await runtimeControls();
   if (controls.VERBOSE !== undefined) process.env.VERBOSE = controls.VERBOSE;
+  installSystemCa(controls.USE_SYSTEM_CA ?? "auto");
   const config = readConfig(controls);
   outputPrintConfig("iShares", config);
   const waitForRequest = createRequestGate(config.requestSleepSeconds, config.concurrency);
