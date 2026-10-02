@@ -269,7 +269,7 @@ type UpdateResult = {
   status: "updated" | "unchanged" | "filtered" | "failed";
   changed?: boolean;
   reason?: string;
-  indexFields?: Record<string, unknown>;
+  indexRow?: IndexRow;
 };
 
 const esc = (s: string) => s.replace(/&quot;/g, '"').replace(/&amp;/g, "&");
@@ -970,6 +970,377 @@ export function deriveReturnMetrics(performance?: Sheet): ReturnMetrics {
   };
 }
 
+// --- Standard feed shapes (the same rows and per-fund meta in every ETF repo) ---
+export const SITE = "https://www.ishares.com";
+export const CATALOG_URL = `${SITE}/us/products/etf-investments`;
+export const RETURNS_BASIS =
+  "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)";
+const HOLDINGS_SOURCE = "iShares full holdings workbook (product-data fund download)";
+const HISTORY_SOURCE = "iShares daily NAV per share history (same workbook; official NAV, not market price)";
+const PROVIDER_SOURCE =
+  "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)";
+export const FEED_SOURCE = {
+  provider: "iShares",
+  market: "us",
+  site: SITE,
+  catalog: CATALOG_URL,
+  holdings: HOLDINGS_SOURCE,
+  history: HISTORY_SOURCE,
+};
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "Jun 30, 2026" -> "2026-06-30"; null when the text is not a date. */
+export function isoDate(text: unknown): string | null {
+  const match = String(text ?? "").trim().match(/^([A-Z][a-z]{2}) (\d{1,2}),? (\d{4})$/);
+  const month = match ? MONTH_NAMES.indexOf(match[1]) : -1;
+  if (!match || month < 0) return null;
+  return `${match[3]}-${String(month + 1).padStart(2, "0")}-${match[2].padStart(2, "0")}`;
+}
+
+/** "Jun 30, 2026" -> "Jun 30 2026" (the display form used by the sibling feeds). */
+export function displayDate(text: unknown): string | null {
+  const iso = isoDate(text);
+  if (!iso) return null;
+  const [year, month, day] = iso.split("-");
+  return `${MONTH_NAMES[Number(month) - 1]} ${day} ${year}`;
+}
+
+export function formatAum(value: number | null): string {
+  if (value === null) return "—";
+  for (const [unit, scale] of [["T", 1e12], ["B", 1e9], ["M", 1e6]] as const) {
+    if (Math.abs(value) >= scale) return `$${(value / scale).toFixed(2)} ${unit}`;
+  }
+  return `$${Math.round(value).toLocaleString("en-US")}`;
+}
+
+const percentText = (value: number | null): string => (value === null ? "—" : `${value.toFixed(2)}%`);
+
+/** The iShares product header calls multi-asset funds "Multi Asset"; the feeds say "Multi-asset". */
+export function normalizeAssetClass(raw: unknown): string | null {
+  const text = String(raw ?? "").trim().replace(/\s+/g, " ");
+  if (!text || text === "-" || text === "—") return null;
+  return /^multi[- ]?asset$/i.test(text) ? "Multi-asset" : text;
+}
+
+/**
+ * Fallback category from the holdings sheet when the product header does not
+ * publish an asset class: market-value mix of Equity, Fixed Income and
+ * Alternative positions. Cash, derivatives and money-market sweeps are ignored
+ * unless the fund is almost entirely money market.
+ */
+export function deriveAssetClass(rows: Array<Record<string, string>>): string {
+  const sums: Record<string, number> = {};
+  for (const row of rows) {
+    const assetClass = String(row["Asset Class"] ?? "").trim();
+    const value = parseDataNumber(row["Market Value"]);
+    if (assetClass && value !== null && value > 0) sums[assetClass] = (sums[assetClass] ?? 0) + value;
+  }
+  const mix: Array<[string, number]> = [
+    ["Equity", sums["Equity"] ?? 0],
+    ["Fixed Income", sums["Fixed Income"] ?? 0],
+    ["Alternative", sums["Alternative"] ?? 0],
+  ];
+  const invested = mix.reduce((total, [, value]) => total + value, 0);
+  const money = sums["Money Market"] ?? 0;
+  if (money > 0 && money >= 0.8 * (invested + money)) return "Money Market";
+  if (invested <= 0) return "ETF";
+  mix.sort((left, right) => right[1] - left[1]);
+  if (mix[0][1] / invested < 0.8 && mix[1][1] / invested >= 0.15) return "Multi-asset";
+  return mix[0][0];
+}
+
+export function cusipFromIsin(isin: string | null): string | null {
+  return /^US([0-9A-Z]{9})\d$/.exec(isin ?? "")?.[1] ?? null;
+}
+
+/** Everything the `component=fundHeader` product-data response gives the feed. */
+export function parseFundHeader(json: unknown): { secYield: SecYield | null; assetClass: string | null; isin: string | null } {
+  const points = (json as {
+    componentsByNameMap?: {
+      fundHeader?: {
+        containersByNameMap?: {
+          fundName?: { dataPointsByNameMap?: Record<string, { value?: unknown } | undefined> };
+        };
+      };
+    };
+  })?.componentsByNameMap?.fundHeader?.containersByNameMap?.fundName?.dataPointsByNameMap;
+  const isin = typeof points?.productIsin?.value === "string" ? points.productIsin.value.trim().toUpperCase() : "";
+  return {
+    secYield: parseSecYield(json),
+    assetClass: normalizeAssetClass(points?.assetClass?.value),
+    isin: /^[A-Z]{2}[A-Z0-9]{9}\d$/.test(isin) ? isin : null,
+  };
+}
+
+/** "04 - Quarterly" -> label "Quarterly" with its payments per year. */
+export function frequencyInfo(code: string): { label: string; paymentsPerYear: number | null } {
+  const label = code.replace(/^\d+\s*-\s*/, "").trim() || "None";
+  const perYear: Record<string, number> = { Monthly: 12, Quarterly: 4, "Semi-annually": 2, Annually: 1 };
+  return { label, paymentsPerYear: perYear[label] ?? null };
+}
+
+export type IndexRow = Record<string, any> & { ticker: string };
+
+export const CATEGORY_HEADER = "iShares product header asset class";
+export const CATEGORY_DERIVED = "derived from the holdings market-value mix";
+
+export type FundFacts = {
+  fund: Fund;
+  category: string;
+  categorySource: string;
+  isin: string | null;
+  navValue: number | null;
+  navAsOf: string;
+  holdingsAsOf: string;
+  returns: ReturnMetrics;
+  secYield: SecYield | null;
+  frequencyCode: string;
+  distributionSheet?: Sheet;
+  holdings: PageManifest;
+  history: PageManifest;
+  download: string;
+  fundHeader: string;
+  performanceSheet?: Sheet;
+};
+
+function expenseFields(fund: Fund) {
+  const gross = parseDataNumber(fund.grossExpenseRatio);
+  const net = parseDataNumber(fund.netExpenseRatio);
+  const value = net ?? gross;
+  return { gross, net, value };
+}
+
+function returnsBlock(returns: ReturnMetrics) {
+  const period = {
+    asOfDate: displayDate(returns.asOfDate),
+    ytd: returns.performance.YTD,
+    yr1: returns.performance["1Y"],
+    yr3: returns.performance["3Y"],
+    yr5: returns.performance["5Y"],
+    yr10: returns.performance["10Y"],
+    sinceInception: returns.siAnn,
+  };
+  // The series is compounded to a quarter end, which is also a month end.
+  return { derivedFrom: RETURNS_BASIS, monthEnd: { ...period }, quarterEnd: { ...period } };
+}
+
+/** Standard metrics: cumulative total returns (tr*), annualized (cagr*), null when unavailable. */
+export function buildMetrics(returns: ReturnMetrics, dividendYield: number | null, secYield: number | null) {
+  return {
+    ytd: returns.performance.YTD,
+    tr1y: returns.totalReturn["1Y"],
+    tr3y: returns.totalReturn["3Y"],
+    tr5y: returns.totalReturn["5Y"],
+    tr10y: returns.totalReturn["10Y"],
+    cagr3y: returns.performance["3Y"],
+    cagr5y: returns.performance["5Y"],
+    cagr10y: returns.performance["10Y"],
+    siAnn: returns.siAnn,
+    dividendYield,
+    dividendYieldText: percentText(dividendYield),
+    secYield,
+    secYieldText: percentText(secYield),
+    returnsBasis: RETURNS_BASIS,
+    performanceAsOf: isoDate(returns.asOfDate),
+  };
+}
+
+const emptyReturns = (): ReturnMetrics => ({
+  asOfDate: "",
+  performance: emptyMetrics(),
+  totalReturn: emptyMetrics(),
+  siAnn: null,
+  siCum: null,
+});
+
+function distributionSummary(frequencyCode: string, sheet?: Sheet) {
+  const { label, paymentsPerYear } = frequencyInfo(frequencyCode);
+  const headers = sheet?.headers ?? [];
+  const rows = (sheet?.rows ?? []).map((row) => headers.map((header) => row[header] ?? ""));
+  const exHeader = headers.find((header) => header.trim().toLowerCase() === "ex-date");
+  const amountHeader = headers.find((header) => header.trim().toLowerCase() === "total distribution");
+  let latest: Record<string, string> | undefined;
+  let latestIso = "";
+  for (const row of sheet?.rows ?? []) {
+    const iso = exHeader ? isoDate(row[exHeader]) : null;
+    if (iso && iso > latestIso) { latestIso = iso; latest = row; }
+  }
+  const [year, month, day] = latestIso.split("-");
+  return {
+    label,
+    paymentsPerYear,
+    headers,
+    rows,
+    exDate: latest ? `${month}/${day}/${year}` : null,
+    dividend: latest && amountHeader ? latest[amountHeader] || null : null,
+  };
+}
+
+/** Index row for a fund that is only known from the product table (no workbook downloaded yet). */
+export function buildCatalogRow(fund: Fund): IndexRow {
+  const facts: FundFacts = {
+    fund,
+    category: "ETF",
+    categorySource: "not downloaded yet",
+    isin: null,
+    navValue: null,
+    navAsOf: "",
+    holdingsAsOf: "",
+    returns: emptyReturns(),
+    secYield: null,
+    frequencyCode: "",
+    holdings: { totalRows: 0, pageSize: 0, pageCount: 0, pages: [] },
+    history: { totalRows: 0, pageSize: 0, pageCount: 0, pages: [] },
+    download: "",
+    fundHeader: "",
+  };
+  const row = buildStandardFund(facts).row;
+  row.dataFile = null;
+  row.distributions = { frequency: null, exDate: null, dividend: null };
+  return row;
+}
+
+/** One fund as the standard index row plus the standard per-fund meta.json document. */
+export function buildStandardFund(facts: FundFacts): { row: IndexRow; meta: Record<string, any> } {
+  const { fund, returns } = facts;
+  const expense = expenseFields(fund);
+  const aumValue = parseDataNumber(fund.netAssets);
+  const dividendYield = parseDataNumber(fund.trailingYield);
+  const secYield = parseDataNumber(facts.secYield?.value);
+  const cusip = cusipFromIsin(facts.isin);
+  const nav = facts.navValue === null ? "—" : `$${facts.navValue.toFixed(2)}`;
+  const navAsOf = displayDate(facts.navAsOf);
+  const holdingsAsOf = displayDate(facts.holdingsAsOf);
+  const inceptionDate = displayDate(fund.inceptionDate) ?? (fund.inceptionDate && fund.inceptionDate !== "—" ? fund.inceptionDate : null);
+  const terText = percentText(expense.value);
+  const grossText = percentText(expense.gross);
+  const dist = distributionSummary(facts.frequencyCode, facts.distributionSheet);
+  const metrics = buildMetrics(returns, dividendYield, secYield);
+  const block = returnsBlock(returns);
+  const dataFile = `./funds/${fund.ticker}/meta.json`;
+
+  const row: IndexRow = {
+    ticker: fund.ticker,
+    name: fund.name,
+    category: facts.category,
+    fundPage: fund.fundPage,
+    dataFile,
+    cusip,
+    isin: facts.isin,
+    ter: terText,
+    terValue: expense.value,
+    terGross: grossText,
+    terGrossValue: expense.gross,
+    nav,
+    navValue: facts.navValue,
+    aum: formatAum(aumValue),
+    aumValue,
+    asOfDate: navAsOf ?? holdingsAsOf,
+    inceptionDate,
+    exchange: null,
+    closePrice: "—",
+    closePriceValue: null,
+    premiumDiscount: "—",
+    premiumDiscountValue: null,
+    distributions: { frequency: dist.label, exDate: dist.exDate, dividend: dist.dividend },
+    returns: block,
+    metrics,
+    holdings: facts.holdings.totalRows,
+    history: facts.history.totalRows,
+  };
+
+  const yieldAsOf = fund.yieldAsOf && fund.yieldAsOf !== "—" ? `, as of ${fund.yieldAsOf}` : "";
+  const meta = {
+    ticker: fund.ticker,
+    name: fund.name,
+    category: facts.category,
+    categoryPath: facts.category,
+    providerIds: { ticker: fund.ticker, portfolioId: fund.portfolioId, name: fund.name, fundPage: fund.fundPage },
+    source: {
+      fundPage: fund.fundPage,
+      catalog: CATALOG_URL,
+      holdingsDownload: facts.download,
+      fundHeader: facts.fundHeader,
+      categorySource: facts.categorySource,
+      holdingsSource: HOLDINGS_SOURCE,
+      historySource: HISTORY_SOURCE,
+      provider: PROVIDER_SOURCE,
+    },
+    identifiers: { cusip, isin: facts.isin, indexTicker: null },
+    inception: { fundInceptionDate: isoDate(fund.inceptionDate), shareClassInceptionDate: null, exchange: null },
+    expenseRatio: { display: terText, value: expense.value, gross: expense.gross, net: expense.net },
+    nav: { display: nav, value: facts.navValue, asOfDate: navAsOf },
+    marketPrice: { display: "—", value: null, asOfDate: null },
+    premiumDiscount: { display: "—", value: null },
+    aum: { display: row.aum, value: aumValue, asOfDate: null, source: "ishares.com product table Net Assets (USD)" },
+    yields: {
+      dividendYield,
+      dividendYieldText: metrics.dividendYieldText,
+      dividendYieldKind: `12-month trailing yield published in the iShares product table${yieldAsOf}`,
+      secYield,
+      secYieldText: metrics.secYieldText,
+      secYieldKind: facts.secYield
+        ? `official 30-day SEC yield${facts.secYield.asOf ? `, as of ${facts.secYield.asOf}` : ""}`
+        : "not published for this fund",
+    },
+    returns: block,
+    officialReturns: {
+      asOfDate: isoDate(returns.asOfDate),
+      performance: returns.performance,
+      totalReturn: returns.totalReturn,
+      siAnn: returns.siAnn,
+      siCum: returns.siCum,
+    },
+    distributions: {
+      frequency: dist.label,
+      frequencyCode: facts.frequencyCode,
+      paymentsPerYear: dist.paymentsPerYear,
+      headers: dist.headers,
+      rows: dist.rows,
+    },
+    holdings: {
+      ...facts.holdings,
+      asOfDate: isoDate(facts.holdingsAsOf),
+      asOf: holdingsAsOf,
+      source: HOLDINGS_SOURCE,
+      status: facts.holdings.totalRows ? "available" : "empty",
+    },
+    history: {
+      ...facts.history,
+      asOf: navAsOf,
+      source: HISTORY_SOURCE,
+    },
+    worksheets: facts.performanceSheet ? { Performance: facts.performanceSheet } : {},
+  };
+  return { row, meta };
+}
+
+export function feedCounts(rows: IndexRow[]) {
+  const sum = (key: "holdings" | "history") => rows.reduce((total, row) => total + (Number(row[key]) || 0), 0);
+  return { funds: rows.length, holdings: sum("holdings"), history: sum("history") };
+}
+
+/** A previously published row rebuilt as the catalog entry the filters and the fetch loop expect. */
+export function catalogFundFromRow(row: IndexRow): Fund {
+  if (!row.metrics && row.portfolioId) return row as Fund; // pre-standard row: already catalog shaped
+  const number = (value: unknown): string => (typeof value === "number" && Number.isFinite(value) ? String(value) : "—");
+  return {
+    ticker: row.ticker,
+    portfolioId: /\/products\/(\d+)\//.exec(String(row.fundPage))?.[1] ?? "",
+    name: row.name,
+    fundPage: row.fundPage,
+    trailingYield: number(row.metrics?.dividendYield),
+    yieldAsOf: "—",
+    ytdReturn: "—",
+    returnAsOf: "—",
+    inceptionDate: row.inceptionDate || "—",
+    grossExpenseRatio: number(row.terGrossValue),
+    netExpenseRatio: number(row.terValue),
+    netAssets: number(row.aumValue),
+    type: "iShares ETF",
+  };
+}
+
 /**
  * Return deterministic page paths for a row count. Page names are deliberately
  * based on position rather than a fetch timestamp, so a repeat run rewrites
@@ -1102,14 +1473,17 @@ async function updateFund(
   if (!Object.keys(worksheets).length) throw Error("no worksheets");
 
   let secYield: SecYield | null = null;
+  let headerAssetClass: string | null = null;
+  let isin: string | null = null;
   try {
-    secYield = parseSecYield(
+    const header = parseFundHeader(
       JSON.parse(await requestText(fundHeader, fund.ticker, config, waitForRequest)),
     );
+    ({ secYield, assetClass: headerAssetClass, isin } = header);
   } catch (error) {
     if (outputVerbose()) logTag(
       "yield",
-      `ticker=${logTicker(fund.ticker)} sec yield unavailable: ${String(error)}`,
+      `ticker=${logTicker(fund.ticker)} fund header unavailable: ${String(error)}`,
       console.warn,
     );
   }
@@ -1163,24 +1537,36 @@ async function updateFund(
   );
   let changed = holdingsPages.changed || historyPages.changed;
 
-  if (holdingsName) delete worksheets[holdingsName];
-  if (historyName) delete worksheets[historyName];
-  const document = {
-    ticker: fund.ticker,
-    portfolioId: fund.portfolioId,
-    name: fund.name,
-    source: { fundPage: fund.fundPage, download },
-    holdings: holdingsPages.manifest,
-    history: historyPages.manifest,
+  const asOfDate =
+    holdings.rows.find((row) => row["As Of Date"])?.["As Of Date"] || "";
+  const latestNavRow = history?.rows?.[0] || {};
+  // A failed header request must not erase what an earlier run learned from it.
+  const prior = JSON.parse((await old(new URL(`funds/${fund.ticker}/meta.json`, ROOT))) || "{}");
+  let category = headerAssetClass;
+  if (!category && prior?.source?.categorySource === CATEGORY_HEADER && prior.category) category = prior.category;
+  const categorySource = category ? CATEGORY_HEADER : CATEGORY_DERIVED;
+  const { row, meta } = buildStandardFund({
+    fund,
+    category: category ?? deriveAssetClass(holdings.rows),
+    categorySource,
+    isin: isin ?? prior?.identifiers?.isin ?? null,
+    navValue: parseDataNumber(latestNavRow["NAV per Share"]),
+    navAsOf: latestNavRow["As Of"] || "",
+    holdingsAsOf: asOfDate,
     returns,
     secYield,
-    distributions,
-    worksheets,
-  };
+    frequencyCode: distributions.frequencyCode,
+    distributionSheet: distributionsName ? worksheets[distributionsName] : undefined,
+    holdings: holdingsPages.manifest,
+    history: historyPages.manifest,
+    download,
+    fundHeader,
+    performanceSheet: worksheets.Performance,
+  });
   changed =
     (await put(
       new URL(`funds/${fund.ticker}/meta.json`, ROOT),
-      JSON.stringify(document, null, 2) + "\n",
+      JSON.stringify(meta, null, 2) + "\n",
     )) || changed;
 
   const legacy = new URL(`funds/${fund.ticker}.json`, ROOT);
@@ -1198,28 +1584,11 @@ async function updateFund(
     }
   }
 
-  const asOfDate =
-    holdings.rows.find((row) => row["As Of Date"])?.["As Of Date"] || "";
-  const latestNavRow = history?.rows?.[0] || {};
-  const navValue = parseDataNumber(latestNavRow["NAV per Share"]);
   return {
     ticker: fund.ticker,
     status: changed ? "updated" : "unchanged",
     changed,
-    indexFields: {
-      dataFile: `./funds/${fund.ticker}/meta.json`,
-      asOfDate,
-      holdings: holdings.rows.length,
-      history: history?.rows.length || 0,
-      secYield: secYield?.value ?? "",
-      secYieldAsOf: secYield?.asOf ?? "",
-      distributions,
-      nav: navValue === null ? "—" : `$${navValue.toFixed(2)}`,
-      navValue,
-      navAsOf: latestNavRow["As Of"] || "",
-      performance: { asOfDate: returns.asOfDate, ...returns.performance, SI: returns.siAnn },
-      totalReturn: { asOfDate: returns.asOfDate, ...returns.totalReturn, SI: returns.siCum },
-    },
+    indexRow: row,
   };
 }
 
@@ -1481,15 +1850,16 @@ async function main() {
   const previous = JSON.parse(
     (await old(new URL("index.json", ROOT))) || '{"funds":[]}',
   );
-  const previousFunds: Fund[] = Array.isArray(previous.funds) ? previous.funds : [];
-  const previousByTicker = new Map(previousFunds.map((fund) => [fund.ticker, fund]));
+  const previousRows: IndexRow[] = Array.isArray(previous.funds) ? previous.funds : [];
+  const previousFunds: Fund[] = previousRows.map(catalogFundFromRow);
+  const previousByTicker = new Map(previousRows.map((row) => [row.ticker, row]));
 
   let discovered: Fund[] = [];
   let usedCatalogFallback = false;
   try {
     discovered = parseCatalog(
       await requestText(
-        "https://www.ishares.com/us/products/etf-investments",
+        CATALOG_URL,
         "catalog",
         config,
         waitForRequest,
@@ -1540,7 +1910,7 @@ async function main() {
       const before = await output.before(fund.ticker);
       try {
         const result = await updateFund(fund, config, waitForRequest);
-        await output.result(fund.ticker, before, result.status === "failed" ? "failed" : result.status === "filtered" ? "skipped" : undefined, result.reason, { netAssets: fund.netAssets, trailingYield: fund.trailingYield });
+        await output.result(fund.ticker, before, result.status === "failed" ? "failed" : result.status === "filtered" ? "skipped" : undefined, result.reason, { portfolioId: fund.portfolioId, netAssets: fund.netAssets, trailingYield: fund.trailingYield });
         return result;
       } catch (error) {
         const result: UpdateResult = {
@@ -1555,16 +1925,16 @@ async function main() {
   );
 
   const resultByTicker = new Map(results.map((result) => [result.ticker, result]));
-  const index = discovered.map((freshFund) => {
+  const index: IndexRow[] = discovered.map((freshFund) => {
     const prior = previousByTicker.get(freshFund.ticker);
     const result = resultByTicker.get(freshFund.ticker);
-    if (result?.indexFields) return { ...(prior || {}), ...freshFund, ...result.indexFields };
+    if (result?.indexRow) return result.indexRow;
     // Filters and MAX_FETCHES limit updates, not the published catalog. Preserve
     // prior metadata/data for funds that were not successfully refreshed.
-    if (prior) return prior;
+    if (prior?.metrics) return prior;
     // A newly discovered fund remains discoverable even when this run did not
     // fetch it. It will receive dataFile/holdings on a later successful update.
-    return freshFund;
+    return buildCatalogRow(freshFund);
   });
   index.sort((left, right) => left.ticker.localeCompare(right.ticker));
 
@@ -1585,7 +1955,8 @@ async function main() {
   const cleanupChanged = legacyFilesChanged || orphanDirectoriesChanged;
 
   const stable = {
-    source: { provider: "iShares", market: "us" },
+    source: FEED_SOURCE,
+    counts: feedCounts(index),
     funds: index,
   };
   const priorStable = { ...previous };

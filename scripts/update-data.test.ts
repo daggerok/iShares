@@ -3,6 +3,19 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import {
   CONTROL_NAMES,
+  RETURNS_BASIS,
+  buildCatalogRow,
+  buildMetrics,
+  buildStandardFund,
+  catalogFundFromRow,
+  cusipFromIsin,
+  deriveAssetClass,
+  displayDate,
+  feedCounts,
+  frequencyInfo,
+  isoDate,
+  normalizeAssetClass,
+  parseFundHeader,
   installSystemCa,
   isCertError,
   catalogFilterReasons,
@@ -407,5 +420,162 @@ describe("system CA", () => {
     failure = null;
     expect(await (await globalThis.fetch("https://example.test")).text()).toBe("ok");
     expect(calls).toBe(1);
+  });
+});
+
+describe("standard feed shapes", () => {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const performanceRows: Array<Record<string, string>> = [];
+  for (let year = 2015; year <= 2024; year++) {
+    for (let month = 0; month < 12; month++) {
+      performanceRows.push({ Date: `${months[month]} 28, ${year}`, Return: "1" });
+    }
+  }
+  const returns = deriveReturnMetrics({ headers: ["Date", "Return"], rows: performanceRows });
+  const distributionSheet = {
+    headers: ["Record Date", "Ex-Date", "Payable Date", "Total Distribution"],
+    rows: [
+      { "Record Date": "Mar 17, 2026", "Ex-Date": "Mar 17, 2026", "Payable Date": "Mar 20, 2026", "Total Distribution": "1.78" },
+      { "Record Date": "Jun 15, 2026", "Ex-Date": "Jun 15, 2026", "Payable Date": "Jun 18, 2026", "Total Distribution": "2.00" },
+    ],
+  };
+  const manifest = (totalRows: number) => ({ totalRows, pageSize: 250, pageCount: 1, pages: ["./holdings/001.json"] });
+  const facts = {
+    fund,
+    category: "Equity",
+    categorySource: "test",
+    isin: "US4642872000",
+    navValue: 767.129781,
+    navAsOf: "Oct 01, 2026",
+    holdingsAsOf: "",
+    returns,
+    secYield: { value: "0.94", asOf: "Aug 31, 2026" },
+    frequencyCode: "04 - Quarterly",
+    distributionSheet,
+    holdings: manifest(508),
+    history: manifest(6637),
+    download: "https://example.test/download",
+    fundHeader: "https://example.test/header",
+  };
+
+  test("dates: ISO and the display form used by the sibling feeds", () => {
+    expect(isoDate("Jun 30, 2026")).toBe("2026-06-30");
+    expect(isoDate("Jun 3 2026")).toBe("2026-06-03");
+    expect(displayDate("Jun 30, 2026")).toBe("Jun 30 2026");
+    expect(isoDate("—")).toBeNull();
+    expect(isoDate("")).toBeNull();
+    expect(displayDate(undefined)).toBeNull();
+  });
+
+  test("metrics map cumulative to tr*, annualized to cagr*, and never invent zeros", () => {
+    const metrics = buildMetrics(returns, 1.06, 0.94);
+    expect(Object.keys(metrics)).toEqual([
+      "ytd", "tr1y", "tr3y", "tr5y", "tr10y", "cagr3y", "cagr5y", "cagr10y", "siAnn",
+      "dividendYield", "dividendYieldText", "secYield", "secYieldText", "returnsBasis", "performanceAsOf",
+    ]);
+    expect(metrics.tr3y).toBeCloseTo((1.01 ** 36 - 1) * 100, 6);
+    expect(metrics.cagr3y).toBeCloseTo((1.01 ** 12 - 1) * 100, 6);
+    expect(metrics.performanceAsOf).toBe("2024-12-28");
+    expect(metrics.returnsBasis).toBe(RETURNS_BASIS);
+    expect(metrics.dividendYieldText).toBe("1.06%");
+    const young = buildMetrics(deriveReturnMetrics({ headers: ["Date", "Return"], rows: performanceRows.slice(-12) }), null, null);
+    expect([young.tr3y, young.tr5y, young.tr10y, young.cagr3y, young.dividendYield, young.secYield]).toEqual([null, null, null, null, null, null]);
+    expect(young.secYieldText).toBe("—");
+    const none = buildMetrics(deriveReturnMetrics(undefined), null, null);
+    expect(none.ytd).toBeNull();
+    expect(none.performanceAsOf).toBeNull();
+  });
+
+  test("index row and meta use the standard layout", () => {
+    const { row, meta } = buildStandardFund(facts);
+    expect(Object.keys(row).slice(0, 9)).toEqual(["ticker", "name", "category", "fundPage", "dataFile", "cusip", "isin", "ter", "terValue"]);
+    expect(row).toMatchObject({
+      ticker: "IVV",
+      category: "Equity",
+      dataFile: "./funds/IVV/meta.json",
+      cusip: "464287200",
+      isin: "US4642872000",
+      ter: "0.03%",
+      terValue: 0.03,
+      nav: "$767.13",
+      aum: "$700.00 B",
+      aumValue: 700_000_000_000,
+      asOfDate: "Oct 01 2026",
+      inceptionDate: "May 15 2000",
+      holdings: 508,
+      history: 6637,
+    });
+    expect(row.distributions).toEqual({ frequency: "Quarterly", exDate: "06/15/2026", dividend: "2.00" });
+    expect(row.returns.monthEnd.yr3).toBeCloseTo((1.01 ** 12 - 1) * 100, 6);
+    expect(row.returns.monthEnd.asOfDate).toBe("Dec 28 2024");
+    expect(row.metrics.tr1y).toBe(returns.totalReturn["1Y"]);
+    expect(row.metrics.secYield).toBe(0.94);
+    expect(Object.keys(meta)).toEqual([
+      "ticker", "name", "category", "categoryPath", "providerIds", "source", "identifiers", "inception",
+      "expenseRatio", "nav", "marketPrice", "premiumDiscount", "aum", "yields", "returns", "officialReturns",
+      "distributions", "holdings", "history", "worksheets",
+    ]);
+    expect(meta.identifiers).toEqual({ cusip: "464287200", isin: "US4642872000", indexTicker: null });
+    expect(meta.inception.fundInceptionDate).toBe("2000-05-15");
+    expect(meta.distributions.paymentsPerYear).toBe(4);
+    expect(meta.distributions.rows[0]).toEqual(["Mar 17, 2026", "Mar 17, 2026", "Mar 20, 2026", "1.78"]);
+    expect(meta.holdings.pages).toEqual(["./holdings/001.json"]);
+    expect(meta.yields.secYieldKind).toContain("Aug 31, 2026");
+  });
+
+  test("a fund without a download is a catalog row with empty metrics and no data file", () => {
+    const row = buildCatalogRow(fund);
+    expect(row.dataFile).toBeNull();
+    expect(row.holdings).toBe(0);
+    expect(row.history).toBe(0);
+    expect(row.category).toBe("ETF");
+    expect(row.metrics.tr1y).toBeNull();
+    expect(row.metrics.dividendYield).toBe(1.25);
+    expect(row.aumValue).toBe(700_000_000_000);
+    expect(feedCounts([row, buildStandardFund(facts).row])).toEqual({ funds: 2, holdings: 508, history: 6637 });
+  });
+
+  test("a published row is turned back into the catalog entry the filters read", () => {
+    const back = catalogFundFromRow(buildStandardFund(facts).row);
+    expect(back).toMatchObject({ ticker: "IVV", portfolioId: "239726", netExpenseRatio: "0.03", grossExpenseRatio: "0.03" });
+    expect(back.netAssets).toBe("700000000000");
+    expect(catalogFilterReasons(back, readConfig({ AUM: "large:", TER: ":0.05", DIVIDEND_YIELD: "1:2" }))).toEqual([]);
+    const legacy = { ...fund, dataFile: "./funds/IVV/meta.json" };
+    expect(catalogFundFromRow(legacy)).toBe(legacy);
+  });
+
+  test("category: product header first, holdings market-value mix as the fallback", () => {
+    const holding = (assetClass: string, value: number) => ({ "Asset Class": assetClass, "Market Value": String(value) });
+    expect(normalizeAssetClass("Multi Asset")).toBe("Multi-asset");
+    expect(normalizeAssetClass(" Fixed  Income ")).toBe("Fixed Income");
+    expect(normalizeAssetClass("-")).toBeNull();
+    expect(deriveAssetClass([holding("Equity", 98), holding("Cash", 50), holding("Futures", 5)])).toBe("Equity");
+    expect(deriveAssetClass([holding("Equity", 60), holding("Fixed Income", 40)])).toBe("Multi-asset");
+    expect(deriveAssetClass([holding("Fixed Income", 90), holding("Money Market", 40), holding("Equity", 1)])).toBe("Fixed Income");
+    expect(deriveAssetClass([holding("Money Market", 95), holding("Fixed Income", 5)])).toBe("Money Market");
+    expect(deriveAssetClass([holding("Cash", 100)])).toBe("ETF");
+    expect(deriveAssetClass([])).toBe("ETF");
+  });
+
+  test("fund header gives asset class and ISIN; CUSIP comes from a US ISIN", () => {
+    const header = {
+      componentsByNameMap: { fundHeader: { containersByNameMap: { fundName: { dataPointsByNameMap: {
+        assetClass: { value: "Multi Asset" },
+        productIsin: { value: "US4642898674" },
+      } } } } },
+    };
+    expect(parseFundHeader(header)).toEqual({ secYield: null, assetClass: "Multi-asset", isin: "US4642898674" });
+    expect(parseFundHeader({})).toEqual({ secYield: null, assetClass: null, isin: null });
+    expect(parseFundHeader({ componentsByNameMap: { fundHeader: { containersByNameMap: { fundName: { dataPointsByNameMap: { productIsin: { value: "-" } } } } } } }).isin).toBeNull();
+    expect(cusipFromIsin("US4642898674")).toBe("464289867");
+    expect(cusipFromIsin("IE00B4L5Y983")).toBeNull();
+    expect(cusipFromIsin(null)).toBeNull();
+  });
+
+  test("distribution frequency labels carry payments per year", () => {
+    expect(frequencyInfo("01 - Monthly")).toEqual({ label: "Monthly", paymentsPerYear: 12 });
+    expect(frequencyInfo("06 - Semi-annually")).toEqual({ label: "Semi-annually", paymentsPerYear: 2 });
+    expect(frequencyInfo("99 - Irregular")).toEqual({ label: "Irregular", paymentsPerYear: null });
+    expect(frequencyInfo("00 - None")).toEqual({ label: "None", paymentsPerYear: null });
   });
 });
