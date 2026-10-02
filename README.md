@@ -31,23 +31,36 @@ Defaults live in `scripts/update-data.config.json` (every control, all values st
 | --- | --- |
 | Catalog (all US iShares ETFs) | `https://www.ishares.com/us/products/etf-investments` (the product table, parsed from HTML) |
 | Workbook per fund | `https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?...&component=fundDownload` (SpreadsheetML workbook with the Holdings, Historical, Distributions and Performance worksheets) |
-| 30-day SEC yield | `https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?...&component=fundHeader` (iShares-published figure, not an EDGAR download) |
+| Fund header | `https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?...&component=fundHeader` (30-day SEC yield, asset class and ISIN, iShares-published figures, not an EDGAR download) |
 | Fallback | Previously published `api/ishares/index.json` as catalog fallback when live discovery fails |
 
 All data comes from iShares and BlackRock; there is no Yahoo Finance or SEC EDGAR source.
 
+**Feed layout**
+
+`api/ishares/index.json` and `api/ishares/funds/<TICKER>/meta.json` use the same shapes as every sibling feed, so one shared application can sort and search all brands the same way:
+
+- `index.json` has `generatedAt`, `source`, `counts` (`funds`, `holdings`, `history`) and one row per fund: `ticker`, `name`, `category`, `fundPage`, `dataFile`, `cusip`, `isin`, `ter` / `terValue` (plus `terGross` / `terGrossValue`), `nav` / `navValue`, `aum` / `aumValue` (net assets), `asOfDate`, `inceptionDate`, `distributions`, `returns` (`monthEnd`, `quarterEnd`), `metrics`, `holdings` and `history` row counts
+- `meta.json` holds `providerIds`, `source`, `identifiers`, `inception`, `expenseRatio`, `nav`, `aum`, `yields`, `returns`, `officialReturns`, `distributions` (frequency plus the full distribution table), the `holdings` and `history` page manifests and the monthly `Performance` worksheet
+- holdings and history stay as paged files in the iShares column layout (`Weight (%)`, `NAV per Share`, ...)
+- `category` is the iShares asset class from the product header (Equity, Fixed Income, Commodity, Multi-asset, Real Estate, Digital Assets); when the header gives none it is derived from the holdings market-value mix, and `meta.source.categorySource` says which one was used
+- `cusip` is taken from a US `isin`; both are `null` until the updater has read the product header of the fund
+- the exchange, closing price and premium/discount are `null` or `—`: iShares publishes NAV history only
+
 ### Metrics and caveats
 
-Each fund carries a derived `metrics` object that powers the catalog columns shared with the sibling sites:
+Each fund carries a `metrics` object that powers the catalog columns shared with the sibling sites:
 
-- `ytd` / `tr1y` - official YTD and 1-year returns -> *YTD Return*, *TR 1Y*
-- `cagr3y` / `cagr5y` / `cagr10y` - published annualized 3Y/5Y/10Y figures -> *CAGR 3Y/5Y/10Y*
-- `tr3y` / `tr5y` / `tr10y` - cumulative 3Y/5Y/10Y figures `(1 + CAGR)^n - 1` -> *TR 3Y/5Y/10Y*
-- `siAnn` - since-inception annualized -> *SI Ann.*
-- `dividendYield` - 12-month trailing yield published in the product table
-- `secYield` - 30-day SEC yield when published; `—` otherwise
+- `ytd` - year-to-date NAV total return up to the latest quarter end
+- `tr1y` / `tr3y` / `tr5y` / `tr10y` - cumulative NAV total returns -> *TR 1Y/3Y/5Y/10Y*
+- `cagr3y` / `cagr5y` / `cagr10y` - annualized 3Y/5Y/10Y NAV total returns -> *CAGR 3Y/5Y/10Y*
+- `siAnn` - since-inception annualized return -> *SI Ann.*
+- `dividendYield` / `dividendYieldText` - 12-month trailing yield published in the product table
+- `secYield` / `secYieldText` - 30-day SEC yield when published; `—` otherwise
+- `returnsBasis` - the basis of every return figure: official iShares NAV total returns, compounded from the published monthly NAV return series up to the latest quarter end
+- `performanceAsOf` - ISO date of that quarter end, `null` when no returns are available
 
-Returns and NAV are the official figures from the iShares workbook with their as-of dates. An unavailable value is stored as `—` or empty, never as `0`. A configured filter also skips funds that do not publish the filtered metric. A fund whose download fails or has no Holdings worksheet keeps its previously published data, and funds not selected for an update keep their prior metadata and data files. With `STORE_RAW_DOWNLOADS` the source workbook is kept as `api/ishares/raw/{TICKER}.xls`.
+Percentages are plain numbers (`10.19` means 10.19%). An unavailable value is `null` (text fields `—`), never `0`. The returns date is the quarter end shown in the *Return As Of* column, so it can trail the NAV date. A configured filter also skips funds that do not publish the filtered metric. A fund whose download fails or has no Holdings worksheet keeps its previously published data, and funds not selected for an update keep their prior metadata and data files. With `STORE_RAW_DOWNLOADS` the source workbook is kept as `api/ishares/raw/{TICKER}.xls`.
 
 ### Update controls
 
@@ -55,7 +68,7 @@ Returns and NAV are the official figures from the iShares workbook with their as
 | --- | --: | --- |
 | `MAX_FETCHES` | all | Batch size: with a positive value the updater continues after the committed cursor in `api/ishares/update-state.json`; empty or `0` is a full pass, every fund is refreshed in one run. |
 | `REQUEST_SLEEP` | `0` | Minimum delay in seconds between outgoing request starts, including retries. |
-| `CONCURRENCY` | `4` | Number of parallel fund update workers. Request starts are still globally spaced by `REQUEST_SLEEP`. |
+| `CONCURRENCY` | `4` | Number of parallel fund update workers; every worker has its own request lane and `REQUEST_SLEEP` is kept per lane. |
 | `AUM` | `:` | Net Assets range. Each bound may be a USD amount or `K`/`M`/`B`/`T`, or one of `nano`, `micro`, `small`, `mid`, `large`. |
 | `TER` | `:` | Net expense ratio percentage range (gross when net is not published); funds without it are skipped when set. |
 | `DIVIDEND_YIELD` | `:` | Dividend-yield percentage range. |

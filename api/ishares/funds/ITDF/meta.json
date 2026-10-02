@@ -1,10 +1,154 @@
 {
   "ticker": "ITDF",
-  "portfolioId": "333566",
   "name": "iShares® LifePath® Target Date 2050 ETF",
+  "category": "Equity",
+  "categoryPath": "Equity",
+  "providerIds": {
+    "ticker": "ITDF",
+    "portfolioId": "333566",
+    "name": "iShares® LifePath® Target Date 2050 ETF",
+    "fundPage": "https://www.ishares.com/us/products/333566/ishares-lifepath-target-date-2050-etf"
+  },
   "source": {
     "fundPage": "https://www.ishares.com/us/products/333566/ishares-lifepath-target-date-2050-etf",
-    "download": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=333566&component=fundDownload&userType=individual"
+    "catalog": "https://www.ishares.com/us/products/etf-investments",
+    "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=333566&component=fundDownload&userType=individual",
+    "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=333566&userType=individual&component=fundHeader",
+    "categorySource": "derived from the holdings market-value mix",
+    "holdingsSource": "iShares full holdings workbook (product-data fund download)",
+    "historySource": "iShares daily NAV per share history (same workbook; official NAV, not market price)",
+    "provider": "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)"
+  },
+  "identifiers": {
+    "cusip": null,
+    "isin": null,
+    "indexTicker": null
+  },
+  "inception": {
+    "fundInceptionDate": "2023-10-17",
+    "shareClassInceptionDate": null,
+    "exchange": null
+  },
+  "expenseRatio": {
+    "display": "0.11%",
+    "value": 0.11,
+    "gross": 0.11,
+    "net": 0.11
+  },
+  "nav": {
+    "display": "$42.10",
+    "value": 42.100095,
+    "asOfDate": "Sep 25 2026"
+  },
+  "marketPrice": {
+    "display": "—",
+    "value": null,
+    "asOfDate": null
+  },
+  "premiumDiscount": {
+    "display": "—",
+    "value": null
+  },
+  "aum": {
+    "display": "$96.83 M",
+    "value": 96830218,
+    "asOfDate": null,
+    "source": "ishares.com product table Net Assets (USD)"
+  },
+  "yields": {
+    "dividendYield": 1.45,
+    "dividendYieldText": "1.45%",
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Aug 31, 2026",
+    "secYield": 1.87,
+    "secYieldText": "1.87%",
+    "secYieldKind": "official 30-day SEC yield, as of Aug 31, 2026"
+  },
+  "returns": {
+    "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
+    "monthEnd": {
+      "asOfDate": "Jun 30 2026",
+      "ytd": 11.577342,
+      "yr1": 23.199861,
+      "yr3": null,
+      "yr5": null,
+      "yr10": null,
+      "sinceInception": 24.542943
+    },
+    "quarterEnd": {
+      "asOfDate": "Jun 30 2026",
+      "ytd": 11.577342,
+      "yr1": 23.199861,
+      "yr3": null,
+      "yr5": null,
+      "yr10": null,
+      "sinceInception": 24.542943
+    }
+  },
+  "officialReturns": {
+    "asOfDate": "2026-06-30",
+    "performance": {
+      "YTD": 11.577342,
+      "1Y": 23.199861,
+      "3Y": null,
+      "5Y": null,
+      "10Y": null
+    },
+    "totalReturn": {
+      "YTD": 11.577342,
+      "1Y": 23.199861,
+      "3Y": null,
+      "5Y": null,
+      "10Y": null
+    },
+    "siAnn": 24.542943,
+    "siCum": 79.549554
+  },
+  "distributions": {
+    "frequency": "Annually",
+    "frequencyCode": "12 - Annually",
+    "paymentsPerYear": 1,
+    "headers": [
+      "Record Date",
+      "Ex-Date",
+      "Payable Date",
+      "Total Distribution",
+      "Income",
+      "ST Cap Gains",
+      "LT Cap Gains",
+      "Return of Capital"
+    ],
+    "rows": [
+      [
+        "Dec 23, 2025",
+        "Dec 23, 2025",
+        "Dec 29, 2025",
+        "0.612964",
+        "0.612964",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 20, 2024",
+        "Dec 20, 2024",
+        "Dec 26, 2024",
+        "0.485699",
+        "0.485699",
+        "0",
+        "0",
+        "0"
+      ],
+      [
+        "Dec 26, 2023",
+        "Dec 22, 2023",
+        "Dec 29, 2023",
+        "0.231936",
+        "0.231936",
+        "0",
+        "0",
+        "0"
+      ]
+    ]
   },
   "holdings": {
     "totalRows": 20044,
@@ -92,7 +236,11 @@
       "./holdings/079.json",
       "./holdings/080.json",
       "./holdings/081.json"
-    ]
+    ],
+    "asOfDate": null,
+    "asOf": null,
+    "source": "iShares full holdings workbook (product-data fund download)",
+    "status": "available"
   },
   "history": {
     "totalRows": 739,
@@ -100,33 +248,9 @@
     "pageCount": 1,
     "pages": [
       "./history/001.json"
-    ]
-  },
-  "returns": {
-    "asOfDate": "Jun 30, 2026",
-    "performance": {
-      "YTD": 11.577342,
-      "1Y": 23.199861,
-      "3Y": null,
-      "5Y": null,
-      "10Y": null
-    },
-    "totalReturn": {
-      "YTD": 11.577342,
-      "1Y": 23.199861,
-      "3Y": null,
-      "5Y": null,
-      "10Y": null
-    },
-    "siAnn": 24.542943,
-    "siCum": 79.549554
-  },
-  "secYield": {
-    "value": "1.87",
-    "asOf": "Aug 31, 2026"
-  },
-  "distributions": {
-    "frequencyCode": "12 - Annually"
+    ],
+    "asOf": "Sep 25 2026",
+    "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {
     "Performance": {
@@ -278,50 +402,6 @@
         {
           "Fund Inception": "Aug 31, 2026",
           "10/17/2023": "2.63627"
-        }
-      ]
-    },
-    "Distributions": {
-      "headers": [
-        "Record Date",
-        "Ex-Date",
-        "Payable Date",
-        "Total Distribution",
-        "Income",
-        "ST Cap Gains",
-        "LT Cap Gains",
-        "Return of Capital"
-      ],
-      "rows": [
-        {
-          "Record Date": "Dec 23, 2025",
-          "Ex-Date": "Dec 23, 2025",
-          "Payable Date": "Dec 29, 2025",
-          "Total Distribution": "0.612964",
-          "Income": "0.612964",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 20, 2024",
-          "Ex-Date": "Dec 20, 2024",
-          "Payable Date": "Dec 26, 2024",
-          "Total Distribution": "0.485699",
-          "Income": "0.485699",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
-        },
-        {
-          "Record Date": "Dec 26, 2023",
-          "Ex-Date": "Dec 22, 2023",
-          "Payable Date": "Dec 29, 2023",
-          "Total Distribution": "0.231936",
-          "Income": "0.231936",
-          "ST Cap Gains": "0",
-          "LT Cap Gains": "0",
-          "Return of Capital": "0"
         }
       ]
     }

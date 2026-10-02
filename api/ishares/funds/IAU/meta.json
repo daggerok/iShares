@@ -1,16 +1,124 @@
 {
   "ticker": "IAU",
-  "portfolioId": "239561",
   "name": "iShares Gold Trust",
+  "category": "ETF",
+  "categoryPath": "ETF",
+  "providerIds": {
+    "ticker": "IAU",
+    "portfolioId": "239561",
+    "name": "iShares Gold Trust",
+    "fundPage": "https://www.ishares.com/us/products/239561/ishares-gold-trust-fund"
+  },
   "source": {
     "fundPage": "https://www.ishares.com/us/products/239561/ishares-gold-trust-fund",
-    "download": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239561&component=fundDownload&userType=individual"
+    "catalog": "https://www.ishares.com/us/products/etf-investments",
+    "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239561&component=fundDownload&userType=individual",
+    "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239561&userType=individual&component=fundHeader",
+    "categorySource": "derived from the holdings market-value mix",
+    "holdingsSource": "iShares full holdings workbook (product-data fund download)",
+    "historySource": "iShares daily NAV per share history (same workbook; official NAV, not market price)",
+    "provider": "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)"
+  },
+  "identifiers": {
+    "cusip": null,
+    "isin": null,
+    "indexTicker": null
+  },
+  "inception": {
+    "fundInceptionDate": "2005-01-21",
+    "shareClassInceptionDate": null,
+    "exchange": null
+  },
+  "expenseRatio": {
+    "display": "0.25%",
+    "value": 0.25,
+    "gross": 0.25,
+    "net": 0.25
+  },
+  "nav": {
+    "display": "$86.15",
+    "value": 86.150028,
+    "asOfDate": "Aug 21 2026"
+  },
+  "marketPrice": {
+    "display": "—",
+    "value": null,
+    "asOfDate": null
+  },
+  "premiumDiscount": {
+    "display": "—",
+    "value": null
+  },
+  "aum": {
+    "display": "$67.56 B",
+    "value": 67558851665,
+    "asOfDate": null,
+    "source": "ishares.com product table Net Assets (USD)"
+  },
+  "yields": {
+    "dividendYield": null,
+    "dividendYieldText": "—",
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of -",
+    "secYield": null,
+    "secYieldText": "—",
+    "secYieldKind": "not published for this fund"
+  },
+  "returns": {
+    "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
+    "monthEnd": {
+      "asOfDate": null,
+      "ytd": null,
+      "yr1": null,
+      "yr3": null,
+      "yr5": null,
+      "yr10": null,
+      "sinceInception": 10.869551
+    },
+    "quarterEnd": {
+      "asOfDate": null,
+      "ytd": null,
+      "yr1": null,
+      "yr3": null,
+      "yr5": null,
+      "yr10": null,
+      "sinceInception": 10.869551
+    }
+  },
+  "officialReturns": {
+    "asOfDate": null,
+    "performance": {
+      "YTD": null,
+      "1Y": null,
+      "3Y": null,
+      "5Y": null,
+      "10Y": null
+    },
+    "totalReturn": {
+      "YTD": null,
+      "1Y": null,
+      "3Y": null,
+      "5Y": null,
+      "10Y": null
+    },
+    "siAnn": 10.869551,
+    "siCum": 795.90329
+  },
+  "distributions": {
+    "frequency": "None",
+    "frequencyCode": "00 - None",
+    "paymentsPerYear": null,
+    "headers": [],
+    "rows": []
   },
   "holdings": {
     "totalRows": 0,
     "pageSize": 250,
     "pageCount": 0,
-    "pages": []
+    "pages": [],
+    "asOfDate": null,
+    "asOf": null,
+    "source": "iShares full holdings workbook (product-data fund download)",
+    "status": "empty"
   },
   "history": {
     "totalRows": 5430,
@@ -23,7 +131,9 @@
       "./history/004.json",
       "./history/005.json",
       "./history/006.json"
-    ]
+    ],
+    "asOf": "Aug 21 2026",
+    "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {
     "Performance": {
@@ -1074,8 +1184,5 @@
         }
       ]
     }
-  },
-  "distributions": {
-    "frequencyCode": "00 - None"
   }
 }
