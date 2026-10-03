@@ -192,11 +192,31 @@ describe("return metrics and filters", () => {
     ).toBe(2);
   });
 
-  test("allows a fund when a requested long-period metric is unavailable", () => {
+  test("excludes a fund whose value for a bounded period is unavailable", () => {
     const young = deriveReturnMetrics({ headers: ["Date", "Return"], rows: rows.slice(-12) });
     expect(
       returnFilterReasons(young, readConfig({ PERFORMANCE_10Y: "10:", TOTAL_RETURN_10Y: "100:" })),
-    ).toEqual([]);
+    ).toEqual(["PERFORMANCE_10Y unavailable", "TOTAL_RETURN_10Y unavailable"]);
+    expect(returnFilterReasons(young, readConfig({}))).toEqual([]);
+  });
+
+  test("since-inception annualized return needs 12 contiguous months of history", () => {
+    const series = (count: number, skip = -1) => ({
+      headers: ["Date", "Return"],
+      rows: Array.from({ length: count }, (_, i) => i)
+        .filter((i) => i !== skip)
+        .map((i) => ({ Date: `${months[i % 12]} 28, ${2023 + Math.floor(i / 12)}`, Return: "1" })),
+    });
+    // asOf is the last quarter-end month, so 14 months (Jan 2023 - Feb 2024) ends at Dec 2023 = 12 months
+    expect(deriveReturnMetrics(series(7)).siAnn).toBeNull(); // 6 months to Jun
+    expect(deriveReturnMetrics(series(7)).siCum).toBeCloseTo((1.01 ** 6 - 1) * 100, 6);
+    expect(deriveReturnMetrics(series(3)).siAnn).toBeNull();
+    expect(deriveReturnMetrics(series(12)).siAnn).toBeCloseTo((1.01 ** 12 - 1) * 100, 6);
+    expect(deriveReturnMetrics(series(30)).siAnn).toBeCloseTo((1.01 ** 12 - 1) * 100, 6);
+    // a missing month in the middle: neither cumulative nor annualized is published
+    const gap = deriveReturnMetrics(series(30, 10));
+    expect(gap.siAnn).toBeNull();
+    expect(gap.siCum).toBeNull();
   });
 });
 

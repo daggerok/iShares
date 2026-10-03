@@ -539,21 +539,24 @@ export function catalogFilterReasons(fund: Fund, config: UpdaterConfig) {
 }
 
 /**
- * Return all post-download return-filter failures. Missing return data passes,
- * which keeps young funds when they do not yet have a requested history period.
+ * Return all post-download return-filter failures. A bounded range excludes a
+ * fund whose value for that period is unavailable (a young fund has nothing to
+ * compare), like the catalog filters do for AUM, TER and yield.
  */
 export function returnFilterReasons(metrics: ReturnMetrics, config: UpdaterConfig) {
   const reasons: string[] = [];
   for (const period of RETURN_PERIODS) {
     const performanceRange = config.performanceRanges[period];
     const performance = metrics.performance[period];
-    if (performanceRange && performance !== null && !inRange(performance, performanceRange)) {
-      reasons.push(`PERFORMANCE_${period}=${performance}`);
+    if (performanceRange) {
+      if (performance === null) reasons.push(`PERFORMANCE_${period} unavailable`);
+      else if (!inRange(performance, performanceRange)) reasons.push(`PERFORMANCE_${period}=${performance}`);
     }
     const totalReturnRange = config.totalReturnRanges[period];
     const totalReturn = metrics.totalReturn[period];
-    if (totalReturnRange && totalReturn !== null && !inRange(totalReturn, totalReturnRange)) {
-      reasons.push(`TOTAL_RETURN_${period}=${totalReturn}`);
+    if (totalReturnRange) {
+      if (totalReturn === null) reasons.push(`TOTAL_RETURN_${period} unavailable`);
+      else if (!inRange(totalReturn, totalReturnRange)) reasons.push(`TOTAL_RETURN_${period}=${totalReturn}`);
     }
   }
   return reasons;
@@ -953,12 +956,17 @@ export function deriveReturnMetrics(performance?: Sheet): ReturnMetrics {
       result.factor > 0 ? rounded((result.factor ** (1 / years) - 1) * 100) : null;
   }
 
+  // Since inception needs a contiguous monthly series: a missing month would
+  // drop its return from the product while still counting toward the years.
+  const spanMonths = asOf.index - available[0].index + 1;
+  const contiguous = available.length === spanMonths;
   const sinceInception = compound(available);
-  const sinceInceptionYears = available.length / 12;
-  const siCum = rounded(sinceInception.cumulative);
+  const siCum = contiguous ? rounded(sinceInception.cumulative) : null;
+  // Annualizing a history shorter than one year extrapolates a few months into
+  // a yearly rate: siAnn is published from 12 elapsed months on, null before.
   const siAnn =
-    sinceInceptionYears > 0 && sinceInception.factor > 0
-      ? rounded((sinceInception.factor ** (1 / sinceInceptionYears) - 1) * 100)
+    contiguous && spanMonths >= 12 && sinceInception.factor > 0
+      ? rounded((sinceInception.factor ** (12 / spanMonths) - 1) * 100)
       : null;
 
   return {
