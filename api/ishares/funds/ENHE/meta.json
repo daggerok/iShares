@@ -1,0 +1,154 @@
+{
+  "ticker": "ENHE",
+  "name": "iShares Enhanced Emerging Markets Active ETF",
+  "category": "Equity",
+  "categoryPath": "Equity",
+  "providerIds": {
+    "ticker": "ENHE",
+    "portfolioId": "353595",
+    "name": "iShares Enhanced Emerging Markets Active ETF",
+    "fundPage": "https://www.ishares.com/us/products/353595/ishares-enhanced-emerging-markets-active-etf"
+  },
+  "source": {
+    "fundPage": "https://www.ishares.com/us/products/353595/ishares-enhanced-emerging-markets-active-etf",
+    "catalog": "https://www.ishares.com/us/products/etf-investments",
+    "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=353595&component=fundDownload&userType=individual",
+    "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=353595&userType=individual&component=fundHeader",
+    "categorySource": "iShares product header asset class",
+    "holdingsSource": "iShares full holdings workbook (product-data fund download)",
+    "historySource": "iShares daily NAV per share history (same workbook; official NAV, not market price)",
+    "provider": "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)"
+  },
+  "identifiers": {
+    "cusip": "09290C632",
+    "isin": "US09290C6324",
+    "indexTicker": null
+  },
+  "inception": {
+    "fundInceptionDate": "2026-09-29",
+    "shareClassInceptionDate": null,
+    "exchange": null
+  },
+  "expenseRatio": {
+    "display": "0.35%",
+    "value": 0.35,
+    "gross": 0.36,
+    "net": 0.35
+  },
+  "nav": {
+    "display": "$24.49",
+    "value": 24.493487,
+    "asOfDate": "Oct 02 2026"
+  },
+  "marketPrice": {
+    "display": "—",
+    "value": null,
+    "asOfDate": null
+  },
+  "premiumDiscount": {
+    "display": "—",
+    "value": null
+  },
+  "aum": {
+    "display": "$10.78 M",
+    "value": 10777134,
+    "asOfDate": null,
+    "source": "ishares.com product table Net Assets (USD)"
+  },
+  "yields": {
+    "dividendYield": null,
+    "dividendYieldText": "—",
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of -",
+    "secYield": null,
+    "secYieldText": "—",
+    "secYieldKind": "not published for this fund"
+  },
+  "returns": {
+    "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
+    "monthEnd": {
+      "asOfDate": null,
+      "ytd": null,
+      "yr1": null,
+      "yr3": null,
+      "yr5": null,
+      "yr10": null,
+      "sinceInception": null
+    },
+    "quarterEnd": {
+      "asOfDate": null,
+      "ytd": null,
+      "yr1": null,
+      "yr3": null,
+      "yr5": null,
+      "yr10": null,
+      "sinceInception": null
+    }
+  },
+  "officialReturns": {
+    "asOfDate": null,
+    "performance": {
+      "YTD": null,
+      "1Y": null,
+      "3Y": null,
+      "5Y": null,
+      "10Y": null
+    },
+    "totalReturn": {
+      "YTD": null,
+      "1Y": null,
+      "3Y": null,
+      "5Y": null,
+      "10Y": null
+    },
+    "siAnn": null,
+    "siCum": null
+  },
+  "distributions": {
+    "frequency": "None",
+    "frequencyCode": "00 - None",
+    "paymentsPerYear": null,
+    "headers": [],
+    "rows": []
+  },
+  "holdings": {
+    "totalRows": 443,
+    "pageSize": 250,
+    "pageCount": 2,
+    "pages": [
+      "./holdings/001.json",
+      "./holdings/002.json"
+    ],
+    "asOfDate": null,
+    "asOf": null,
+    "source": "iShares full holdings workbook (product-data fund download)",
+    "status": "available"
+  },
+  "history": {
+    "totalRows": 9,
+    "pageSize": 1000,
+    "pageCount": 1,
+    "pages": [
+      "./history/001.json"
+    ],
+    "asOf": "Oct 02 2026",
+    "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
+  },
+  "worksheets": {
+    "Performance": {
+      "headers": [
+        "Fund Inception",
+        "09/29/2026"
+      ],
+      "rows": [
+        {
+          "Fund Inception": "Month End Date",
+          "09/29/2026": "Monthly Total (NAV) Return"
+        },
+        {
+          "Fund Inception": "Sep 30, 2026",
+          "09/29/2026": "--"
+        }
+      ]
+    }
+  }
+}

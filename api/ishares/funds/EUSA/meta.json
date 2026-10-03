@@ -14,14 +14,14 @@
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239693&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239693&userType=individual&component=fundHeader",
-    "categorySource": "derived from the holdings market-value mix",
+    "categorySource": "iShares product header asset class",
     "holdingsSource": "iShares full holdings workbook (product-data fund download)",
     "historySource": "iShares daily NAV per share history (same workbook; official NAV, not market price)",
     "provider": "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)"
   },
   "identifiers": {
-    "cusip": null,
-    "isin": null,
+    "cusip": "464286681",
+    "isin": "US4642866812",
     "indexTicker": null
   },
   "inception": {
@@ -36,9 +36,9 @@
     "net": 0.09
   },
   "nav": {
-    "display": "$113.12",
-    "value": 113.12046,
-    "asOfDate": "Sep 25 2026"
+    "display": "$112.08",
+    "value": 112.078926,
+    "asOfDate": "Oct 01 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$1.90 B",
-    "value": 1900423723,
+    "display": "$1.88 B",
+    "value": 1882925952,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -66,42 +66,42 @@
   "returns": {
     "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
     "monthEnd": {
-      "asOfDate": "Jun 30 2026",
-      "ytd": 11.241161,
-      "yr1": 17.056182,
-      "yr3": 15.002852,
-      "yr5": 7.914622,
-      "yr10": 11.821493,
-      "sinceInception": 12.353582
+      "asOfDate": "Sep 30 2026",
+      "ytd": 8.829903,
+      "yr1": 9.733298,
+      "yr3": 15.753704,
+      "yr5": 7.585843,
+      "yr10": 11.039097,
+      "sinceInception": 12.003075
     },
     "quarterEnd": {
-      "asOfDate": "Jun 30 2026",
-      "ytd": 11.241161,
-      "yr1": 17.056182,
-      "yr3": 15.002852,
-      "yr5": 7.914622,
-      "yr10": 11.821493,
-      "sinceInception": 12.353582
+      "asOfDate": "Sep 30 2026",
+      "ytd": 8.829903,
+      "yr1": 9.733298,
+      "yr3": 15.753704,
+      "yr5": 7.585843,
+      "yr10": 11.039097,
+      "sinceInception": 12.003075
     }
   },
   "officialReturns": {
-    "asOfDate": "2026-06-30",
+    "asOfDate": "2026-09-30",
     "performance": {
-      "YTD": 11.241161,
-      "1Y": 17.056182,
-      "3Y": 15.002852,
-      "5Y": 7.914622,
-      "10Y": 11.821493
+      "YTD": 8.829903,
+      "1Y": 9.733298,
+      "3Y": 15.753704,
+      "5Y": 7.585843,
+      "10Y": 11.039097
     },
     "totalReturn": {
-      "YTD": 11.241161,
-      "1Y": 17.056182,
-      "3Y": 52.098816,
-      "5Y": 46.352947,
-      "10Y": 205.670029
+      "YTD": 8.829903,
+      "1Y": 9.733298,
+      "3Y": 55.09746,
+      "5Y": 44.137052,
+      "10Y": 184.94379
     },
-    "siAnn": 12.353582,
-    "siCum": 551.038038
+    "siAnn": 12.003075,
+    "siCum": 536.926171
   },
   "distributions": {
     "frequency": "Quarterly",
@@ -801,7 +801,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 519,
+    "totalRows": 520,
     "pageSize": 250,
     "pageCount": 3,
     "pages": [
@@ -815,7 +815,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 4126,
+    "totalRows": 4130,
     "pageSize": 1000,
     "pageCount": 5,
     "pages": [
@@ -825,7 +825,7 @@
       "./history/004.json",
       "./history/005.json"
     ],
-    "asOf": "Sep 25 2026",
+    "asOf": "Oct 01 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {
@@ -1622,6 +1622,10 @@
         {
           "Fund Inception": "Aug 31, 2026",
           "05/05/2010": "2.357086"
+        },
+        {
+          "Fund Inception": "Sep 30, 2026",
+          "05/05/2010": "-4.548703"
         }
       ]
     }

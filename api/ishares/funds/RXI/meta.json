@@ -14,14 +14,14 @@
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239739&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239739&userType=individual&component=fundHeader",
-    "categorySource": "derived from the holdings market-value mix",
+    "categorySource": "iShares product header asset class",
     "holdingsSource": "iShares full holdings workbook (product-data fund download)",
     "historySource": "iShares daily NAV per share history (same workbook; official NAV, not market price)",
     "provider": "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)"
   },
   "identifiers": {
-    "cusip": null,
-    "isin": null,
+    "cusip": "464288745",
+    "isin": "US4642887453",
     "indexTicker": null
   },
   "inception": {
@@ -36,9 +36,9 @@
     "net": 0.37
   },
   "nav": {
-    "display": "$187.40",
-    "value": 187.402891,
-    "asOfDate": "Sep 25 2026"
+    "display": "$184.48",
+    "value": 184.478227,
+    "asOfDate": "Oct 01 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$299.84 M",
-    "value": 299844625,
+    "display": "$295.17 M",
+    "value": 295165163,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -521,7 +521,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 152,
+    "totalRows": 150,
     "pageSize": 250,
     "pageCount": 1,
     "pages": [
@@ -533,7 +533,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 5043,
+    "totalRows": 5047,
     "pageSize": 1000,
     "pageCount": 6,
     "pages": [
@@ -544,7 +544,7 @@
       "./history/005.json",
       "./history/006.json"
     ],
-    "asOf": "Sep 25 2026",
+    "asOf": "Oct 01 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

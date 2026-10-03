@@ -14,14 +14,14 @@
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=308051&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=308051&userType=individual&component=fundHeader",
-    "categorySource": "derived from the holdings market-value mix",
+    "categorySource": "iShares product header asset class",
     "holdingsSource": "iShares full holdings workbook (product-data fund download)",
     "historySource": "iShares daily NAV per share history (same workbook; official NAV, not market price)",
     "provider": "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)"
   },
   "identifiers": {
-    "cusip": null,
-    "isin": null,
+    "cusip": "46435U325",
+    "isin": "US46435U3251",
     "indexTicker": null
   },
   "inception": {
@@ -36,9 +36,9 @@
     "net": 0.1
   },
   "nav": {
-    "display": "$25.11",
-    "value": 25.106608,
-    "asOfDate": "Sep 25 2026"
+    "display": "$25.13",
+    "value": 25.134839,
+    "asOfDate": "Oct 02 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,58 +50,58 @@
     "value": null
   },
   "aum": {
-    "display": "$675.37 M",
-    "value": 675367766,
+    "display": "$679.90 M",
+    "value": 679897405,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
   "yields": {
-    "dividendYield": 2.5,
-    "dividendYieldText": "2.50%",
-    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Sep 24, 2026",
-    "secYield": 2.88,
-    "secYieldText": "2.88%",
-    "secYieldKind": "official 30-day SEC yield, as of Sep 24, 2026"
+    "dividendYield": 2.72,
+    "dividendYieldText": "2.72%",
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 01, 2026",
+    "secYield": 3.11,
+    "secYieldText": "3.11%",
+    "secYieldKind": "official 30-day SEC yield, as of Oct 01, 2026"
   },
   "returns": {
     "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
     "monthEnd": {
-      "asOfDate": "Jun 30 2026",
-      "ytd": 1.236993,
-      "yr1": 3.139376,
-      "yr3": 2.940249,
-      "yr5": 0.566898,
+      "asOfDate": "Sep 30 2026",
+      "ytd": 0.16339,
+      "yr1": 0.631487,
+      "yr3": 3.433798,
+      "yr5": 0.426847,
       "yr10": null,
-      "sinceInception": 1.947116
+      "sinceInception": 1.73452
     },
     "quarterEnd": {
-      "asOfDate": "Jun 30 2026",
-      "ytd": 1.236993,
-      "yr1": 3.139376,
-      "yr3": 2.940249,
-      "yr5": 0.566898,
+      "asOfDate": "Sep 30 2026",
+      "ytd": 0.16339,
+      "yr1": 0.631487,
+      "yr3": 3.433798,
+      "yr5": 0.426847,
       "yr10": null,
-      "sinceInception": 1.947116
+      "sinceInception": 1.73452
     }
   },
   "officialReturns": {
-    "asOfDate": "2026-06-30",
+    "asOfDate": "2026-09-30",
     "performance": {
-      "YTD": 1.236993,
-      "1Y": 3.139376,
-      "3Y": 2.940249,
-      "5Y": 0.566898,
+      "YTD": 0.16339,
+      "1Y": 0.631487,
+      "3Y": 3.433798,
+      "5Y": 0.426847,
       "10Y": null
     },
     "totalReturn": {
-      "YTD": 1.236993,
-      "1Y": 3.139376,
-      "3Y": 9.082642,
-      "5Y": 2.866808,
+      "YTD": 0.16339,
+      "1Y": 0.631487,
+      "3Y": 10.659173,
+      "5Y": 2.152534,
       "10Y": null
     },
-    "siAnn": 1.947116,
-    "siCum": 14.820762
+    "siAnn": 1.73452,
+    "siCum": 13.603106
   },
   "distributions": {
     "frequency": "Monthly",
@@ -118,6 +118,16 @@
       "Return of Capital"
     ],
     "rows": [
+      [
+        "Oct 01, 2026",
+        "Oct 01, 2026",
+        "Oct 06, 2026",
+        "0.055342",
+        "0.055342",
+        "0",
+        "0",
+        "0"
+      ],
       [
         "Sep 01, 2026",
         "Sep 01, 2026",
@@ -1001,7 +1011,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 2922,
+    "totalRows": 2933,
     "pageSize": 250,
     "pageCount": 12,
     "pages": [
@@ -1024,14 +1034,14 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 1874,
+    "totalRows": 1879,
     "pageSize": 1000,
     "pageCount": 2,
     "pages": [
       "./history/001.json",
       "./history/002.json"
     ],
-    "asOf": "Sep 25 2026",
+    "asOf": "Oct 02 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {
@@ -1400,6 +1410,10 @@
         {
           "Fund Inception": "Aug 31, 2026",
           "04/16/2019": "0.353237"
+        },
+        {
+          "Fund Inception": "Sep 30, 2026",
+          "04/16/2019": "-1.234543"
         }
       ]
     }

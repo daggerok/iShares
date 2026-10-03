@@ -1,8 +1,8 @@
 {
   "ticker": "ITDF",
   "name": "iShares® LifePath® Target Date 2050 ETF",
-  "category": "Equity",
-  "categoryPath": "Equity",
+  "category": "Multi-asset",
+  "categoryPath": "Multi-asset",
   "providerIds": {
     "ticker": "ITDF",
     "portfolioId": "333566",
@@ -14,14 +14,14 @@
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=333566&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=333566&userType=individual&component=fundHeader",
-    "categorySource": "derived from the holdings market-value mix",
+    "categorySource": "iShares product header asset class",
     "holdingsSource": "iShares full holdings workbook (product-data fund download)",
     "historySource": "iShares daily NAV per share history (same workbook; official NAV, not market price)",
     "provider": "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)"
   },
   "identifiers": {
-    "cusip": null,
-    "isin": null,
+    "cusip": "46438G778",
+    "isin": "US46438G7786",
     "indexTicker": null
   },
   "inception": {
@@ -36,9 +36,9 @@
     "net": 0.11
   },
   "nav": {
-    "display": "$42.10",
-    "value": 42.100095,
-    "asOfDate": "Sep 25 2026"
+    "display": "$41.50",
+    "value": 41.500669,
+    "asOfDate": "Oct 01 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$96.83 M",
-    "value": 96830218,
+    "display": "$95.45 M",
+    "value": 95451538,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -151,9 +151,9 @@
     ]
   },
   "holdings": {
-    "totalRows": 20044,
+    "totalRows": 20455,
     "pageSize": 250,
-    "pageCount": 81,
+    "pageCount": 82,
     "pages": [
       "./holdings/001.json",
       "./holdings/002.json",
@@ -235,7 +235,8 @@
       "./holdings/078.json",
       "./holdings/079.json",
       "./holdings/080.json",
-      "./holdings/081.json"
+      "./holdings/081.json",
+      "./holdings/082.json"
     ],
     "asOfDate": null,
     "asOf": null,
@@ -243,13 +244,13 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 739,
+    "totalRows": 743,
     "pageSize": 1000,
     "pageCount": 1,
     "pages": [
       "./history/001.json"
     ],
-    "asOf": "Sep 25 2026",
+    "asOf": "Oct 01 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

@@ -14,14 +14,14 @@
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=332280&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=332280&userType=individual&component=fundHeader",
-    "categorySource": "derived from the holdings market-value mix",
+    "categorySource": "iShares product header asset class",
     "holdingsSource": "iShares full holdings workbook (product-data fund download)",
     "historySource": "iShares daily NAV per share history (same workbook; official NAV, not market price)",
     "provider": "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)"
   },
   "identifiers": {
-    "cusip": null,
-    "isin": null,
+    "cusip": "46436E189",
+    "isin": "US46436E1890",
     "indexTicker": null
   },
   "inception": {
@@ -36,9 +36,9 @@
     "net": 0.47
   },
   "nav": {
-    "display": "$54.54",
-    "value": 54.540766,
-    "asOfDate": "Sep 25 2026"
+    "display": "$52.53",
+    "value": 52.527985,
+    "asOfDate": "Oct 01 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$479.96 M",
-    "value": 479958736,
+    "display": "$462.25 M",
+    "value": 462246265,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -66,42 +66,42 @@
   "returns": {
     "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
     "monthEnd": {
-      "asOfDate": "Jun 30 2026",
-      "ytd": 11.967375,
-      "yr1": 68.820971,
-      "yr3": 29.262005,
+      "asOfDate": "Sep 30 2026",
+      "ytd": 20.62955,
+      "yr1": 44.35345,
+      "yr3": 33.616537,
       "yr5": null,
       "yr10": null,
-      "sinceInception": 29.262005
+      "sinceInception": 29.674268
     },
     "quarterEnd": {
-      "asOfDate": "Jun 30 2026",
-      "ytd": 11.967375,
-      "yr1": 68.820971,
-      "yr3": 29.262005,
+      "asOfDate": "Sep 30 2026",
+      "ytd": 20.62955,
+      "yr1": 44.35345,
+      "yr3": 33.616537,
       "yr5": null,
       "yr10": null,
-      "sinceInception": 29.262005
+      "sinceInception": 29.674268
     }
   },
   "officialReturns": {
-    "asOfDate": "2026-06-30",
+    "asOfDate": "2026-09-30",
     "performance": {
-      "YTD": 11.967375,
-      "1Y": 68.820971,
-      "3Y": 29.262005,
+      "YTD": 20.62955,
+      "1Y": 44.35345,
+      "3Y": 33.616537,
       "5Y": null,
       "10Y": null
     },
     "totalReturn": {
-      "YTD": 11.967375,
-      "1Y": 68.820971,
-      "3Y": 115.979565,
+      "YTD": 20.62955,
+      "1Y": 44.35345,
+      "3Y": 138.550666,
       "5Y": null,
       "10Y": null
     },
-    "siAnn": 29.262005,
-    "siCum": 115.979565
+    "siAnn": 29.674268,
+    "siCum": 132.688474
   },
   "distributions": {
     "frequency": "Semi-annually",
@@ -191,7 +191,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 86,
+    "totalRows": 81,
     "pageSize": 250,
     "pageCount": 1,
     "pages": [
@@ -203,13 +203,13 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 828,
+    "totalRows": 832,
     "pageSize": 1000,
     "pageCount": 1,
     "pages": [
       "./history/001.json"
     ],
-    "asOf": "Sep 25 2026",
+    "asOf": "Oct 01 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {
@@ -378,6 +378,10 @@
         {
           "Fund Inception": "Aug 31, 2026",
           "06/21/2023": "16.244224"
+        },
+        {
+          "Fund Inception": "Sep 30, 2026",
+          "06/21/2023": "-8.771059"
         }
       ]
     }

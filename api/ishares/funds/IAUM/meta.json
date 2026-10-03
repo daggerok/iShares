@@ -1,8 +1,8 @@
 {
   "ticker": "IAUM",
   "name": "iShares Gold Trust Micro",
-  "category": "ETF",
-  "categoryPath": "ETF",
+  "category": "Commodity",
+  "categoryPath": "Commodity",
   "providerIds": {
     "ticker": "IAUM",
     "portfolioId": "306979",
@@ -14,14 +14,14 @@
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=306979&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=306979&userType=individual&component=fundHeader",
-    "categorySource": "derived from the holdings market-value mix",
+    "categorySource": "iShares product header asset class",
     "holdingsSource": "iShares full holdings workbook (product-data fund download)",
     "historySource": "iShares daily NAV per share history (same workbook; official NAV, not market price)",
     "provider": "ishares.com official product table, product-data fund header and fund download workbook (SpreadsheetML)"
   },
   "identifiers": {
-    "cusip": null,
-    "isin": null,
+    "cusip": "46436F103",
+    "isin": "US46436F1030",
     "indexTicker": null
   },
   "inception": {
@@ -36,9 +36,9 @@
     "net": 0.09
   },
   "nav": {
-    "display": "$45.66",
-    "value": 45.655197,
-    "asOfDate": "Aug 21 2026"
+    "display": "$41.75",
+    "value": 41.745302,
+    "asOfDate": "Oct 02 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -51,7 +51,7 @@
   },
   "aum": {
     "display": "$7.98 B",
-    "value": 7975962887,
+    "value": 7975439964,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -66,42 +66,42 @@
   "returns": {
     "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
     "monthEnd": {
-      "asOfDate": null,
-      "ytd": null,
-      "yr1": null,
-      "yr3": null,
-      "yr5": null,
+      "asOfDate": "Sep 30 2026",
+      "ytd": -3.106464,
+      "yr1": 9.09923,
+      "yr3": 30.609343,
+      "yr5": 19.021418,
       "yr10": null,
-      "sinceInception": 17.873876
+      "sinceInception": 17.769724
     },
     "quarterEnd": {
-      "asOfDate": null,
-      "ytd": null,
-      "yr1": null,
-      "yr3": null,
-      "yr5": null,
+      "asOfDate": "Sep 30 2026",
+      "ytd": -3.106464,
+      "yr1": 9.09923,
+      "yr3": 30.609343,
+      "yr5": 19.021418,
       "yr10": null,
-      "sinceInception": 17.873876
+      "sinceInception": 17.769724
     }
   },
   "officialReturns": {
-    "asOfDate": null,
+    "asOfDate": "2026-09-30",
     "performance": {
-      "YTD": null,
-      "1Y": null,
-      "3Y": null,
-      "5Y": null,
+      "YTD": -3.106464,
+      "1Y": 9.09923,
+      "3Y": 30.609343,
+      "5Y": 19.021418,
       "10Y": null
     },
     "totalReturn": {
-      "YTD": null,
-      "1Y": null,
-      "3Y": null,
-      "5Y": null,
+      "YTD": -3.106464,
+      "1Y": 9.09923,
+      "3Y": 122.803872,
+      "5Y": 138.850193,
       "10Y": null
     },
-    "siAnn": 17.873876,
-    "siCum": 127.555751
+    "siAnn": 17.769724,
+    "siCum": 136.007988
   },
   "distributions": {
     "frequency": "None",
@@ -121,14 +121,14 @@
     "status": "empty"
   },
   "history": {
-    "totalRows": 1305,
+    "totalRows": 1334,
     "pageSize": 1000,
     "pageCount": 2,
     "pages": [
       "./history/001.json",
       "./history/002.json"
     ],
-    "asOf": "Aug 21 2026",
+    "asOf": "Oct 02 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {
@@ -389,6 +389,14 @@
         {
           "Fund Inception": "Jul 31, 2026",
           "06/15/2021": "0.008"
+        },
+        {
+          "Fund Inception": "Aug 31, 2026",
+          "06/15/2021": "13.309"
+        },
+        {
+          "Fund Inception": "Sep 30, 2026",
+          "06/15/2021": "-8.475"
         }
       ]
     }
