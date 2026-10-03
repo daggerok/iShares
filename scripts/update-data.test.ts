@@ -1,6 +1,9 @@
 /// <reference types="bun" />
-import { afterEach, describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   CONTROL_NAMES,
   RETURNS_BASIS,
@@ -8,6 +11,7 @@ import {
   buildMetrics,
   buildStandardFund,
   catalogFundFromRow,
+  createRequestGate,
   cusipFromIsin,
   deriveAssetClass,
   displayDate,
@@ -17,6 +21,9 @@ import {
   normalizeAssetClass,
   parseFundHeader,
   installSystemCa,
+  main,
+  setRootForTests,
+  setSoftDeadlineForTests,
   isCertError,
   catalogFilterReasons,
   deriveReturnMetrics,
@@ -192,11 +199,30 @@ describe("return metrics and filters", () => {
     ).toBe(2);
   });
 
-  test("allows a fund when a requested long-period metric is unavailable", () => {
+  test("excludes a fund whose value for a bounded period is unavailable", () => {
     const young = deriveReturnMetrics({ headers: ["Date", "Return"], rows: rows.slice(-12) });
     expect(
       returnFilterReasons(young, readConfig({ PERFORMANCE_10Y: "10:", TOTAL_RETURN_10Y: "100:" })),
-    ).toEqual([]);
+    ).toEqual(["PERFORMANCE_10Y unavailable", "TOTAL_RETURN_10Y unavailable"]);
+    expect(returnFilterReasons(young, readConfig({}))).toEqual([]);
+  });
+
+  test("since-inception annualized return needs 12 contiguous months of history", () => {
+    const series = (count: number, skip = -1) => ({
+      headers: ["Date", "Return"],
+      rows: Array.from({ length: count }, (_, i) => i)
+        .filter((i) => i !== skip)
+        .map((i) => ({ Date: `${months[i % 12]} 28, ${2023 + Math.floor(i / 12)}`, Return: "1" })),
+    });
+    expect(deriveReturnMetrics(series(7)).siAnn).toBeNull(); // 6 months to Jun
+    expect(deriveReturnMetrics(series(7)).siCum).toBeCloseTo((1.01 ** 6 - 1) * 100, 6);
+    expect(deriveReturnMetrics(series(3)).siAnn).toBeNull();
+    expect(deriveReturnMetrics(series(12)).siAnn).toBeCloseTo((1.01 ** 12 - 1) * 100, 6);
+    expect(deriveReturnMetrics(series(30)).siAnn).toBeCloseTo((1.01 ** 12 - 1) * 100, 6);
+    // a missing month in the middle: neither cumulative nor annualized is published
+    const gap = deriveReturnMetrics(series(30, 10));
+    expect(gap.siAnn).toBeNull();
+    expect(gap.siCum).toBeNull();
   });
 });
 
@@ -577,5 +603,258 @@ describe("standard feed shapes", () => {
     expect(frequencyInfo("06 - Semi-annually")).toEqual({ label: "Semi-annually", paymentsPerYear: 2 });
     expect(frequencyInfo("99 - Irregular")).toEqual({ label: "Irregular", paymentsPerYear: null });
     expect(frequencyInfo("00 - None")).toEqual({ label: "None", paymentsPerYear: null });
+  });
+});
+
+// --- mocked end-to-end runs: main() against a temporary feed directory and a fake ishares.com ---
+
+type World = {
+  all: string[]; // every fund the fake provider knows (portfolio id = 100 + position)
+  catalog: string[]; // funds listed on the catalog page
+  metal: Set<string>; // physical metal trusts: the workbook has no securities list
+  failDownload: Set<string>; // answers HTTP 404 for the workbook
+  failHeader: boolean; // answers HTTP 404 for the fund header JSON
+  secYield: string;
+  delayMs: number;
+};
+
+const cell = (value: string) => `<ss:Cell><ss:Data ss:Type="String">${value}</ss:Data></ss:Cell>`;
+const sheet = (name: string, rows: string[][]) =>
+  `<ss:Worksheet ss:Name="${name}"><ss:Table>${rows.map((row) => `<ss:Row>${row.map(cell).join("")}</ss:Row>`).join("")}</ss:Table></ss:Worksheet>`;
+
+function workbook(ticker: string, metal: boolean): string {
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const performance = [["Date", "Return"]];
+  for (let year = 2023; year <= 2024; year++) for (let month = 0; month < 12; month++) performance.push([`${monthNames[month]} 28, ${year}`, "1"]);
+  const holdings = metal
+    ? [["Ticker", "Name", "Asset Class", "Market Value", "As Of Date"]]
+    : [["Ticker", "Name", "Asset Class", "Market Value", "As Of Date"], [ticker, `${ticker} Corp`, "Equity", "100", "Sep 25, 2026"]];
+  return `<ss:Workbook>${[
+    sheet("Holdings", holdings),
+    sheet("Historical", [["As Of", "NAV per Share"], ["Sep 25, 2026", "50.25"], ["Sep 24, 2026", "50.00"]]),
+    sheet("Performance", performance),
+  ].join("")}</ss:Workbook>`;
+}
+
+function installIsharesMock(world: World) {
+  const realFetch = globalThis.fetch;
+  const requests: string[] = [];
+  let inFlight = 0;
+  let peak = 0;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const url = String(input);
+    requests.push(url);
+    inFlight += 1;
+    peak = Math.max(peak, inFlight);
+    try {
+      if (world.delayMs) await new Promise((resolve) => setTimeout(resolve, world.delayMs));
+      if (url.includes("etf-investments")) {
+        const rows = world.catalog.map((ticker) => {
+          const id = 100 + world.all.indexOf(ticker);
+          return `<tr><td><a href="/us/products/${id}/${ticker.toLowerCase()}-fund">${ticker}</a></td><td>iShares ${ticker} ETF</td><td>1.25</td><td>Jun 30, 2026</td><td>10.00</td><td>Jun 30, 2026</td><td>May 15, 2000</td><td>0.03</td><td>0.03</td><td>700,000,000</td></tr>`;
+        });
+        return new Response(`<table>${rows.join("")}</table>`);
+      }
+      const id = Number(/portfolioId=(\d+)/.exec(url)?.[1]);
+      const ticker = world.all[id - 100];
+      if (url.includes("component=fundHeader")) {
+        if (world.failHeader) return new Response("nope", { status: 404 });
+        return new Response(JSON.stringify({ componentsByNameMap: { fundHeader: { containersByNameMap: {
+          yieldsAndRates: { dataPointsByNameMap: { thirtyDaySecYield: { formattedValue: world.secYield, formattedAsOfDate: "Sep 24, 2026" } } },
+          fundName: { dataPointsByNameMap: { assetClass: { value: "Equity" }, productIsin: { value: "US4642898674" } } },
+        } } } }));
+      }
+      if (url.includes("component=fundDownload")) {
+        if (world.failDownload.has(ticker)) return new Response("nope", { status: 404 });
+        return new Response(workbook(ticker, world.metal.has(ticker)));
+      }
+      return new Response("unexpected", { status: 500 });
+    } finally {
+      inFlight -= 1;
+    }
+  }) as typeof fetch;
+  return { requests, peak: () => peak, restore: () => { globalThis.fetch = realFetch; } };
+}
+
+describe("main() against a mocked ishares.com", () => {
+  let dir = "";
+  let mock: ReturnType<typeof installIsharesMock> | null = null;
+  const realLog = console.log;
+  const realWarn = console.warn;
+  let logged: string[] = [];
+  const newWorld = (all: string[], extra: Partial<World> = {}): World => ({
+    all,
+    catalog: all,
+    metal: new Set(),
+    failDownload: new Set(),
+    failHeader: false,
+    secYield: "4.20%",
+    delayMs: 0,
+    ...extra,
+  });
+  const run = (world: World, env: Record<string, string> = {}) => {
+    mock?.restore();
+    mock = installIsharesMock(world);
+    return main([], { REQUEST_SLEEP: "0", MAX_RETRIES: "1", USE_SYSTEM_CA: "false", ...env });
+  };
+  const files = (root: string, base = root): Record<string, string> => {
+    const out: Record<string, string> = {};
+    for (const name of readdirSync(root)) {
+      const full = join(root, name);
+      if (statSync(full).isDirectory()) Object.assign(out, files(full, base));
+      else out[full.slice(base.length)] = readFileSync(full, "utf8");
+    }
+    return out;
+  };
+  const index = () => JSON.parse(readFileSync(join(dir, "index.json"), "utf8"));
+  const meta = (ticker: string) => JSON.parse(readFileSync(join(dir, "funds", ticker, "meta.json"), "utf8"));
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), "ishares-test-"));
+    setRootForTests(pathToFileURL(`${dir}/`));
+    logged = [];
+    console.log = (...parts: unknown[]) => { logged.push(parts.join(" ")); };
+    console.warn = (...parts: unknown[]) => { logged.push(parts.join(" ")); };
+  });
+  afterEach(() => {
+    mock?.restore();
+    mock = null;
+    console.log = realLog;
+    console.warn = realWarn;
+    setSoftDeadlineForTests(25 * 60 * 1000);
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  test("a physical metal trust with no securities list still publishes NAV, returns and history (status empty)", async () => {
+    const world = newWorld(["AAA", "GAU"], { metal: new Set(["GAU"]) });
+    const summary = await run(world);
+    expect(summary).toMatchObject({ failed: 0, updated: 2 });
+    const gold = meta("GAU");
+    expect(gold.holdings).toMatchObject({ totalRows: 0, status: "empty" });
+    expect(gold.history.totalRows).toBe(2);
+    expect(gold.nav.value).toBe(50.25);
+    expect(gold.officialReturns.performance["1Y"]).not.toBeNull();
+    const row = index().funds.find((fund: { ticker: string }) => fund.ticker === "GAU");
+    expect(row).toMatchObject({ navValue: 50.25, holdings: 0, history: 2, dataFile: "./funds/GAU/meta.json" });
+    expect(row.metrics.performanceAsOf).toBe("2024-12-28");
+  });
+
+  test("a fund that published holdings keeps its state when the workbook suddenly has none", async () => {
+    const world = newWorld(["AAA"]);
+    await run(world);
+    const before = files(dir);
+    world.metal = new Set(["AAA"]);
+    const summary = await run(world);
+    expect(summary).toMatchObject({ failed: 1, updated: 0 });
+    expect(files(dir)).toEqual(before);
+  });
+
+  test("a one-ticker run keeps every other fund's row and files", async () => {
+    const world = newWorld(["AAA", "BBB", "CCC"]);
+    await run(world);
+    const before = files(dir);
+    expect(index().funds).toHaveLength(3);
+    await run(world, { TICKERS: "BBB" });
+    expect(index().funds.map((fund: { ticker: string }) => fund.ticker)).toEqual(["AAA", "BBB", "CCC"]);
+    expect(files(dir)).toEqual(before);
+  });
+
+  test("a rerun with identical upstream data writes nothing (stamps included) and leaves no temp files", async () => {
+    const world = newWorld(["AAA", "BBB", "GAU"], { metal: new Set(["GAU"]) });
+    await run(world);
+    const before = files(dir);
+    const summary = await run(world);
+    expect(summary).toMatchObject({ updated: 0, unchanged: 3, failed: 0 });
+    expect(files(dir)).toEqual(before);
+    expect(Object.keys(before).filter((name) => name.includes(".tmp-"))).toEqual([]);
+    expect(index().generatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+  });
+
+  test("CONCURRENCY really runs funds in parallel: peak in-flight 1 at c=1, N at c=N", async () => {
+    const all = ["A01", "A02", "A03", "A04", "A05", "A06"];
+    await run(newWorld(all, { delayMs: 15 }), { CONCURRENCY: "1" });
+    expect(mock!.peak()).toBe(1);
+    rmSync(dir, { recursive: true, force: true });
+    dir = mkdtempSync(join(tmpdir(), "ishares-test-"));
+    setRootForTests(pathToFileURL(`${dir}/`));
+    await run(newWorld(all, { delayMs: 15 }), { CONCURRENCY: "3" });
+    expect(mock!.peak()).toBe(3);
+  });
+
+  test("the request gate reserves slots synchronously: callers in one tick spread over the lanes", async () => {
+    const gate = createRequestGate(0.06, 2);
+    const started = Date.now();
+    await Promise.all([gate(), gate(), gate(), gate()]);
+    const elapsed = Date.now() - started;
+    expect(elapsed).toBeGreaterThanOrEqual(50); // two calls per lane: the second waits one interval
+    expect(elapsed).toBeLessThan(110); // a single serialized lane would need three intervals
+  });
+
+  test("a run in which every fund failed reports it, and the published feed stays untouched", async () => {
+    const world = newWorld(["AAA", "BBB"]);
+    await run(world);
+    const before = files(dir);
+    world.failDownload = new Set(["AAA", "BBB"]);
+    const summary = await run(world);
+    expect(summary).toMatchObject({ failed: 2, updated: 0, unchanged: 0 });
+    expect(files(dir)).toEqual(before);
+  });
+
+  test("a truncated catalog never deletes funds, a single vanished fund is removed", async () => {
+    const all = Array.from({ length: 10 }, (_, i) => `F${String(i).padStart(2, "0")}`);
+    const world = newWorld(all);
+    await run(world);
+    expect(index().funds).toHaveLength(10);
+    world.catalog = all.slice(0, 3); // 7 vanished at once: a partly parsed page
+    await run(world);
+    expect(index().funds).toHaveLength(10);
+    expect(readdirSync(join(dir, "funds"))).toHaveLength(10);
+    world.catalog = all.slice(0, 9); // one fund really left
+    await run(world);
+    expect(index().funds).toHaveLength(9);
+    expect(existsSync(join(dir, "funds", "F09"))).toBe(false);
+  });
+
+  test("transient fund-header failure keeps the published SEC yield, an honest null replaces it", async () => {
+    const world = newWorld(["AAA"]);
+    await run(world);
+    expect(index().funds[0].metrics.secYield).toBe(4.2);
+    world.failHeader = true;
+    await run(world);
+    expect(index().funds[0].metrics.secYield).toBe(4.2);
+    world.failHeader = false;
+    world.secYield = "-";
+    await run(world);
+    expect(index().funds[0].metrics.secYield).toBeNull();
+  });
+
+  test("new funds are announced and an unknown TICKERS entry is an error", async () => {
+    const world = newWorld(["AAA", "BBB", "CCC"], { catalog: ["AAA", "BBB"] });
+    await run(world);
+    world.catalog = ["AAA", "BBB", "CCC"];
+    const summary = await run(world);
+    expect(summary?.newFunds).toEqual(["CCC"]);
+    expect(logged.join("\n")).toContain("NEW FUNDS: CCC");
+    await expect(run(world, { TICKERS: "ZZZ" })).rejects.toThrow("not in the iShares catalog: ZZZ");
+  });
+
+  test("the soft deadline stops new funds and still writes the index with the previous rows", async () => {
+    const world = newWorld(["AAA", "BBB"]);
+    await run(world);
+    const before = files(dir);
+    setSoftDeadlineForTests(0);
+    const summary = await run(world);
+    expect(summary?.attempted).toBe(0);
+    expect(index().funds).toHaveLength(2);
+    expect(files(dir)).toEqual(before);
+  });
+});
+
+describe("strict integers", () => {
+  test("rejects exponent, hex and fractional spellings", () => {
+    for (const value of ["1e1", "0x10", "2.5", "-1", "abc"]) {
+      expect(() => readConfig({ MAX_RETRIES: value })).toThrow("integer");
+    }
+    expect(readConfig({ MAX_RETRIES: "3" }).maxRetries).toBe(3);
   });
 });
