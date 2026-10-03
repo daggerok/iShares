@@ -131,6 +131,7 @@ import {
   mkdir,
   readFile,
   readdir,
+  rename,
   rm,
   writeFile,
 } from "node:fs/promises";
@@ -171,9 +172,20 @@ export function installSystemCa(mode: string, reexec: () => never = reexecWithSy
   }) as typeof fetch;
 }
 
-const ROOT = new URL("../api/ishares/", import.meta.url);
-const RAW = new URL("../api/ishares/raw/", import.meta.url);
-const UPDATE_STATE = new URL("update-state.json", ROOT);
+let ROOT = new URL("../api/ishares/", import.meta.url);
+let RAW = new URL("../api/ishares/raw/", import.meta.url);
+let UPDATE_STATE = new URL("update-state.json", ROOT);
+/** Tests point the updater at a temporary feed directory instead of api/ishares. */
+export function setRootForTests(root: URL): void {
+  ROOT = root;
+  RAW = new URL("raw/", root);
+  UPDATE_STATE = new URL("update-state.json", root);
+}
+/** A run stops taking new funds after this long and still writes the index (the workflow limit is 30 minutes). */
+let softDeadlineMs = 25 * 60 * 1000;
+export function setSoftDeadlineForTests(milliseconds: number): void {
+  softDeadlineMs = milliseconds;
+}
 const TRUTHY = new Set(["1", "true", "yes", "y", "on"]);
 const AUM_PRESET_BOUNDS = {
   nano: { min: 0, max: 10_000_000 },
@@ -348,7 +360,7 @@ function parseAum(value: string, name: string) {
 function parseInteger(value: string, name: string, fallback: number, minimum: number) {
   if (!value) return fallback;
   const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed < minimum) {
+  if (!/^\d+$/.test(value.trim()) || !Number.isSafeInteger(parsed) || parsed < minimum) {
     throw Error(`${name} must be an integer >= ${minimum}; received ${JSON.stringify(value)}`);
   }
   return parsed;
@@ -590,21 +602,19 @@ function retryable(error: unknown) {
 // CONCURRENCY workers now each get their own paced lane, so concurrency
 // actually multiplies throughput as documented instead of only overlapping
 // wait time.
-function createRequestGate(seconds: number, laneCount = 1) {
+export function createRequestGate(seconds: number, laneCount = 1): () => Promise<void> {
   const interval = seconds * 1_000;
   const count = Math.max(1, laneCount);
-  const nextStart = new Array(count).fill(0);
-  const tails = new Array(count).fill(null).map(() => Promise.resolve());
+  const nextStart: number[] = new Array(count).fill(0);
   return () => {
+    // The slot is reserved synchronously, before anything is awaited, so
+    // callers that arrive in the same tick spread over the lanes.
     let lane = 0;
     for (let i = 1; i < count; i++) if (nextStart[i] < nextStart[lane]) lane = i;
-    const turn = tails[lane].then(async () => {
-      const wait = Math.max(0, nextStart[lane] - Date.now());
-      if (wait) await sleep(wait);
-      nextStart[lane] = Date.now() + interval;
-    });
-    tails[lane] = turn.catch(() => undefined);
-    return turn;
+    const start = Math.max(Date.now(), nextStart[lane]);
+    nextStart[lane] = start + interval;
+    const wait = start - Date.now();
+    return wait > 0 ? sleep(wait).then(() => undefined) : Promise.resolve();
   };
 }
 
@@ -659,10 +669,14 @@ async function old(url: URL) {
   }
 }
 
+let temporaryCounter = 0;
 async function put(url: URL, contents: string) {
   if ((await old(url)) === contents) return false;
   await mkdir(new URL("./", url), { recursive: true });
-  await writeFile(url, contents);
+  // tmp file + rename: an interrupted run never leaves a half-written JSON file.
+  const temporary = new URL(`${url.href}.tmp-${process.pid}-${temporaryCounter++}`);
+  await writeFile(temporary, contents);
+  await rename(temporary, url);
   return true;
 }
 
@@ -1395,7 +1409,7 @@ async function writePagedRows(
   headers: string[],
   rows: Array<Record<string, string>>,
   pageSize: number,
-): Promise<{ manifest: PageManifest; changed: boolean }> {
+): Promise<{ manifest: PageManifest; changed: boolean; keep: Set<string> }> {
   const pages = paginationPaths(folder, rows.length, pageSize);
   const keep = new Set(pages.map((path) => path.slice(path.lastIndexOf("/") + 1)));
   let changed = false;
@@ -1421,8 +1435,8 @@ async function writePagedRows(
       )) || changed;
   }
 
-  changed = (await removeStalePages(ticker, folder, keep)) || changed;
   return {
+    keep,
     manifest: {
       totalRows: rows.length,
       pageSize,
@@ -1483,12 +1497,14 @@ async function updateFund(
   let secYield: SecYield | null = null;
   let headerAssetClass: string | null = null;
   let isin: string | null = null;
+  let headerFailed = false;
   try {
     const header = parseFundHeader(
       JSON.parse(await requestText(fundHeader, fund.ticker, config, waitForRequest)),
     );
     ({ secYield, assetClass: headerAssetClass, isin } = header);
   } catch (error) {
+    headerFailed = true;
     if (outputVerbose()) logTag(
       "yield",
       `ticker=${logTicker(fund.ticker)} fund header unavailable: ${String(error)}`,
@@ -1502,11 +1518,22 @@ async function updateFund(
   const historyName = Object.keys(worksheets).find((name) =>
     ["historical", "history"].includes(name.trim().toLowerCase()),
   );
-  const holdings = holdingsName ? worksheets[holdingsName] : undefined;
-  if (!holdings?.rows.length) {
-    throw Error("Holdings worksheet is missing or empty");
-  }
+  const holdingsSheet = holdingsName ? worksheets[holdingsName] : undefined;
   const history = historyName ? worksheets[historyName] : undefined;
+  // The previous meta tells a fund that never had holdings from a broken download.
+  const prior = JSON.parse((await old(new URL(`funds/${fund.ticker}/meta.json`, ROOT))) || "{}");
+  if (!holdingsSheet?.rows.length) {
+    // Physical metal trusts (IAU, IAUM, SLV) publish no securities list: an
+    // empty holdings sheet is valid for them, as long as the workbook carries a
+    // NAV history and the fund never published holdings before. Anything else
+    // is a broken download and keeps the previous complete fund state.
+    const published = Number(prior?.holdings?.totalRows) || 0;
+    if (published > 0) {
+      throw Error(`Holdings worksheet is empty but ${published} rows are published; keeping the previous state`);
+    }
+    if (!history?.rows.length) throw Error("Holdings and history worksheets are both missing or empty");
+  }
+  const holdings: Sheet = holdingsSheet ?? { headers: [], rows: [] };
 
   const distributionsName = Object.keys(worksheets).find(
     (name) => name.trim().toLowerCase() === "distributions",
@@ -1549,7 +1576,9 @@ async function updateFund(
     holdings.rows.find((row) => row["As Of Date"])?.["As Of Date"] || "";
   const latestNavRow = history?.rows?.[0] || {};
   // A failed header request must not erase what an earlier run learned from it.
-  const prior = JSON.parse((await old(new URL(`funds/${fund.ticker}/meta.json`, ROOT))) || "{}");
+  if (headerFailed && !secYield && typeof prior?.yields?.secYield === "number") {
+    secYield = { value: String(prior.yields.secYield), asOf: "" };
+  }
   let category = headerAssetClass;
   if (!category && prior?.source?.categorySource === CATEGORY_HEADER && prior.category) category = prior.category;
   const categorySource = category ? CATEGORY_HEADER : CATEGORY_DERIVED;
@@ -1577,6 +1606,11 @@ async function updateFund(
       JSON.stringify(meta, null, 2) + "\n",
     )) || changed;
 
+  // Stale pages go only after the new meta.json (which lists the live pages) is in place.
+  const prunedHoldings = await removeStalePages(fund.ticker, "holdings", holdingsPages.keep);
+  const prunedHistory = await removeStalePages(fund.ticker, "history", historyPages.keep);
+  changed = prunedHoldings || prunedHistory || changed;
+
   const legacy = new URL(`funds/${fund.ticker}.json`, ROOT);
   if (await old(legacy)) {
     await rm(legacy, { force: true });
@@ -1585,11 +1619,7 @@ async function updateFund(
 
   if (config.storeRawDownloads) {
     const rawUrl = new URL(`raw/${fund.ticker}.xls`, ROOT);
-    if ((await old(rawUrl)) !== body) {
-      await mkdir(RAW, { recursive: true });
-      await writeFile(rawUrl, body);
-      changed = true;
-    }
+    if (await put(rawUrl, body)) changed = true;
   }
 
   return {
@@ -1604,11 +1634,13 @@ async function mapWithConcurrency<T, R>(
   values: T[],
   concurrency: number,
   worker: (value: T, index: number) => Promise<R>,
+  shouldStop: () => boolean = () => false,
 ) {
-  const output = new Array<R>(values.length);
+  const output = new Array<R | undefined>(values.length);
   let cursor = 0;
   const runners = Array.from({ length: Math.min(concurrency, values.length) }, async () => {
     while (true) {
+      if (shouldStop()) return;
       const index = cursor++;
       if (index >= values.length) return;
       output[index] = await worker(values[index], index);
@@ -1844,13 +1876,19 @@ export async function runtimeControls(
   return resolveControls(file, {}, {}, env);
 }
 
-async function main() {
-  if (wantsHelp(process.argv.slice(2))) {
+export type RunSummary = { attempted: number; updated: number; unchanged: number; filtered: number; failed: number; newFunds: string[] };
+
+export async function main(
+  args: string[] = process.argv.slice(2),
+  env: Record<string, string | undefined> = process.env,
+): Promise<RunSummary | undefined> {
+  if (wantsHelp(args)) {
     printHelp();
     return;
   }
-  const controls = await runtimeControls();
-  if (controls.VERBOSE !== undefined) process.env.VERBOSE = controls.VERBOSE;
+  const startedAt = Date.now();
+  const controls = await runtimeControls(env);
+  if (controls.VERBOSE !== undefined && env === process.env) process.env.VERBOSE = controls.VERBOSE;
   installSystemCa(controls.USE_SYSTEM_CA ?? "auto");
   const config = readConfig(controls);
   outputPrintConfig("iShares", config);
@@ -1883,10 +1921,9 @@ async function main() {
   logTag("catalog", `discovered=${discovered.length}`);
 
   const discoveredTickers = new Set(discovered.map((fund) => fund.ticker.toUpperCase()));
-  for (const ticker of config.tickers) {
-    if (!discoveredTickers.has(ticker)) {
-      logTag("filter", `requested ticker not found: ${ticker}`, console.warn);
-    }
+  const unknownTickers = config.tickers.filter((ticker) => !discoveredTickers.has(ticker));
+  if (unknownTickers.length) {
+    throw Error(`TICKERS: not in the iShares catalog: ${unknownTickers.join(", ")}`);
   }
 
   const tickerOrder = new Map(config.tickers.map((ticker, index) => [ticker, index]));
@@ -1910,7 +1947,8 @@ async function main() {
   outputPrintFilter(catalogEligible.length, discovered.length, outputHasOutputFilters(config));
   const output = outputCreateReporter(ROOT, candidates.length);
 
-  const results = await mapWithConcurrency(
+  let deadlineHit = false;
+  const outcomes = await mapWithConcurrency(
     candidates,
     config.concurrency,
     async (fund, index): Promise<UpdateResult> => {
@@ -1930,35 +1968,60 @@ async function main() {
         return result;
       }
     },
+    () => {
+      if (Date.now() - startedAt < softDeadlineMs) return false;
+      if (!deadlineHit) {
+        deadlineHit = true;
+        logTag("deadline", `soft deadline of ${Math.round(softDeadlineMs / 60_000)} min reached: no new funds, writing the index`, console.warn);
+      }
+      return true;
+    },
   );
+  const results = outcomes.filter((result): result is UpdateResult => result !== undefined);
 
   const resultByTicker = new Map(results.map((result) => [result.ticker, result]));
   const index: IndexRow[] = discovered.map((freshFund) => {
     const prior = previousByTicker.get(freshFund.ticker);
     const result = resultByTicker.get(freshFund.ticker);
     if (result?.indexRow) return result.indexRow;
-    // Filters and MAX_FETCHES limit updates, not the published catalog. Preserve
-    // prior metadata/data for funds that were not successfully refreshed.
+    // Filters, MAX_FETCHES, a soft deadline and failures limit updates, not the
+    // published catalog: a fund not refreshed keeps its complete previous row.
     if (prior?.metrics) return prior;
     // A newly discovered fund remains discoverable even when this run did not
-    // fetch it. It will receive dataFile/holdings on a later successful update.
+    // fetch it (dataFile null, full metrics shape with null values).
     return buildCatalogRow(freshFund);
   });
+
+  // A fund that vanished from the live catalog is removed (index row and
+  // directory) only when a handful vanished: a partly parsed or truncated
+  // catalog page must never delete funds, so then every previous row stays.
+  const missing = previousRows.filter((row) => !discoveredTickers.has(String(row.ticker).toUpperCase()));
+  const cleanupSafe =
+    !usedCatalogFallback && missing.length <= Math.max(3, Math.floor(previousRows.length * 0.02));
+  if (missing.length && !cleanupSafe) {
+    logTag(
+      "cleanup",
+      `${missing.length} funds are missing from the catalog (${usedCatalogFallback ? "fallback" : "live"}): keeping their rows and directories`,
+      console.warn,
+    );
+    index.push(...missing);
+  }
   index.sort((left, right) => left.ticker.localeCompare(right.ticker));
 
-  // Remove obsolete flat fund files on every successful run. Removing whole
-  // fund directories is more destructive, so only do that after a live catalog
-  // that is not suspiciously smaller than the previous one.
-  const catalogSafeForCleanup =
-    !usedCatalogFallback &&
-    (previousFunds.length === 0 || discovered.length >= Math.ceil(previousFunds.length * 0.7));
-  if (!catalogSafeForCleanup && previousFunds.length) {
-    logTag("cleanup", "keeping orphan fund directories because catalog is incomplete", console.warn);
+  const newFunds = previousRows.length
+    ? discovered.filter((fund) => !previousByTicker.has(fund.ticker)).map((fund) => fund.ticker).sort()
+    : [];
+  if (newFunds.length) {
+    logTag("catalog", `NEW FUNDS: ${newFunds.join(", ")}`);
+    if (env.GITHUB_STEP_SUMMARY) {
+      await appendFile(env.GITHUB_STEP_SUMMARY, `### NEW FUNDS\n\n${newFunds.map((ticker) => `- ${ticker}`).join("\n")}\n\n`);
+    }
   }
+
   const legacyFilesChanged = await removeLegacyFundFiles();
   const orphanDirectoriesChanged = await removeOrphanFundDirectories(
     new Set(index.map((fund) => fund.ticker)),
-    catalogSafeForCleanup,
+    cleanupSafe,
   );
   const cleanupChanged = legacyFilesChanged || orphanDirectoriesChanged;
 
@@ -1974,7 +2037,7 @@ async function main() {
   const next = {
     generatedAt:
       dataChanged || manifestChanged || !previous.generatedAt
-        ? new Date().toISOString()
+        ? new Date().toISOString().replace(/\.\d{3}Z$/, "Z")
         : previous.generatedAt,
     ...stable,
   };
@@ -1985,8 +2048,9 @@ async function main() {
 
   let progressChanged = false;
   let processedThrough = "";
-  if (config.maxFetches && candidates.length) {
-    processedThrough = candidates[candidates.length - 1].ticker;
+  const lastDone = outcomes.reduce((found, result, position) => (result ? position : found), -1);
+  processedThrough = lastDone >= 0 ? candidates[lastDone].ticker : "";
+  if (config.maxFetches && processedThrough) {
     progressChanged = await put(
       UPDATE_STATE,
       JSON.stringify(
@@ -2020,10 +2084,21 @@ async function main() {
     progressChanged,
     processedThrough,
   );
+  return {
+    attempted: results.length,
+    updated: count("updated"),
+    unchanged: count("unchanged"),
+    filtered: count("filtered"),
+    failed: count("failed"),
+    newFunds,
+  };
 }
 
 if (import.meta.main) {
-  main().catch((error) => {
+  main().then((summary) => {
+    // Every attempted fund failed: the run produced nothing, so it must not look green.
+    if (summary && summary.failed > 0 && summary.updated + summary.unchanged === 0) process.exitCode = 1;
+  }).catch((error) => {
     console.error(error);
     process.exitCode = 1;
   });
