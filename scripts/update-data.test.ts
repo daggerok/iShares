@@ -12,6 +12,7 @@ import {
   buildStandardFund,
   catalogFilterReasons,
   catalogFundFromRow,
+  withYieldBasis,
   createRequestGate,
   cusipFromIsin,
   deriveAssetClass,
@@ -324,12 +325,15 @@ describe("metrics", () => {
   });
 
   test("buildMetrics: fixed key set, tr*/cagr* mapping, null (never 0) for young funds and missing data", () => {
-    const keys = ["ytd", "tr1y", "tr3y", "tr5y", "tr10y", "cagr3y", "cagr5y", "cagr10y", "siAnn", "dividendYield", "dividendYieldText", "secYield", "secYieldText", "returnsBasis", "performanceAsOf"];
+    const keys = ["ytd", "tr1y", "tr3y", "tr5y", "tr10y", "cagr3y", "cagr5y", "cagr10y", "siAnn", "dividendYield", "dividendYieldText", "dividendYieldBasis", "secYield", "secYieldText", "returnsBasis", "performanceAsOf"];
     const full = buildMetrics(returns, 1.06, 0.94);
     expect(Object.keys(full)).toEqual(keys);
     expect(full.tr3y).toBeCloseTo(pct(36), 6);
     expect(full.cagr3y).toBeCloseTo(pct(12), 6);
     expect(full.dividendYieldText).toBe("1.06%");
+    expect(full.dividendYieldBasis).toBe("official-trailing-12m");
+    expect(buildMetrics(returns, 0, null).dividendYieldBasis).toBe("official-trailing-12m");
+    expect(buildMetrics(returns, null, null).dividendYieldBasis).toBeNull();
     expect(full.returnsBasis).toBe(RETURNS_BASIS);
     expect(full.returnsBasis).toBeTruthy();
     expect(full.performanceAsOf).toBe("2024-12-28");
@@ -371,6 +375,15 @@ describe("metrics", () => {
     expect(row.metrics.tr1y).toBeNull();
     expect(row.metrics.dividendYield).toBe(1.25);
     expect(Object.keys(row.metrics)).toEqual(Object.keys(full.metrics));
+    expect(row.metrics.dividendYieldBasis).toBe("official-trailing-12m");
+    const noYield = buildCatalogRow({ ...fund, trailingYield: "—" });
+    expect([noYield.metrics.dividendYield, noYield.metrics.dividendYieldBasis]).toEqual([null, null]);
+    const old = { ...full, metrics: Object.fromEntries(Object.entries(full.metrics).filter(([key]) => key !== "dividendYieldBasis")) };
+    const kept = withYieldBasis(old);
+    expect(Object.keys(kept.metrics)).toEqual(Object.keys(full.metrics));
+    expect(kept.metrics.dividendYieldBasis).toBe("official-trailing-12m");
+    expect(withYieldBasis({ ...old, metrics: { ...old.metrics, dividendYield: null } }).metrics.dividendYieldBasis).toBeNull();
+    expect(Object.keys(buildStandardFund(facts).meta.yields)).toContain("dividendYieldBasis");
     expect(feedCounts([row, full])).toEqual({ funds: 2, holdings: 508, history: 6637 });
     const back = catalogFundFromRow(full);
     expect(back).toMatchObject({ ticker: "IVV", portfolioId: "239726", netExpenseRatio: "0.03", grossExpenseRatio: "0.03", netAssets: "700000000000" });
@@ -538,6 +551,7 @@ describe("pipeline", () => {
       expect(bare.dataFile).toBeNull();
       expect(bare.metrics.tr1y).toBeNull();
       expect(Object.keys(bare.metrics)).toEqual(Object.keys(ok.metrics));
+      expect(ok.metrics.dividendYieldBasis).toBe("official-trailing-12m");
       expect(existsSync(join(dir, "funds", "BBB", "meta.json"))).toBe(false);
     });
   });

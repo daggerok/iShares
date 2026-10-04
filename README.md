@@ -71,9 +71,16 @@ Each fund carries a `metrics` object that powers the catalog columns shared with
 - `cagr3y` / `cagr5y` / `cagr10y` - annualized 3Y/5Y/10Y NAV total returns -> *CAGR 3Y/5Y/10Y*
 - `siAnn` - since-inception annualized return -> *SI Ann.*; `null` until the fund has 12 contiguous months of NAV returns (a shorter history is never extrapolated to a yearly rate) and when the monthly series has a gap
 - `dividendYield` / `dividendYieldText` - 12-month trailing yield published in the product table
+- `dividendYieldBasis` - code of the definition behind `dividendYield`, `null` exactly when the yield is `null` (table below)
 - `secYield` / `secYieldText` - 30-day SEC yield when published; `—` otherwise
 - `returnsBasis` - the basis of every return figure: official iShares NAV total returns, compounded from the published monthly NAV return series up to the latest quarter end
 - `performanceAsOf` - ISO date of that quarter end, `null` when no returns are available
+
+| `dividendYieldBasis` | Meaning for iShares |
+| --- | --- |
+| `official-trailing-12m` | the 12-month trailing yield published in the ishares.com product table (the only yield source) |
+| `official-distribution-rate`, `official-other`, `computed-trailing-12m`, `indicated` | never emitted: iShares publishes no other yield and the updater computes none |
+| `null` | no yield published |
 
 Percentages are plain numbers (`10.19` means 10.19%). An unavailable value is `null` (text fields `—`), never `0`. The returns date is the quarter end shown in the *Return As Of* column, so it can trail the NAV date. A configured filter also skips funds that do not publish the filtered metric. A fund is either fully updated or fully kept: when its download fails, or its Holdings worksheet is empty although holdings were published before, the previous files stay as they were. Physical metal trusts (IAU, IAUM, SLV) publish no securities list, so an empty Holdings worksheet is valid for them and the fund still updates NAV, net assets, returns and history (`meta.holdings.status` is `empty`). A transient failure of the fund-header request keeps the previously published 30-day SEC yield. Funds not selected for an update keep their prior metadata and data files. A fund that vanishes from the live catalog is removed only when at most three (or 2%) vanish at once; a partly parsed catalog page never deletes funds. New catalog tickers are printed as `NEW FUNDS: A, B` and appended to the job summary. Every request has a 120 s timeout, JSON files are written through a temporary file and a rename, stale pages are removed after the new `meta.json`, and a rerun with unchanged upstream data writes nothing, not even `generatedAt`. The run stops taking new funds after 25 minutes and still writes the index; it exits non-zero when every attempted fund failed. With `STORE_RAW_DOWNLOADS` the source workbook is kept as `api/ishares/raw/{TICKER}.xls`.
 

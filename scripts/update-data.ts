@@ -1146,6 +1146,35 @@ function returnsBlock(returns: ReturnMetrics) {
   return { derivedFrom: RETURNS_BASIS, monthEnd: { ...period }, quarterEnd: { ...period } };
 }
 
+export type DividendYieldBasis =
+  | "official-trailing-12m"
+  | "official-distribution-rate"
+  | "official-other"
+  | "computed-trailing-12m"
+  | "indicated";
+
+/**
+ * Which definition stands behind dividendYield. iShares has one yield source: the 12-month trailing
+ * yield published in the product table, so a present yield is always official-trailing-12m and a
+ * missing yield has no basis.
+ */
+export function yieldBasisFor(dividendYield: number | null | undefined): DividendYieldBasis | null {
+  return typeof dividendYield === "number" && Number.isFinite(dividendYield) ? "official-trailing-12m" : null;
+}
+
+/** A kept (not refreshed) index row gets the standard key, in place, derived from the yield it carries. */
+export function withYieldBasis<T extends { metrics?: Record<string, any> }>(row: T): T {
+  if (!row.metrics) return row;
+  const metrics: Record<string, any> = {};
+  for (const [key, value] of Object.entries(row.metrics)) {
+    if (key === "dividendYieldBasis") continue;
+    metrics[key] = value;
+    if (key === "dividendYieldText") metrics.dividendYieldBasis = yieldBasisFor(row.metrics.dividendYield);
+  }
+  if (!("dividendYieldBasis" in metrics)) metrics.dividendYieldBasis = yieldBasisFor(row.metrics.dividendYield);
+  return { ...row, metrics };
+}
+
 /** Standard metrics: cumulative total returns (tr*), annualized (cagr*), null when unavailable. */
 export function buildMetrics(returns: ReturnMetrics, dividendYield: number | null, secYield: number | null) {
   return {
@@ -1160,6 +1189,7 @@ export function buildMetrics(returns: ReturnMetrics, dividendYield: number | nul
     siAnn: returns.siAnn,
     dividendYield,
     dividendYieldText: percentText(dividendYield),
+    dividendYieldBasis: yieldBasisFor(dividendYield),
     secYield,
     secYieldText: percentText(secYield),
     returnsBasis: RETURNS_BASIS,
@@ -1298,6 +1328,7 @@ export function buildStandardFund(facts: FundFacts): { row: IndexRow; meta: Reco
     yields: {
       dividendYield,
       dividendYieldText: metrics.dividendYieldText,
+      dividendYieldBasis: metrics.dividendYieldBasis,
       dividendYieldKind: `12-month trailing yield published in the iShares product table${yieldAsOf}`,
       secYield,
       secYieldText: metrics.secYieldText,
@@ -1986,7 +2017,7 @@ export async function main(
     if (result?.indexRow) return result.indexRow;
     // Filters, MAX_FETCHES, a soft deadline and failures limit updates, not the
     // published catalog: a fund not refreshed keeps its complete previous row.
-    if (prior?.metrics) return prior;
+    if (prior?.metrics) return withYieldBasis(prior);
     // A newly discovered fund remains discoverable even when this run did not
     // fetch it (dataFile null, full metrics shape with null values).
     return buildCatalogRow(freshFund);
@@ -2004,7 +2035,7 @@ export async function main(
       `${missing.length} funds are missing from the catalog (${usedCatalogFallback ? "fallback" : "live"}): keeping their rows and directories`,
       console.warn,
     );
-    index.push(...missing);
+    index.push(...missing.map(withYieldBasis));
   }
   index.sort((left, right) => left.ticker.localeCompare(right.ticker));
 
