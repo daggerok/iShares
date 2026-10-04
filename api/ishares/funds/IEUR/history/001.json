@@ -2,7 +2,7 @@
   "ticker": "IEUR",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 3099,
+  "totalRows": 3100,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Oct 02, 2026",
+      "NAV per Share": "73.285387",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "125700000",
+      "Non-FV NAV": "73.165525"
+    },
     {
       "As Of": "Oct 01, 2026",
       "NAV per Share": "72.492678",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "77200000",
       "Non-FV NAV": "39.535005"
-    },
-    {
-      "As Of": "Oct 10, 2022",
-      "NAV per Share": "39.726228",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "77200000",
-      "Non-FV NAV": "39.733521"
     }
   ]
 }

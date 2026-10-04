@@ -2,7 +2,7 @@
   "ticker": "EEMA",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 3688,
+  "totalRows": 3689,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Oct 02, 2026",
+      "NAV per Share": "117.579942",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "7500000",
+      "Non-FV NAV": "116.575709"
+    },
     {
       "As Of": "Oct 01, 2026",
       "NAV per Share": "116.564006",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "7700000",
       "Non-FV NAV": "56.623984"
-    },
-    {
-      "As Of": "Oct 10, 2022",
-      "NAV per Share": "57.524827",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "7700000",
-      "Non-FV NAV": "58.276868"
     }
   ]
 }

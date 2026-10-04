@@ -2,7 +2,7 @@
   "ticker": "IWF",
   "page": 5,
   "pageSize": 1000,
-  "totalRows": 9580,
+  "totalRows": 9581,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Sep 02, 2015",
+      "NAV per Share": "95.15926",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "1189800000"
+    },
     {
       "As Of": "Sep 01, 2015",
       "NAV per Share": "93.141868",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "65.545588",
       "Ex-Dividends": "--",
       "Shares Outstanding": "1012800000"
-    },
-    {
-      "As Of": "Dec 06, 2012",
-      "NAV per Share": "65.53776",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "1014200000"
     }
   ]
 }
