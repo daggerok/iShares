@@ -1163,7 +1163,7 @@ export function yieldBasisFor(dividendYield: number | null | undefined): Dividen
 }
 
 /** A kept (not refreshed) index row gets the standard key, in place, derived from the yield it carries. */
-export function withYieldBasis<T extends { metrics?: Record<string, any> }>(row: T): T {
+export function withYieldBasis<T extends Record<string, any>>(row: T): T {
   if (!row.metrics) return row;
   const metrics: Record<string, any> = {};
   for (const [key, value] of Object.entries(row.metrics)) {
