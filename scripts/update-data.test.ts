@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
+  type IndexRow,
   CONTROL_NAMES,
   RETURNS_BASIS,
   buildCatalogRow,
@@ -44,6 +45,8 @@ import {
 // --- shared setup: pinned zone, no ambient fetch/exitCode/env leaks between tests ---
 
 const realFetch = globalThis.fetch;
+// A minimal mock is a valid fetch for the code under test, but not structurally a `typeof fetch` (it has no `preconnect`).
+const asFetch = (mock: () => Promise<Response>) => mock as unknown as typeof fetch;
 const realTZ = process.env.TZ;
 const realSummary = process.env.GITHUB_STEP_SUMMARY;
 const realLog = console.log;
@@ -382,7 +385,7 @@ describe("metrics", () => {
     const kept = withYieldBasis(old);
     expect(Object.keys(kept.metrics)).toEqual(Object.keys(full.metrics));
     expect(kept.metrics.dividendYieldBasis).toBe("official-trailing-12m");
-    expect(withYieldBasis({ ...old, metrics: { ...old.metrics, dividendYield: null } }).metrics.dividendYieldBasis).toBeNull();
+    expect(withYieldBasis<IndexRow>({ ...old, metrics: { ...old.metrics, dividendYield: null } }).metrics.dividendYieldBasis).toBeNull();
     expect(Object.keys(buildStandardFund(facts).meta.yields)).toContain("dividendYieldBasis");
     expect(feedCounts([row, full])).toEqual({ funds: 2, holdings: 508, history: 6637 });
     const back = catalogFundFromRow(full);
@@ -707,7 +710,7 @@ describe("network", () => {
     installSystemCa("true", reexec, false);
     expect(calls).toBe(1);
     let failure: unknown = Object.assign(new Error("fetch failed"), { code: "UNABLE_TO_GET_ISSUER_CERT_LOCALLY" });
-    globalThis.fetch = (async () => { if (failure) throw failure; return new Response("ok"); }) as typeof fetch;
+    globalThis.fetch = asFetch(async () => { if (failure) throw failure; return new Response("ok"); });
     installSystemCa("auto", reexec, false);
     await globalThis.fetch("https://example.test");
     expect(calls).toBe(2);
