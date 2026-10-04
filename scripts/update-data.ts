@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 /// <reference types="node" />
+/// <reference types="bun" />
 import { readFile as outputReadFile, readdir as outputReadDir } from 'node:fs/promises';
 import { createHash as outputCreateHash } from 'node:crypto';
 import { join as outputJoin } from 'node:path';
