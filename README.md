@@ -1,14 +1,17 @@
 # iShares
 
-One of the app's features lets you select iShares ETFs in the Watchlist and aggregate their holdings to see how often each ticker appears across the selected funds. Repeated holdings make overlapping exposure visible: the more selected funds include a ticker, the greater its potential influence on the portfolio; gains in that holding may help, while declines may hurt, and actual impact also depends on each fund's position size.  Another feature makes it faster and easier to find funds with stronger growth over different periods, higher dividend yields or distributions, greater Total Return (price performance plus dividends), and other key performance metrics. A single-file client-side tool that reads the generated `./api/ishares` static feed (iShares and BlackRock product-data SpreadsheetML (.xls) workbooks) into a searchable ETF/asset-class catalog with per-fund tabs, watchlist aggregation, ticker copy and CSV/TXT export — the same look, feel, columns and business logic as the sibling applications.
+One of the app's features lets you select iShares ETFs in the Watchlist and aggregate their holdings to see how often each ticker appears across the selected funds. Repeated holdings make overlapping exposure visible: the more selected funds include a ticker, the greater its potential influence on the portfolio; gains in that holding may help, while declines may hurt, and actual impact also depends on each fund's position size.  Another feature makes it faster and easier to find funds with stronger growth over different periods, higher dividend yields or distributions, greater Total Return (price performance plus dividends), and other key performance metrics. A client-side tool that reads the generated `./api/ishares` static feed (iShares and BlackRock product-data SpreadsheetML (.xls) workbooks) into a searchable ETF/asset-class catalog with per-fund tabs, watchlist aggregation, ticker copy and CSV/TXT export — the same look, feel, columns and business logic as the sibling applications.
 
 ## Using Bun
 
 ```bash
 bunx degit daggerok/iShares#main ./12345 && cd $_
-bunx serve . -p 1234
-open http://0:1234
+bun install
+bun run serve
+open http://localhost:1234
 ```
+
+`bun run serve` starts the Parcel dev server and copies `api/` to `dist/api`. `bun run build` writes the static site to `dist`, `bun run build-github-pages` does the same with the `/iShares/` public URL used by the GitHub Pages workflow.
 
 The published application is available at <https://daggerok.github.io/iShares/>.
 
@@ -122,7 +125,7 @@ PERFORMANCE_1Y="15:" bun scripts/update-data.ts
 
 ## TypeScript and verification
 
-The browser app is intentionally build-free: `index.html` carries the markup, styles and bootstrap, and `app.tsx` is TypeScript compiled in the browser with Babel standalone - no build step, no bundler, no `tsconfig.json` needed. Bun runs TypeScript out of the box.
+The browser app is built by Parcel with Tailwind CSS v4: `src/index.html` carries the markup, `src/index.css` the styles and `src/main.tsx` is the TypeScript entry point, bundled into `dist` by `bun run build` (no `tsconfig.json` needed). GitHub Pages is deployed by `.github/workflows/github-pages.yml`, which runs `bun run build-github-pages` and uploads `./dist`. Bun runs `scripts/update-data.ts` out of the box.
 
 Verification before every publish:
 
