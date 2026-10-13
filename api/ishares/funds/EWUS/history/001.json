@@ -2,7 +2,7 @@
   "ticker": "EWUS",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 3701,
+  "totalRows": 3702,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Oct 12, 2026",
+      "NAV per Share": "43.246428",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "900000",
+      "Non-FV NAV": "43.297849"
+    },
     {
       "As Of": "Oct 09, 2026",
       "NAV per Share": "43.145463",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "1550000",
       "Non-FV NAV": "26.514094"
-    },
-    {
-      "As Of": "Oct 18, 2022",
-      "NAV per Share": "27.194583",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "1550000",
-      "Non-FV NAV": "27.133627"
     }
   ]
 }

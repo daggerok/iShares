@@ -2,7 +2,7 @@
   "ticker": "SVAL",
   "page": 2,
   "pageSize": 250,
-  "totalRows": 251,
+  "totalRows": 252,
   "headers": [
     "Ticker",
     "Name",
@@ -23,22 +23,40 @@
   ],
   "rows": [
     {
+      "Ticker": "HWRZ6",
+      "Name": "MICRO E-MINI RUSSELL 2000 DEC 26",
+      "Type": "INDEX",
+      "Sector": "Cash and/or Derivatives",
+      "Asset Class": "Futures",
+      "Market Value": "0",
+      "Notional Value": "366873",
+      "Quantity": "26",
+      "Price": "2822.1",
+      "Location": "--",
+      "Exchange": "Chicago Mercantile Exchange",
+      "Currency": "USD",
+      "FX Rate": "1",
+      "Accrual Date": "--",
+      "Notional Weight": "0.23",
+      "Market Weight": "--"
+    },
+    {
       "Ticker": "USD",
       "Name": "USD CASH",
       "Type": "CASH",
       "Sector": "Cash and/or Derivatives",
       "Asset Class": "Cash",
-      "Market Value": "176736.56",
-      "Notional Value": "176736.56",
-      "Quantity": "-195338",
+      "Market Value": "89632.24",
+      "Notional Value": "89632.24",
+      "Quantity": "-279768",
       "Price": "100",
       "Location": "United States",
       "Exchange": "--",
       "Currency": "USD",
       "FX Rate": "1",
       "Accrual Date": "--",
-      "Notional Weight": "0.11",
-      "Market Weight": "0.11"
+      "Notional Weight": "0.06",
+      "Market Weight": "0.06"
     }
   ]
 }

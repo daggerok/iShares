@@ -2,7 +2,7 @@
   "ticker": "IYM",
   "page": 4,
   "pageSize": 1000,
-  "totalRows": 6624,
+  "totalRows": 6625,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Nov 06, 2014",
+      "NAV per Share": "83.77223",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "8750000"
+    },
     {
       "As Of": "Nov 05, 2014",
       "NAV per Share": "83.032584",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "68.654006",
       "Ex-Dividends": "--",
       "Shares Outstanding": "13950000"
-    },
-    {
-      "As Of": "Nov 16, 2010",
-      "NAV per Share": "68.535212",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "13900000"
     }
   ]
 }

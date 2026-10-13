@@ -36,9 +36,9 @@
     "net": 0.37
   },
   "nav": {
-    "display": "$84.78",
-    "value": 84.77977,
-    "asOfDate": "Oct 09 2026"
+    "display": "$84.00",
+    "value": 83.999322,
+    "asOfDate": "Oct 12 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,19 +50,19 @@
     "value": null
   },
   "aum": {
-    "display": "$2.40 B",
-    "value": 2403506471,
+    "display": "$2.34 B",
+    "value": 2339381118,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
   "yields": {
-    "dividendYield": 0.68,
-    "dividendYieldText": "0.68%",
+    "dividendYield": 1.45,
+    "dividendYieldText": "1.45%",
     "dividendYieldBasis": "official-trailing-12m",
-    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Aug 31, 2026",
-    "secYield": 0.83,
-    "secYieldText": "0.83%",
-    "secYieldKind": "official 30-day SEC yield, as of Aug 31, 2026"
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Sep 30, 2026",
+    "secYield": 0.94,
+    "secYieldText": "0.94%",
+    "secYieldKind": "official 30-day SEC yield, as of Sep 30, 2026"
   },
   "returns": {
     "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
@@ -952,7 +952,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 47,
+    "totalRows": 48,
     "pageSize": 250,
     "pageCount": 1,
     "pages": [
@@ -964,7 +964,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 5146,
+    "totalRows": 5147,
     "pageSize": 1000,
     "pageCount": 6,
     "pages": [
@@ -975,7 +975,7 @@
       "./history/005.json",
       "./history/006.json"
     ],
-    "asOf": "Oct 09 2026",
+    "asOf": "Oct 12 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

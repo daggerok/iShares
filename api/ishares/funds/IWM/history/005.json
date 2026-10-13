@@ -2,7 +2,7 @@
   "ticker": "IWM",
   "page": 5,
   "pageSize": 1000,
-  "totalRows": 6640,
+  "totalRows": 6641,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Nov 17, 2010",
+      "NAV per Share": "70.849483",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "185400000"
+    },
     {
       "As Of": "Nov 16, 2010",
       "NAV per Share": "70.603816",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "78.21",
       "Ex-Dividends": "--",
       "Shares Outstanding": "128400000"
-    },
-    {
-      "As Of": "Nov 29, 2006",
-      "NAV per Share": "78.02",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "125400000"
     }
   ]
 }

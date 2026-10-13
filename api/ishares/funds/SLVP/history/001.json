@@ -2,7 +2,7 @@
   "ticker": "SLVP",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 3700,
+  "totalRows": 3701,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Oct 12, 2026",
+      "NAV per Share": "34.886232",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "25500000",
+      "Non-FV NAV": "35.139822"
+    },
     {
       "As Of": "Oct 09, 2026",
       "NAV per Share": "35.120542",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "18200000",
       "Non-FV NAV": "8.74893"
-    },
-    {
-      "As Of": "Oct 18, 2022",
-      "NAV per Share": "9.090029",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "17900000",
-      "Non-FV NAV": "9.088374"
     }
   ]
 }

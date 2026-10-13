@@ -2,7 +2,7 @@
   "ticker": "IBDS",
   "page": 2,
   "pageSize": 1000,
-  "totalRows": 2284,
+  "totalRows": 2285,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 18, 2022",
+      "NAV per Share": "22.776074",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "38100000"
+    },
     {
       "As Of": "Oct 17, 2022",
       "NAV per Share": "22.729122",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "23.299468",
       "Ex-Dividends": "--",
       "Shares Outstanding": "5900000"
-    },
-    {
-      "As Of": "Oct 26, 2018",
-      "NAV per Share": "23.305173",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "5800000"
     }
   ]
 }
