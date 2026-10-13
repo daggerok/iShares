@@ -2033,10 +2033,8 @@ export async function main(
     },
     () => {
       if (Date.now() - startedAt < softDeadlineMs) return false;
-      if (!deadlineHit) {
-        deadlineHit = true;
-        logTag("deadline", `soft deadline of ${Math.round(softDeadlineMs / 60_000)} min reached: no new funds, writing the index`, console.warn);
-      }
+      // reported once after the pool drains, so it never lands between fund lines
+      deadlineHit = true;
       return true;
     },
   );
@@ -2134,6 +2132,7 @@ export async function main(
 
   const count = (status: UpdateResult["status"]) =>
     results.filter((result) => result.status === status).length;
+  if (deadlineHit) logTag("deadline", `soft deadline of ${Math.round(softDeadlineMs / 60_000)} min reached: no new funds, writing the index`);
   console.log(output.summary(startedAt));
   console.log(outputCounts(stable.counts.funds, stable.counts.holdings, stable.counts.history));
   await writeSummary(

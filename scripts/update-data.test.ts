@@ -626,6 +626,33 @@ describe("pipeline", () => {
     });
   });
 
+  test("the deadline line is printed once after the worker pool drains, right before the two done lines", async () => {
+    await withFeed(async ({ run }) => {
+      const lines: string[] = [];
+      const realNow = Date.now;
+      let late = false;
+      // the clock jumps past the deadline as soon as the first fund line is printed, while other funds are in flight
+      Date.now = () => (late ? realNow() + 86_400_000 : realNow());
+      const capture = (...values: unknown[]) => {
+        const line = values.map(String).join(" ");
+        lines.push(line);
+        if (/^\[\s*\d+\/\d+\s*\]/.test(line)) late = true;
+      };
+      console.log = capture;
+      console.warn = capture;
+      try {
+        await run(newWorld(["A01", "A02", "A03", "A04", "A05", "A06"], { delayMs: 15 }), { CONCURRENCY: "3" });
+      } finally {
+        Date.now = realNow;
+      }
+      const deadline = lines.findIndex((line) => line.startsWith("[ deadline ]"));
+      expect(lines.filter((line) => line.startsWith("[ deadline ]"))).toHaveLength(1);
+      expect(lines.findLastIndex((line) => /^\[\s*\d+\/\d+\s*\]/.test(line))).toBeLessThan(deadline);
+      expect(lines[deadline + 1]).toStartWith("[ done     ] ");
+      expect(lines[deadline + 2]).toStartWith("[ done     ] counts:");
+    });
+  });
+
   test("batches continue after the saved ticker and wrap at the end", () => {
     const funds = ["AAXJ", "ACWI", "ACWV", "ACWX", "AGG"].map((ticker) => ({ ticker }));
     const pick = (size: number, last?: string) => selectUpdateBatch(funds, size, last).map((f) => f.ticker);
