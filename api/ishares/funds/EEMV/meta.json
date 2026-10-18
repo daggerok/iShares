@@ -7,10 +7,10 @@
     "ticker": "EEMV",
     "portfolioId": "239641",
     "name": "iShares MSCI Emerging Markets Min Vol Factor ETF",
-    "fundPage": "https://www.ishares.com/us/products/239641/ishares-msci-emerging-markets-minimum-volatility-etf"
+    "fundPage": "https://www.ishares.com/us/products/239641/ishares-msci-emerging-markets-min-vol-factor-etf"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/239641/ishares-msci-emerging-markets-minimum-volatility-etf",
+    "fundPage": "https://www.ishares.com/us/products/239641/ishares-msci-emerging-markets-min-vol-factor-etf",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239641&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239641&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.25
   },
   "nav": {
-    "display": "$74.00",
-    "value": 73.997094,
-    "asOfDate": "Oct 12 2026"
+    "display": "$72.56",
+    "value": 72.556233,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$3.57 B",
-    "value": 3566659952,
+    "display": "$3.48 B",
+    "value": 3482699183,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -422,7 +422,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 327,
+    "totalRows": 326,
     "pageSize": 250,
     "pageCount": 2,
     "pages": [
@@ -435,7 +435,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 3772,
+    "totalRows": 3776,
     "pageSize": 1000,
     "pageCount": 4,
     "pages": [
@@ -444,7 +444,7 @@
       "./history/003.json",
       "./history/004.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

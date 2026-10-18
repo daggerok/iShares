@@ -7,10 +7,10 @@
     "ticker": "EWY",
     "portfolioId": "239681",
     "name": "iShares MSCI South Korea ETF",
-    "fundPage": "https://www.ishares.com/us/products/239681/ishares-msci-south-korea-capped-etf"
+    "fundPage": "https://www.ishares.com/us/products/239681/ishares-msci-south-korea-etf"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/239681/ishares-msci-south-korea-capped-etf",
+    "fundPage": "https://www.ishares.com/us/products/239681/ishares-msci-south-korea-etf",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239681&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239681&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.59
   },
   "nav": {
-    "display": "$171.18",
-    "value": 171.183026,
-    "asOfDate": "Oct 12 2026"
+    "display": "$150.35",
+    "value": 150.351258,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$24.38 B",
-    "value": 24376462952,
+    "display": "$21.64 B",
+    "value": 21635546096,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -442,7 +442,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 85,
+    "totalRows": 84,
     "pageSize": 250,
     "pageCount": 1,
     "pages": [
@@ -454,7 +454,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 6648,
+    "totalRows": 6652,
     "pageSize": 1000,
     "pageCount": 7,
     "pages": [
@@ -466,7 +466,7 @@
       "./history/006.json",
       "./history/007.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

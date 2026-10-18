@@ -7,10 +7,10 @@
     "ticker": "ICSH",
     "portfolioId": "258806",
     "name": "iShares Ultra Short Duration Bond Active ETF",
-    "fundPage": "https://www.ishares.com/us/products/258806/ishares-liquidity-income-etf"
+    "fundPage": "https://www.ishares.com/us/products/258806/ishares-ultra-short-duration-bond-active-etf"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/258806/ishares-liquidity-income-etf",
+    "fundPage": "https://www.ishares.com/us/products/258806/ishares-ultra-short-duration-bond-active-etf",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=258806&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=258806&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.08
   },
   "nav": {
-    "display": "$50.32",
-    "value": 50.321227,
-    "asOfDate": "Oct 12 2026"
+    "display": "$50.36",
+    "value": 50.359906,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$8.89 B",
-    "value": 8889244804,
+    "display": "$8.90 B",
+    "value": 8896077351,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -59,10 +59,10 @@
     "dividendYield": 4.14,
     "dividendYieldText": "4.14%",
     "dividendYieldBasis": "official-trailing-12m",
-    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 09, 2026",
-    "secYield": 4.37,
-    "secYieldText": "4.37%",
-    "secYieldKind": "official 30-day SEC yield, as of Oct 09, 2026"
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 15, 2026",
+    "secYield": 4.39,
+    "secYieldText": "4.39%",
+    "secYieldKind": "official 30-day SEC yield, as of Oct 15, 2026"
   },
   "returns": {
     "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
@@ -1652,7 +1652,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 401,
+    "totalRows": 405,
     "pageSize": 250,
     "pageCount": 2,
     "pages": [
@@ -1665,7 +1665,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 3229,
+    "totalRows": 3233,
     "pageSize": 1000,
     "pageCount": 4,
     "pages": [
@@ -1674,7 +1674,7 @@
       "./history/003.json",
       "./history/004.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

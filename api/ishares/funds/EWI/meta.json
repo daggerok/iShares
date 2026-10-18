@@ -7,10 +7,10 @@
     "ticker": "EWI",
     "portfolioId": "239664",
     "name": "iShares MSCI Italy ETF",
-    "fundPage": "https://www.ishares.com/us/products/239664/ishares-msci-italy-capped-etf"
+    "fundPage": "https://www.ishares.com/us/products/239664/ishares-msci-italy-etf"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/239664/ishares-msci-italy-capped-etf",
+    "fundPage": "https://www.ishares.com/us/products/239664/ishares-msci-italy-etf",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239664&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239664&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.5
   },
   "nav": {
-    "display": "$56.10",
-    "value": 56.104756,
-    "asOfDate": "Oct 12 2026"
+    "display": "$56.52",
+    "value": 56.520879,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$1.20 B",
-    "value": 1199239166,
+    "display": "$1.21 B",
+    "value": 1208133793,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -644,7 +644,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 7698,
+    "totalRows": 7702,
     "pageSize": 1000,
     "pageCount": 8,
     "pages": [
@@ -657,7 +657,7 @@
       "./history/007.json",
       "./history/008.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

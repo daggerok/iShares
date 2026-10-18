@@ -36,9 +36,9 @@
     "net": 0.25
   },
   "nav": {
-    "display": "$97.71",
-    "value": 97.714868,
-    "asOfDate": "Oct 12 2026"
+    "display": "$91.89",
+    "value": 91.88685,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$25.48 B",
-    "value": 25484037591,
+    "display": "$24.48 B",
+    "value": 24478656855,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -322,13 +322,14 @@
     ]
   },
   "holdings": {
-    "totalRows": 638,
+    "totalRows": 792,
     "pageSize": 250,
-    "pageCount": 3,
+    "pageCount": 4,
     "pages": [
       "./holdings/001.json",
       "./holdings/002.json",
-      "./holdings/003.json"
+      "./holdings/003.json",
+      "./holdings/004.json"
     ],
     "asOfDate": null,
     "asOf": null,
@@ -336,7 +337,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 2324,
+    "totalRows": 2328,
     "pageSize": 1000,
     "pageCount": 3,
     "pages": [
@@ -344,7 +345,7 @@
       "./history/002.json",
       "./history/003.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

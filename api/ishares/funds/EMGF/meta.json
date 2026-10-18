@@ -7,10 +7,10 @@
     "ticker": "EMGF",
     "portfolioId": "272820",
     "name": "iShares Emerging Markets Equity Factor ETF",
-    "fundPage": "https://www.ishares.com/us/products/272820/ishares-msci-emerging-multi-factor-etf"
+    "fundPage": "https://www.ishares.com/us/products/272820/ishares-emerging-markets-equity-factor-etf"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/272820/ishares-msci-emerging-multi-factor-etf",
+    "fundPage": "https://www.ishares.com/us/products/272820/ishares-emerging-markets-equity-factor-etf",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=272820&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=272820&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.26
   },
   "nav": {
-    "display": "$70.62",
-    "value": 70.622582,
-    "asOfDate": "Oct 12 2026"
+    "display": "$67.14",
+    "value": 67.139924,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$1.91 B",
-    "value": 1913871972,
+    "display": "$1.82 B",
+    "value": 1819491951,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -362,7 +362,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 746,
+    "totalRows": 745,
     "pageSize": 250,
     "pageCount": 3,
     "pages": [
@@ -376,7 +376,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 2728,
+    "totalRows": 2732,
     "pageSize": 1000,
     "pageCount": 3,
     "pages": [
@@ -384,7 +384,7 @@
       "./history/002.json",
       "./history/003.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

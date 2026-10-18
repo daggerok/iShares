@@ -7,10 +7,10 @@
     "ticker": "SUB",
     "portfolioId": "239772",
     "name": "iShares Short-Term National Muni Bond ETF",
-    "fundPage": "https://www.ishares.com/us/products/239772/ishares-shortterm-national-amtfree-muni-bond-etf"
+    "fundPage": "https://www.ishares.com/us/products/239772/ishares-short-term-national-muni-bond-etf"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/239772/ishares-shortterm-national-amtfree-muni-bond-etf",
+    "fundPage": "https://www.ishares.com/us/products/239772/ishares-short-term-national-muni-bond-etf",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239772&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239772&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.07
   },
   "nav": {
-    "display": "$104.58",
-    "value": 104.582256,
-    "asOfDate": "Oct 12 2026"
+    "display": "$105.04",
+    "value": 105.042206,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,19 +50,19 @@
     "value": null
   },
   "aum": {
-    "display": "$12.47 B",
-    "value": 12466204867,
+    "display": "$12.74 B",
+    "value": 12741619607,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
   "yields": {
-    "dividendYield": 2.61,
-    "dividendYieldText": "2.61%",
+    "dividendYield": 2.59,
+    "dividendYieldText": "2.59%",
     "dividendYieldBasis": "official-trailing-12m",
-    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 09, 2026",
-    "secYield": 3.29,
-    "secYieldText": "3.29%",
-    "secYieldKind": "official 30-day SEC yield, as of Oct 09, 2026"
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 15, 2026",
+    "secYield": 3.32,
+    "secYieldText": "3.32%",
+    "secYieldKind": "official 30-day SEC yield, as of Oct 15, 2026"
   },
   "returns": {
     "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
@@ -2272,7 +2272,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 3059,
+    "totalRows": 3079,
     "pageSize": 250,
     "pageCount": 13,
     "pages": [
@@ -2296,7 +2296,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 4512,
+    "totalRows": 4516,
     "pageSize": 1000,
     "pageCount": 5,
     "pages": [
@@ -2306,7 +2306,7 @@
       "./history/004.json",
       "./history/005.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

@@ -7,10 +7,10 @@
     "ticker": "EUSA",
     "portfolioId": "239693",
     "name": "iShares MSCI USA Equal Weighted ETF",
-    "fundPage": "https://www.ishares.com/us/products/239693/ishares-msci-usa-etf"
+    "fundPage": "https://www.ishares.com/us/products/239693/ishares-msci-usa-equal-weighted-etf"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/239693/ishares-msci-usa-etf",
+    "fundPage": "https://www.ishares.com/us/products/239693/ishares-msci-usa-equal-weighted-etf",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239693&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239693&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.09
   },
   "nav": {
-    "display": "$114.18",
-    "value": 114.177228,
-    "asOfDate": "Oct 12 2026"
+    "display": "$113.68",
+    "value": 113.680943,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$1.87 B",
-    "value": 1872506546,
+    "display": "$1.86 B",
+    "value": 1864367467,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -802,7 +802,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 521,
+    "totalRows": 520,
     "pageSize": 250,
     "pageCount": 3,
     "pages": [
@@ -816,7 +816,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 4137,
+    "totalRows": 4141,
     "pageSize": 1000,
     "pageCount": 5,
     "pages": [
@@ -826,7 +826,7 @@
       "./history/004.json",
       "./history/005.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

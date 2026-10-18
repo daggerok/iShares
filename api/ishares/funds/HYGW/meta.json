@@ -1,12 +1,12 @@
 {
   "ticker": "HYGW",
-  "name": "iShares High Yield Corporate Bond BuyWrite Strategy ETF",
+  "name": "iShares HYG Premium Income+ ETF",
   "category": "Fixed Income",
   "categoryPath": "Fixed Income",
   "providerIds": {
     "ticker": "HYGW",
     "portfolioId": "329119",
-    "name": "iShares High Yield Corporate Bond BuyWrite Strategy ETF",
+    "name": "iShares HYG Premium Income+ ETF",
     "fundPage": "https://www.ishares.com/us/products/329119/ishares-high-yield-corporate-bond-buywrite-strategy-etf"
   },
   "source": {
@@ -36,9 +36,9 @@
     "net": 0.69
   },
   "nav": {
-    "display": "$28.05",
-    "value": 28.05071,
-    "asOfDate": "Oct 12 2026"
+    "display": "$27.93",
+    "value": 27.931397,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,19 +50,19 @@
     "value": null
   },
   "aum": {
-    "display": "$110.10 M",
-    "value": 110099038,
+    "display": "$109.63 M",
+    "value": 109630732,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
   "yields": {
-    "dividendYield": 11.12,
-    "dividendYieldText": "11.12%",
+    "dividendYield": 11.13,
+    "dividendYieldText": "11.13%",
     "dividendYieldBasis": "official-trailing-12m",
-    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 09, 2026",
-    "secYield": 6.03,
-    "secYieldText": "6.03%",
-    "secYieldKind": "official 30-day SEC yield, as of Oct 09, 2026"
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 15, 2026",
+    "secYield": 6.02,
+    "secYieldText": "6.02%",
+    "secYieldKind": "official 30-day SEC yield, as of Oct 15, 2026"
   },
   "returns": {
     "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
@@ -622,7 +622,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 1339,
+    "totalRows": 1341,
     "pageSize": 250,
     "pageCount": 6,
     "pages": [
@@ -639,14 +639,14 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 1043,
+    "totalRows": 1047,
     "pageSize": 1000,
     "pageCount": 2,
     "pages": [
       "./history/001.json",
       "./history/002.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

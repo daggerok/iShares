@@ -7,10 +7,10 @@
     "ticker": "IUSB",
     "portfolioId": "264615",
     "name": "iShares Core Universal USD Bond ETF",
-    "fundPage": "https://www.ishares.com/us/products/264615/ishares-core-total-usd-bond-market-etf"
+    "fundPage": "https://www.ishares.com/us/products/264615/ishares-core-universal-usd-bond-etf"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/264615/ishares-core-total-usd-bond-market-etf",
+    "fundPage": "https://www.ishares.com/us/products/264615/ishares-core-universal-usd-bond-etf",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=264615&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=264615&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.06
   },
   "nav": {
-    "display": "$44.11",
-    "value": 44.113504,
-    "asOfDate": "Oct 12 2026"
+    "display": "$44.46",
+    "value": 44.459596,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,19 +50,19 @@
     "value": null
   },
   "aum": {
-    "display": "$48.76 B",
-    "value": 48763067058,
+    "display": "$49.25 B",
+    "value": 49252340810,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
   "yields": {
-    "dividendYield": 4.4,
-    "dividendYieldText": "4.40%",
+    "dividendYield": 4.37,
+    "dividendYieldText": "4.37%",
     "dividendYieldBasis": "official-trailing-12m",
-    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 09, 2026",
-    "secYield": 5.51,
-    "secYieldText": "5.51%",
-    "secYieldKind": "official 30-day SEC yield, as of Oct 09, 2026"
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 15, 2026",
+    "secYield": 5.49,
+    "secYieldText": "5.49%",
+    "secYieldKind": "official 30-day SEC yield, as of Oct 15, 2026"
   },
   "returns": {
     "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
@@ -1592,9 +1592,9 @@
     ]
   },
   "holdings": {
-    "totalRows": 18244,
+    "totalRows": 18271,
     "pageSize": 250,
-    "pageCount": 73,
+    "pageCount": 74,
     "pages": [
       "./holdings/001.json",
       "./holdings/002.json",
@@ -1668,7 +1668,8 @@
       "./holdings/070.json",
       "./holdings/071.json",
       "./holdings/072.json",
-      "./holdings/073.json"
+      "./holdings/073.json",
+      "./holdings/074.json"
     ],
     "asOfDate": null,
     "asOf": null,
@@ -1676,7 +1677,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 3106,
+    "totalRows": 3110,
     "pageSize": 1000,
     "pageCount": 4,
     "pages": [
@@ -1685,7 +1686,7 @@
       "./history/003.json",
       "./history/004.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

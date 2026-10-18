@@ -7,10 +7,10 @@
     "ticker": "NYF",
     "portfolioId": "239767",
     "name": "iShares New York Muni Bond ETF",
-    "fundPage": "https://www.ishares.com/us/products/239767/ishares-new-york-amtfree-muni-bond-etf"
+    "fundPage": "https://www.ishares.com/us/products/239767/ishares-new-york-muni-bond-etf"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/239767/ishares-new-york-amtfree-muni-bond-etf",
+    "fundPage": "https://www.ishares.com/us/products/239767/ishares-new-york-muni-bond-etf",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239767&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239767&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.09
   },
   "nav": {
-    "display": "$50.49",
-    "value": 50.486037,
-    "asOfDate": "Oct 12 2026"
+    "display": "$51.14",
+    "value": 51.136898,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,19 +50,19 @@
     "value": null
   },
   "aum": {
-    "display": "$1.62 B",
-    "value": 1618077471,
+    "display": "$1.68 B",
+    "value": 1679847096,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
   "yields": {
-    "dividendYield": 3.32,
-    "dividendYieldText": "3.32%",
+    "dividendYield": 3.28,
+    "dividendYieldText": "3.28%",
     "dividendYieldBasis": "official-trailing-12m",
-    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 09, 2026",
-    "secYield": 4.09,
-    "secYieldText": "4.09%",
-    "secYieldKind": "official 30-day SEC yield, as of Oct 09, 2026"
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 15, 2026",
+    "secYield": 4.02,
+    "secYieldText": "4.02%",
+    "secYieldKind": "official 30-day SEC yield, as of Oct 15, 2026"
   },
   "returns": {
     "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
@@ -2402,14 +2402,15 @@
     ]
   },
   "holdings": {
-    "totalRows": 995,
+    "totalRows": 1007,
     "pageSize": 250,
-    "pageCount": 4,
+    "pageCount": 5,
     "pages": [
       "./holdings/001.json",
       "./holdings/002.json",
       "./holdings/003.json",
-      "./holdings/004.json"
+      "./holdings/004.json",
+      "./holdings/005.json"
     ],
     "asOfDate": null,
     "asOf": null,
@@ -2417,7 +2418,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 4787,
+    "totalRows": 4791,
     "pageSize": 1000,
     "pageCount": 5,
     "pages": [
@@ -2427,7 +2428,7 @@
       "./history/004.json",
       "./history/005.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

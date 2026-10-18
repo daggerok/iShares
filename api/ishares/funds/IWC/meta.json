@@ -7,10 +7,10 @@
     "ticker": "IWC",
     "portfolioId": "239716",
     "name": "iShares Micro-Cap ETF",
-    "fundPage": "https://www.ishares.com/us/products/239716/ishares-microcap-etf"
+    "fundPage": "https://www.ishares.com/us/products/239716/ishares-micro-cap-etf"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/239716/ishares-microcap-etf",
+    "fundPage": "https://www.ishares.com/us/products/239716/ishares-micro-cap-etf",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239716&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239716&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.6
   },
   "nav": {
-    "display": "$181.55",
-    "value": 181.551053,
-    "asOfDate": "Oct 12 2026"
+    "display": "$173.47",
+    "value": 173.468438,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$1.31 B",
-    "value": 1307167584,
+    "display": "$1.25 B",
+    "value": 1248972757,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -972,7 +972,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 1373,
+    "totalRows": 1372,
     "pageSize": 250,
     "pageCount": 6,
     "pages": [
@@ -989,7 +989,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 5326,
+    "totalRows": 5330,
     "pageSize": 1000,
     "pageCount": 6,
     "pages": [
@@ -1000,7 +1000,7 @@
       "./history/005.json",
       "./history/006.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

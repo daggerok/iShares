@@ -7,10 +7,10 @@
     "ticker": "FXI",
     "portfolioId": "239536",
     "name": "iShares China Large-Cap ETF",
-    "fundPage": "https://www.ishares.com/us/products/239536/ishares-china-largecap-etf"
+    "fundPage": "https://www.ishares.com/us/products/239536/ishares-china-large-cap-etf"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/239536/ishares-china-largecap-etf",
+    "fundPage": "https://www.ishares.com/us/products/239536/ishares-china-large-cap-etf",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239536&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239536&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.73
   },
   "nav": {
-    "display": "$34.15",
-    "value": 34.153727,
-    "asOfDate": "Oct 12 2026"
+    "display": "$33.82",
+    "value": 33.820495,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$3.93 B",
-    "value": 3929386237,
+    "display": "$3.89 B",
+    "value": 3885974848,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -532,7 +532,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 60,
+    "totalRows": 59,
     "pageSize": 250,
     "pageCount": 1,
     "pages": [
@@ -544,7 +544,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 5560,
+    "totalRows": 5564,
     "pageSize": 1000,
     "pageCount": 6,
     "pages": [
@@ -555,7 +555,7 @@
       "./history/005.json",
       "./history/006.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

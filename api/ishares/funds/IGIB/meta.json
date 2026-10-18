@@ -7,10 +7,10 @@
     "ticker": "IGIB",
     "portfolioId": "239463",
     "name": "iShares 5-10 Year Investment Grade Corporate Bond ETF",
-    "fundPage": "https://www.ishares.com/us/products/239463/ishares-intermediate-credit-bond-etf"
+    "fundPage": "https://www.ishares.com/us/products/239463/ishares-5-10-year-investment-grade-corporate-bond-etf"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/239463/ishares-intermediate-credit-bond-etf",
+    "fundPage": "https://www.ishares.com/us/products/239463/ishares-5-10-year-investment-grade-corporate-bond-etf",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239463&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239463&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.04
   },
   "nav": {
-    "display": "$50.44",
-    "value": 50.436386,
-    "asOfDate": "Oct 12 2026"
+    "display": "$50.80",
+    "value": 50.803258,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,19 +50,19 @@
     "value": null
   },
   "aum": {
-    "display": "$18.81 B",
-    "value": 18812772134,
+    "display": "$19.07 B",
+    "value": 19071542975,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
   "yields": {
-    "dividendYield": 5.14,
-    "dividendYieldText": "5.14%",
+    "dividendYield": 5.1,
+    "dividendYieldText": "5.10%",
     "dividendYieldBasis": "official-trailing-12m",
-    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 09, 2026",
-    "secYield": 6.05,
-    "secYieldText": "6.05%",
-    "secYieldKind": "official 30-day SEC yield, as of Oct 09, 2026"
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 15, 2026",
+    "secYield": 6.04,
+    "secYieldText": "6.04%",
+    "secYieldKind": "official 30-day SEC yield, as of Oct 15, 2026"
   },
   "returns": {
     "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
@@ -2492,7 +2492,7 @@
     ]
   },
   "holdings": {
-    "totalRows": 3043,
+    "totalRows": 3048,
     "pageSize": 250,
     "pageCount": 13,
     "pages": [
@@ -2516,7 +2516,7 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 4976,
+    "totalRows": 4980,
     "pageSize": 1000,
     "pageCount": 5,
     "pages": [
@@ -2526,7 +2526,7 @@
       "./history/004.json",
       "./history/005.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

@@ -7,10 +7,10 @@
     "ticker": "IAU",
     "portfolioId": "239561",
     "name": "iShares Gold Trust",
-    "fundPage": "https://www.ishares.com/us/products/239561/ishares-gold-trust-fund"
+    "fundPage": "https://www.ishares.com/us/products/239561/ishares-gold-trust"
   },
   "source": {
-    "fundPage": "https://www.ishares.com/us/products/239561/ishares-gold-trust-fund",
+    "fundPage": "https://www.ishares.com/us/products/239561/ishares-gold-trust",
     "catalog": "https://www.ishares.com/us/products/etf-investments",
     "holdingsDownload": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v1/get-fund-document?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239561&component=fundDownload&userType=individual",
     "fundHeader": "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES&targetSite=us-ishares&locale=en_US&portfolioId=239561&userType=individual&component=fundHeader",
@@ -36,9 +36,9 @@
     "net": 0.25
   },
   "nav": {
-    "display": "$78.41",
-    "value": 78.408175,
-    "asOfDate": "Oct 12 2026"
+    "display": "$78.73",
+    "value": 78.731208,
+    "asOfDate": "Oct 16 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,8 +50,8 @@
     "value": null
   },
   "aum": {
-    "display": "$62.21 B",
-    "value": 62212966336,
+    "display": "$62.34 B",
+    "value": 62343307200,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
@@ -122,7 +122,7 @@
     "status": "empty"
   },
   "history": {
-    "totalRows": 5465,
+    "totalRows": 5469,
     "pageSize": 1000,
     "pageCount": 6,
     "pages": [
@@ -133,7 +133,7 @@
       "./history/005.json",
       "./history/006.json"
     ],
-    "asOf": "Oct 12 2026",
+    "asOf": "Oct 16 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {
