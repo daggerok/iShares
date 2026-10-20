@@ -2,7 +2,7 @@
   "ticker": "IUSG",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 6600,
+  "totalRows": 6601,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 19, 2026",
+      "NAV per Share": "190.960954",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "176250000"
+    },
     {
       "As Of": "Oct 16, 2026",
       "NAV per Share": "189.351112",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "83.981885",
       "Ex-Dividends": "--",
       "Shares Outstanding": "130100000"
-    },
-    {
-      "As Of": "Oct 25, 2022",
-      "NAV per Share": "85.703205",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "129700000"
     }
   ]
 }

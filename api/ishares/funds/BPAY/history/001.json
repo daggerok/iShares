@@ -2,7 +2,7 @@
   "ticker": "BPAY",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 1049,
+  "totalRows": 1050,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Oct 19, 2026",
+      "NAV per Share": "24.850935",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "360000",
+      "Non-FV NAV": "24.871436"
+    },
     {
       "As Of": "Oct 16, 2026",
       "NAV per Share": "24.986535",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "200000",
       "Non-FV NAV": "21.60556"
-    },
-    {
-      "As Of": "Oct 25, 2022",
-      "NAV per Share": "21.550438",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "200000",
-      "Non-FV NAV": "21.539433"
     }
   ]
 }

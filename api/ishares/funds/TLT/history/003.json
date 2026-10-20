@@ -2,7 +2,7 @@
   "ticker": "TLT",
   "page": 3,
   "pageSize": 1000,
-  "totalRows": 6102,
+  "totalRows": 6103,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Nov 02, 2018",
+      "NAV per Share": "112.003389",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "68800000"
+    },
     {
       "As Of": "Nov 01, 2018",
       "NAV per Share": "113.312211",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "119.498656",
       "Ex-Dividends": "--",
       "Shares Outstanding": "42800000"
-    },
-    {
-      "As Of": "Nov 13, 2014",
-      "NAV per Share": "118.895056",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "42700000"
     }
   ]
 }

@@ -2,7 +2,7 @@
   "ticker": "VLUE",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 3400,
+  "totalRows": 3401,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 19, 2026",
+      "NAV per Share": "192.631055",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "46800000"
+    },
     {
       "As Of": "Oct 16, 2026",
       "NAV per Share": "192.351548",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "91.05779",
       "Ex-Dividends": "--",
       "Shares Outstanding": "85250000"
-    },
-    {
-      "As Of": "Oct 25, 2022",
-      "NAV per Share": "90.461619",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "85300000"
     }
   ]
 }

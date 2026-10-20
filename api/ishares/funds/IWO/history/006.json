@@ -2,7 +2,7 @@
   "ticker": "IWO",
   "page": 6,
   "pageSize": 1000,
-  "totalRows": 6600,
+  "totalRows": 6601,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Dec 04, 2006",
+      "NAV per Share": "80.11",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "34400000"
+    },
     {
       "As Of": "Dec 01, 2006",
       "NAV per Share": "78.6",
@@ -6002,12 +6008,6 @@
       "As Of": "Dec 16, 2002",
       "NAV per Share": "41.457084",
       "Ex-Dividends": "--",
-      "Shares Outstanding": "14150000"
-    },
-    {
-      "As Of": "Dec 13, 2002",
-      "NAV per Share": "40.749853",
-      "Ex-Dividends": "0.070232",
       "Shares Outstanding": "14150000"
     }
   ]

@@ -2,7 +2,7 @@
   "ticker": "MTUM",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 3400,
+  "totalRows": 3401,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 19, 2026",
+      "NAV per Share": "295.628422",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "63150000"
+    },
     {
       "As Of": "Oct 16, 2026",
       "NAV per Share": "293.172421",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "145.104737",
       "Ex-Dividends": "--",
       "Shares Outstanding": "82400000"
-    },
-    {
-      "As Of": "Oct 25, 2022",
-      "NAV per Share": "144.190473",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "82150000"
     }
   ]
 }

@@ -2,7 +2,7 @@
   "ticker": "TLT",
   "page": 6,
   "pageSize": 1000,
-  "totalRows": 6102,
+  "totalRows": 6103,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Dec 04, 2006",
+      "NAV per Share": "91.46",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "14000000"
+    },
     {
       "As Of": "Dec 01, 2006",
       "NAV per Share": "91.48",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "85.94212",
       "Ex-Dividends": "--",
       "Shares Outstanding": "5700000"
-    },
-    {
-      "As Of": "Dec 13, 2002",
-      "NAV per Share": "86.708407",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "5800000"
     }
   ]
 }

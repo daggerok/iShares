@@ -2,7 +2,7 @@
   "ticker": "SOXX",
   "page": 5,
   "pageSize": 1000,
-  "totalRows": 8934,
+  "totalRows": 8935,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Jan 12, 2015",
+      "NAV per Share": "30.27",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "20100000"
+    },
     {
       "As Of": "Jan 11, 2015",
       "NAV per Share": "30.89",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "18.96",
       "Ex-Dividends": "--",
       "Shares Outstanding": "11850000"
-    },
-    {
-      "As Of": "Apr 17, 2012",
-      "NAV per Share": "19.126667",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "12750000"
     }
   ]
 }

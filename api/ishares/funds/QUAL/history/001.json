@@ -2,7 +2,7 @@
   "ticker": "QUAL",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 3337,
+  "totalRows": 3338,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 19, 2026",
+      "NAV per Share": "225.231897",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "215400000"
+    },
     {
       "As Of": "Oct 16, 2026",
       "NAV per Share": "224.895082",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "111.969997",
       "Ex-Dividends": "--",
       "Shares Outstanding": "156950000"
-    },
-    {
-      "As Of": "Oct 25, 2022",
-      "NAV per Share": "112.437744",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "157000000"
     }
   ]
 }

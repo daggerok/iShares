@@ -2,7 +2,7 @@
   "ticker": "IWS",
   "page": 2,
   "pageSize": 1000,
-  "totalRows": 6402,
+  "totalRows": 6403,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 25, 2022",
+      "NAV per Share": "102.783166",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "123200000"
+    },
     {
       "As Of": "Oct 24, 2022",
       "NAV per Share": "100.538672",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "85.352648",
       "Ex-Dividends": "--",
       "Shares Outstanding": "128550000"
-    },
-    {
-      "As Of": "Nov 02, 2018",
-      "NAV per Share": "84.661598",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "128250000"
     }
   ]
 }
