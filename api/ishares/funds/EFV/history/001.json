@@ -2,7 +2,7 @@
   "ticker": "EFV",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 5340,
+  "totalRows": 5341,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Oct 20, 2026",
+      "NAV per Share": "79.217885",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "385600000",
+      "Non-FV NAV": "79.089211"
+    },
     {
       "As Of": "Oct 19, 2026",
       "NAV per Share": "78.817593",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "339200000",
       "Non-FV NAV": "41.452508"
-    },
-    {
-      "As Of": "Oct 26, 2022",
-      "NAV per Share": "41.405632",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "339200000",
-      "Non-FV NAV": "41.411274"
     }
   ]
 }

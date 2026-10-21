@@ -2,7 +2,7 @@
   "ticker": "IWP",
   "page": 5,
   "pageSize": 1000,
-  "totalRows": 6403,
+  "totalRows": 6404,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Nov 24, 2010",
+      "NAV per Share": "27.102159",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "111900000"
+    },
     {
       "As Of": "Nov 23, 2010",
       "NAV per Share": "26.535946",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "26.3675",
       "Ex-Dividends": "--",
       "Shares Outstanding": "61000000"
-    },
-    {
-      "As Of": "Dec 05, 2006",
-      "NAV per Share": "26.3625",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "60600000"
     }
   ]
 }

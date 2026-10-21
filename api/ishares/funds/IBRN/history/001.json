@@ -2,7 +2,7 @@
   "ticker": "IBRN",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 1045,
+  "totalRows": 1046,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -11,6 +11,13 @@
     "Non-FV NAV"
   ],
   "rows": [
+    {
+      "As Of": "Oct 20, 2026",
+      "NAV per Share": "31.839472",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "200000",
+      "Non-FV NAV": "31.825106"
+    },
     {
       "As Of": "Oct 19, 2026",
       "NAV per Share": "30.748538",
@@ -7003,13 +7010,6 @@
       "Ex-Dividends": "--",
       "Shares Outstanding": "200000",
       "Non-FV NAV": "24.909366"
-    },
-    {
-      "As Of": "Oct 26, 2022",
-      "NAV per Share": "25.176915",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "200000",
-      "Non-FV NAV": "25.170519"
     }
   ]
 }

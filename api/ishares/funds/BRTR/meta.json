@@ -36,9 +36,9 @@
     "net": 0.38
   },
   "nav": {
-    "display": "$47.97",
-    "value": 47.974683,
-    "asOfDate": "Oct 19 2026"
+    "display": "$48.04",
+    "value": 48.043984,
+    "asOfDate": "Oct 20 2026"
   },
   "marketPrice": {
     "display": "—",
@@ -50,19 +50,19 @@
     "value": null
   },
   "aum": {
-    "display": "$817.97 M",
-    "value": 817968352,
+    "display": "$819.15 M",
+    "value": 819149935,
     "asOfDate": null,
     "source": "ishares.com product table Net Assets (USD)"
   },
   "yields": {
-    "dividendYield": 4.72,
-    "dividendYieldText": "4.72%",
+    "dividendYield": 4.73,
+    "dividendYieldText": "4.73%",
     "dividendYieldBasis": "official-trailing-12m",
-    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 16, 2026",
-    "secYield": 5.16,
-    "secYieldText": "5.16%",
-    "secYieldKind": "official 30-day SEC yield, as of Oct 16, 2026"
+    "dividendYieldKind": "12-month trailing yield published in the iShares product table, as of Oct 19, 2026",
+    "secYield": 5.19,
+    "secYieldText": "5.19%",
+    "secYieldKind": "official 30-day SEC yield, as of Oct 19, 2026"
   },
   "returns": {
     "derivedFrom": "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)",
@@ -462,9 +462,9 @@
     ]
   },
   "holdings": {
-    "totalRows": 3463,
+    "totalRows": 3515,
     "pageSize": 250,
-    "pageCount": 14,
+    "pageCount": 15,
     "pages": [
       "./holdings/001.json",
       "./holdings/002.json",
@@ -479,7 +479,8 @@
       "./holdings/011.json",
       "./holdings/012.json",
       "./holdings/013.json",
-      "./holdings/014.json"
+      "./holdings/014.json",
+      "./holdings/015.json"
     ],
     "asOfDate": null,
     "asOf": null,
@@ -487,13 +488,13 @@
     "status": "available"
   },
   "history": {
-    "totalRows": 718,
+    "totalRows": 719,
     "pageSize": 1000,
     "pageCount": 1,
     "pages": [
       "./history/001.json"
     ],
-    "asOf": "Oct 19 2026",
+    "asOf": "Oct 20 2026",
     "source": "iShares daily NAV per share history (same workbook; official NAV, not market price)"
   },
   "worksheets": {

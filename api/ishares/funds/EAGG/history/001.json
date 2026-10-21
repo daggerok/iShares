@@ -2,7 +2,7 @@
   "ticker": "EAGG",
   "page": 1,
   "pageSize": 1000,
-  "totalRows": 2012,
+  "totalRows": 2013,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 20, 2026",
+      "NAV per Share": "45.61479",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "110400000"
+    },
     {
       "As Of": "Oct 19, 2026",
       "NAV per Share": "45.530018",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "45.958028",
       "Ex-Dividends": "--",
       "Shares Outstanding": "44700000"
-    },
-    {
-      "As Of": "Oct 26, 2022",
-      "NAV per Share": "45.717745",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "45100000"
     }
   ]
 }

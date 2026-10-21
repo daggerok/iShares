@@ -2,7 +2,7 @@
   "ticker": "IWV",
   "page": 5,
   "pageSize": 1000,
-  "totalRows": 6644,
+  "totalRows": 6645,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Nov 24, 2010",
+      "NAV per Share": "71.52174",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "43050000"
+    },
     {
       "As Of": "Nov 23, 2010",
       "NAV per Share": "70.385967",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "82.12",
       "Ex-Dividends": "--",
       "Shares Outstanding": "33550000"
-    },
-    {
-      "As Of": "Dec 05, 2006",
-      "NAV per Share": "82.2",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "33300000"
     }
   ]
 }

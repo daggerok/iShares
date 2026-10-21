@@ -2,7 +2,7 @@
   "ticker": "IVV",
   "page": 6,
   "pageSize": 1000,
-  "totalRows": 6649,
+  "totalRows": 6650,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Dec 05, 2006",
+      "NAV per Share": "142.08",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "129000000"
+    },
     {
       "As Of": "Dec 04, 2006",
       "NAV per Share": "141.51",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "90.421043",
       "Ex-Dividends": "--",
       "Shares Outstanding": "49150000"
-    },
-    {
-      "As Of": "Dec 16, 2002",
-      "NAV per Share": "91.162484",
-      "Ex-Dividends": "0.422585",
-      "Shares Outstanding": "47450000"
     }
   ]
 }

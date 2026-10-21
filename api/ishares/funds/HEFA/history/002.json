@@ -2,7 +2,7 @@
   "ticker": "HEFA",
   "page": 2,
   "pageSize": 1000,
-  "totalRows": 3200,
+  "totalRows": 3201,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Oct 26, 2022",
+      "NAV per Share": "31.514638",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "111650000"
+    },
     {
       "As Of": "Oct 25, 2022",
       "NAV per Share": "31.54769",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "28.322869",
       "Ex-Dividends": "--",
       "Shares Outstanding": "115700000"
-    },
-    {
-      "As Of": "Nov 05, 2018",
-      "NAV per Share": "28.225318",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "115450000"
     }
   ]
 }

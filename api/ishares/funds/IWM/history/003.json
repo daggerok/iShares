@@ -2,7 +2,7 @@
   "ticker": "IWM",
   "page": 3,
   "pageSize": 1000,
-  "totalRows": 6646,
+  "totalRows": 6647,
   "headers": [
     "As Of",
     "NAV per Share",
@@ -10,6 +10,12 @@
     "Shares Outstanding"
   ],
   "rows": [
+    {
+      "As Of": "Nov 05, 2018",
+      "NAV per Share": "153.805882",
+      "Ex-Dividends": "--",
+      "Shares Outstanding": "290550000"
+    },
     {
       "As Of": "Nov 02, 2018",
       "NAV per Share": "153.854398",
@@ -6003,12 +6009,6 @@
       "NAV per Share": "115.746676",
       "Ex-Dividends": "--",
       "Shares Outstanding": "236050000"
-    },
-    {
-      "As Of": "Nov 14, 2014",
-      "NAV per Share": "116.699998",
-      "Ex-Dividends": "--",
-      "Shares Outstanding": "241250000"
     }
   ]
 }
