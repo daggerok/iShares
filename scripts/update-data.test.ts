@@ -22,6 +22,7 @@ import {
   displayDate,
   feedCounts,
   frequencyInfo,
+  holdingsGuard,
   installSystemCa,
   isCertError,
   isoDate,
@@ -237,6 +238,21 @@ describe("parsing", () => {
     expect(sheet.rows[0].CUSIP).toBe("123456789");
   });
 
+  test('holdings guard: header-only, renamed weight column, broken weights, a bad weight sum and a halved sheet are rejected', () => {
+    const headers = ['Name', 'Ticker', 'Weight'];
+    const rows = [{ Name: 'A', Ticker: 'A', Weight: '60%' }, { Name: 'B', Ticker: 'B', Weight: '40%' }];
+    expect(holdingsGuard(headers, rows, 2)).toBeNull();
+    expect(holdingsGuard(headers, [['A', 'A', '60'], ['B', 'B', '40']], null)).toBeNull();
+    expect(holdingsGuard([], [], 0)).toBeNull(); // nothing published before: an empty sheet is honest
+    expect(holdingsGuard(headers, [], 505)).toContain('no holdings rows');
+    expect(holdingsGuard(['Name', 'Ticker', 'Wt'], rows, 2)).toContain('no weight column');
+    expect(holdingsGuard(headers, rows.map((row) => ({ ...row, Weight: '6\u200B0' })), 2)).toContain('numeric weight');
+    const allocation = [{ Name: 'Cash&Collateral', Ticker: '-', Weight: '100' }, { Name: 'Equities', Ticker: '-', Weight: '476' }];
+    expect(holdingsGuard(headers, allocation, 2)).toContain('outside 50..150');
+    expect(holdingsGuard(headers, allocation, 2, ['sum'])).toBeNull();
+    expect(holdingsGuard(headers, rows, 5)).toContain('less than half');
+  });
+
   test("fund header: SEC yield without the percent sign, asset class, ISIN; blanks become null", () => {
     const header = (value?: string) => ({ componentsByNameMap: { fundHeader: { containersByNameMap: { yieldsAndRates: { dataPointsByNameMap: {
       thirtyDaySecYield: value === undefined ? {} : { formattedValue: value, formattedAsOfDate: "Aug 20, 2026" },
@@ -404,6 +420,7 @@ type World = {
   metal: Set<string>; // physical metal trusts: the workbook has no securities list
   failDownload: Set<string>; // answers HTTP 404 for the workbook
   failHeader: boolean; // answers HTTP 404 for the fund header JSON
+  weightHeader: string; // the weight column of the holdings sheet (a renamed one breaks every fund page)
   secYield: string;
   delayMs: number;
 };
@@ -412,10 +429,10 @@ const cell = (value: string) => `<ss:Cell><ss:Data ss:Type="String">${value}</ss
 const sheetXml = (name: string, rows: string[][]) =>
   `<ss:Worksheet ss:Name="${name}"><ss:Table>${rows.map((row) => `<ss:Row>${row.map(cell).join("")}</ss:Row>`).join("")}</ss:Table></ss:Worksheet>`;
 
-function workbook(ticker: string, metal: boolean): string {
+function workbook(ticker: string, metal: boolean, weightHeader = "Weight (%)"): string {
   const performance = [["Date", "Return"], ...monthly(2023, 2024).rows.map((r) => [r.Date, r.Return])];
-  const head = ["Ticker", "Name", "Asset Class", "Market Value", "As Of Date"];
-  const holdings = metal ? [head] : [head, [ticker, `${ticker} Corp`, "Equity", "100", "Sep 25, 2026"]];
+  const head = ["Ticker", "Name", "Asset Class", "Market Value", weightHeader, "As Of Date"];
+  const holdings = metal ? [head] : [head, [ticker, `${ticker} Corp`, "Equity", "100", "100", "Sep 25, 2026"]];
   return `<ss:Workbook>${[
     sheetXml("Holdings", holdings),
     sheetXml("Historical", [["As Of", "NAV per Share"], ["Sep 25, 2026", "50.25"], ["Sep 24, 2026", "50.00"]]),
@@ -452,7 +469,7 @@ function installIsharesMock(world: World) {
       }
       if (url.includes("component=fundDownload")) {
         if (world.failDownload.has(ticker)) return new Response("nope", { status: 404 });
-        return new Response(workbook(ticker, world.metal.has(ticker)));
+        return new Response(workbook(ticker, world.metal.has(ticker), world.weightHeader));
       }
       return new Response("unexpected", { status: 500 });
     } finally {
@@ -463,7 +480,7 @@ function installIsharesMock(world: World) {
 }
 
 const newWorld = (all: string[], extra: Partial<World> = {}): World => ({
-  all, catalog: all, metal: new Set(), failDownload: new Set(), failHeader: false, secYield: "4.20%", delayMs: 0, ...extra,
+  all, catalog: all, metal: new Set(), failDownload: new Set(), failHeader: false, weightHeader: "Weight (%)", secYield: "4.20%", delayMs: 0, ...extra,
 });
 
 // Fresh feed directory per call; main gets an explicit env, so exported workflow variables never leak in
@@ -543,6 +560,25 @@ describe("pipeline", () => {
       expect(await run(world)).toMatchObject({ failed: 1, updated: 0 });
       expect(files()).toEqual(before);
     });
+  });
+
+  test("holdings that fail the guard keep the fund exactly as published and report it failed", async () => {
+    const summaryDir = mkdtempSync(join(tmpdir(), "ishares-summary-"));
+    try {
+      await withFeed(async ({ run, files }) => {
+        const world = newWorld(["AAA", "BBB"]);
+        await run(world);
+        const before = files();
+        world.weightHeader = "Weight %"; // the workbook renames its weight column: no fund page would carry a weight
+        const summary = join(summaryDir, "summary.md");
+        process.env.GITHUB_STEP_SUMMARY = summary;
+        expect(await run(world, { TICKERS: "AAA" })).toMatchObject({ failed: 1, updated: 0, unchanged: 0 });
+        expect(files()).toEqual(before);
+        expect(readFileSync(summary, "utf8")).toContain("holdings guard: no weight column");
+      });
+    } finally {
+      rmSync(summaryDir, { recursive: true, force: true });
+    }
   });
 
   test("a fund never fetched successfully is a catalog row with dataFile null and the same metrics keys", async () => {
