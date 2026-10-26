@@ -7,6 +7,7 @@ import { pathToFileURL } from "node:url";
 import {
   type IndexRow,
   CLOSED_FUNDS,
+  worksheetsProblem,
   CONTROL_NAMES,
   RETURNS_BASIS,
   buildCatalogRow,
@@ -427,6 +428,8 @@ type World = {
   failDownload: Set<string>; // answers HTTP 404 for the workbook
   failHeader: boolean; // answers HTTP 404 for the fund header JSON
   weightHeader: string; // the weight column of the holdings sheet (a renamed one breaks every fund page)
+  distributions: boolean; // the workbook carries a Distributions sheet
+  dropSheets: Set<string>; // worksheets left out of the workbook (renamed or broken by the provider)
   secYield: string;
   delayMs: number;
 };
@@ -435,15 +438,17 @@ const cell = (value: string) => `<ss:Cell><ss:Data ss:Type="String">${value}</ss
 const sheetXml = (name: string, rows: string[][]) =>
   `<ss:Worksheet ss:Name="${name}"><ss:Table>${rows.map((row) => `<ss:Row>${row.map(cell).join("")}</ss:Row>`).join("")}</ss:Table></ss:Worksheet>`;
 
-function workbook(ticker: string, metal: boolean, weightHeader = "Weight (%)"): string {
+function workbook(ticker: string, metal: boolean, weightHeader = "Weight (%)", distributions = false, dropSheets: Set<string> = new Set()): string {
   const performance = [["Date", "Return"], ...monthly(2023, 2024).rows.map((r) => [r.Date, r.Return])];
   const head = ["Ticker", "Name", "Asset Class", "Market Value", weightHeader, "As Of Date"];
   const holdings = metal ? [head] : [head, [ticker, `${ticker} Corp`, "Equity", "100", "100", "Sep 25, 2026"]];
-  return `<ss:Workbook>${[
-    sheetXml("Holdings", holdings),
-    sheetXml("Historical", [["As Of", "NAV per Share"], ["Sep 25, 2026", "50.25"], ["Sep 24, 2026", "50.00"]]),
-    sheetXml("Performance", performance),
-  ].join("")}</ss:Workbook>`;
+  const sheets: Array<[string, string[][]]> = [
+    ["Holdings", holdings],
+    ["Historical", [["As Of", "NAV per Share"], ["Sep 25, 2026", "50.25"], ["Sep 24, 2026", "50.00"]]],
+    ["Performance", performance],
+  ];
+  if (distributions) sheets.push(["Distributions", [["Record Date", "Ex-Date", "Payable Date", "Total Distribution"], ["Sep 15, 2026", "Sep 15, 2026", "Sep 18, 2026", "0.25"]]]);
+  return `<ss:Workbook>${sheets.filter(([name]) => !dropSheets.has(name)).map(([name, rows]) => sheetXml(name, rows)).join("")}</ss:Workbook>`;
 }
 
 function installIsharesMock(world: World) {
@@ -475,7 +480,7 @@ function installIsharesMock(world: World) {
       }
       if (url.includes("component=fundDownload")) {
         if (world.failDownload.has(ticker)) return new Response("nope", { status: 404 });
-        return new Response(workbook(ticker, world.metal.has(ticker), world.weightHeader));
+        return new Response(workbook(ticker, world.metal.has(ticker), world.weightHeader, world.distributions, world.dropSheets));
       }
       return new Response("unexpected", { status: 500 });
     } finally {
@@ -486,7 +491,7 @@ function installIsharesMock(world: World) {
 }
 
 const newWorld = (all: string[], extra: Partial<World> = {}): World => ({
-  all, catalog: all, metal: new Set(), failDownload: new Set(), failHeader: false, weightHeader: "Weight (%)", secYield: "4.20%", delayMs: 0, ...extra,
+  all, catalog: all, metal: new Set(), failDownload: new Set(), failHeader: false, weightHeader: "Weight (%)", distributions: false, dropSheets: new Set(), secYield: "4.20%", delayMs: 0, ...extra,
 });
 
 // Fresh feed directory per call; main gets an explicit env, so exported workflow variables never leak in
@@ -709,6 +714,23 @@ describe("pipeline 2", () => {
 });
 
 describe("pipeline 3", () => {
+  test("a missing Historical, Performance or Distributions worksheet keeps the published fund and reports it failed", async () => {
+    await withFeed(async ({ run, files, meta }) => {
+      const world = newWorld(["AAA", "BBB"], { distributions: true });
+      await run(world);
+      const before = files();
+      expect([meta("AAA").history.totalRows, meta("AAA").distributions.rows.length, meta("AAA").officialReturns.asOfDate]).toEqual([2, 1, "2024-12-28"]);
+      for (const sheet of ["Historical", "Performance", "Distributions"]) {
+        world.dropSheets = new Set([sheet]);
+        expect(await run(world, { TICKERS: "AAA" })).toMatchObject({ updated: 0, unchanged: 0, failed: 1 });
+        expect(files()).toEqual(before);
+      }
+      // a fund that never published them passes
+      expect(worksheetsProblem({ history: { totalRows: 0 }, officialReturns: { asOfDate: null }, distributions: { rows: [] } }, { historyRows: 0, returnsAsOf: "", distributionRows: 0 })).toBeNull();
+      expect(worksheetsProblem(undefined, { historyRows: 0, returnsAsOf: "", distributionRows: 0 })).toBeNull();
+    });
+  });
+
   test("new funds are reported, an unknown TICKERS entry is an error", async () => {
     await withFeed(async ({ run }) => {
       const world = newWorld(["AAA", "BBB", "CCC"], { catalog: ["AAA", "BBB"] });
