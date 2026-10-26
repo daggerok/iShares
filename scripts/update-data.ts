@@ -1643,6 +1643,12 @@ async function updateFund(
   if (holdingsProblem) {
     throw Error(`holdings guard: ${holdingsProblem}; ${prior?.ticker ? "keeping the previous state" : "no data published for this fund yet"}`);
   }
+  const worksheetProblem = worksheetsProblem(prior, {
+    historyRows: history?.rows.length ?? 0,
+    returnsAsOf: returns.asOfDate,
+    distributionRows: distributionsName ? worksheets[distributionsName].rows.length : 0,
+  });
+  if (worksheetProblem) throw Error(`${worksheetProblem}; keeping the previous state`);
 
   const holdingsPages = await writePagedRows(
     fund.ticker,
@@ -2189,6 +2195,25 @@ if (import.meta.main) {
     console.error(error);
     process.exitCode = 1;
   });
+}
+
+/**
+ * The holdings sheet has its own guard; the other worksheets of the same download must not wipe published data either.
+ * A Historical sheet without rows, a Performance sheet without one monthly return or a Distributions sheet without rows,
+ * where the published meta.json has them, is a renamed or broken worksheet: the fund keeps its previous complete state
+ * (history pages, official returns, distribution rows) and is reported failed. A fund that never published them passes.
+ */
+export function worksheetsProblem(
+  prior: { history?: { totalRows?: unknown }; officialReturns?: { asOfDate?: unknown }; distributions?: { rows?: unknown } } | null | undefined,
+  fresh: { historyRows: number; returnsAsOf: string; distributionRows: number },
+): string | null {
+  const publishedHistory = Number(prior?.history?.totalRows) || 0;
+  if (publishedHistory > 0 && fresh.historyRows === 0) return `Historical worksheet is missing or empty but ${publishedHistory} rows are published`;
+  const publishedReturns = prior?.officialReturns?.asOfDate;
+  if (typeof publishedReturns === "string" && publishedReturns && !fresh.returnsAsOf) return `Performance worksheet has no monthly returns but returns as of ${publishedReturns} are published`;
+  const publishedDistributions = Array.isArray(prior?.distributions?.rows) ? (prior?.distributions?.rows as unknown[]).length : 0;
+  if (publishedDistributions > 0 && fresh.distributionRows === 0) return `Distributions worksheet is missing or empty but ${publishedDistributions} rows are published`;
+  return null;
 }
 
 // <holdings-guard> shared block of .claude/tools/etfs/etf-std/holdings-guard.block.ts, applied by apply-holdings-guard.ts: never edit it in one repo
