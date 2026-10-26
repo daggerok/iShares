@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
   type IndexRow,
+  CLOSED_FUNDS,
   CONTROL_NAMES,
   RETURNS_BASIS,
   buildCatalogRow,
@@ -13,6 +14,7 @@ import {
   buildStandardFund,
   catalogFilterReasons,
   catalogFundFromRow,
+  closedFund,
   withYieldBasis,
   createRequestGate,
   cusipFromIsin,
@@ -171,7 +173,9 @@ describe("controls", () => {
     expect(parseAumRange("micro:small")).toEqual({ min: 10_000_000, max: 2_000_000_000, maxExclusive: true, source: "micro:small" });
     expect(parseAumRange(":")).toBeUndefined();
   });
+});
 
+describe("controls 2", () => {
   test("config file: keys equal CONTROL_NAMES, all strings, defaults mean no filter, runtime path reads the same file", async () => {
     expect(Object.keys(configFile).sort()).toEqual([...CONTROL_NAMES].sort());
     for (const value of Object.values(configFile)) expect(typeof value).toBe("string");
@@ -267,7 +271,9 @@ describe("parsing", () => {
     expect(cusipFromIsin("IE00B4L5Y983")).toBeNull();
     expect(cusipFromIsin(null)).toBeNull();
   });
+});
 
+describe("parsing 2", () => {
   test("distribution frequency: cadence from intervals in any row order, never guessed from bad history", () => {
     const sheet = (dates: string[], header = "Ex-Date") => ({ headers: [header], rows: dates.map((date) => ({ [header]: date })) });
     const cases: Array<[string[], string, string?]> = [
@@ -491,6 +497,7 @@ async function withFeed(body: (feed: {
   index: () => { funds: Array<Record<string, any>>; generatedAt: string };
   meta: (ticker: string) => Record<string, any>;
   peak: () => number;
+  requests: () => string[];
 }) => Promise<void>) {
   const dir = mkdtempSync(join(tmpdir(), "ishares-test-"));
   setRootForTests(pathToFileURL(`${dir}/`));
@@ -514,6 +521,7 @@ async function withFeed(body: (feed: {
       index: () => JSON.parse(readFileSync(join(dir, "index.json"), "utf8")),
       meta: (ticker) => JSON.parse(readFileSync(join(dir, "funds", ticker, "meta.json"), "utf8")),
       peak: () => mock?.peak() ?? 0,
+      requests: () => mock?.requests ?? [],
     });
   } finally {
     setSoftDeadlineForTests(25 * 60 * 1000);
@@ -583,7 +591,8 @@ describe("pipeline", () => {
 
   test("a fund never fetched successfully is a catalog row with dataFile null and the same metrics keys", async () => {
     await withFeed(async ({ run, index, dir }) => {
-      await run(newWorld(["AAA", "BBB"], { failDownload: new Set(["BBB"]) }));
+      const world = newWorld(["AAA", "BBB", "CCC"], { catalog: ["AAA", "BBB"], failDownload: new Set(["BBB"]) });
+      expect(await run(world)).toMatchObject({ failed: 1, updated: 1 });
       const rows = index().funds;
       const [ok, bare] = [rows.find((f) => f.ticker === "AAA")!, rows.find((f) => f.ticker === "BBB")!];
       expect(ok.dataFile).toBe("./funds/AAA/meta.json");
@@ -592,6 +601,57 @@ describe("pipeline", () => {
       expect(Object.keys(bare.metrics)).toEqual(Object.keys(ok.metrics));
       expect(ok.metrics.dividendYieldBasis).toBe("official-trailing-12m");
       expect(existsSync(join(dir, "funds", "BBB", "meta.json"))).toBe(false);
+      // a new fund whose holdings the guard rejects is failed too and gets the same catalog-only row
+      world.catalog = ["AAA", "BBB", "CCC"];
+      world.weightHeader = "Weight %";
+      expect(await run(world, { TICKERS: "CCC" })).toMatchObject({ failed: 1, updated: 0, newFunds: ["CCC"] });
+      const guarded = index().funds.find((f) => f.ticker === "CCC")!;
+      expect(guarded).toMatchObject({ dataFile: null, holdings: 0 });
+      expect(Object.keys(guarded.metrics)).toEqual(Object.keys(ok.metrics));
+      expect(guarded.metrics.returnsBasis).toBeTruthy();
+      expect(existsSync(join(dir, "funds", "CCC"))).toBe(false);
+      // a catalog-only row is never the published state: the next good run publishes both funds in full
+      world.weightHeader = "Weight (%)";
+      world.failDownload = new Set();
+      expect(await run(world, { TICKERS: "BBB,CCC" })).toMatchObject({ failed: 0, updated: 2 });
+      expect(index().funds.map((f) => f.dataFile)).toEqual(["./funds/AAA/meta.json", "./funds/BBB/meta.json", "./funds/CCC/meta.json"]);
+    });
+  });
+});
+
+describe("pipeline 2", () => {
+  test("a closed fund is never fetched or reported failed: its files stay as published, its index row says closed, a rerun writes nothing", async () => {
+    const entry = { ticker: "BBB", closed: "2026-10-01", source: "https://www.sec.gov/Archives/edgar/data/1/notice.htm" };
+    expect(() => closedFund([{ ...entry, closed: "soon" }], "BBB")).toThrow("CLOSED_FUNDS");
+    expect(closedFund([entry], "bbb")).toEqual(entry);
+    await withFeed(async ({ run, files, index, requests }) => {
+      const world = newWorld(["AAA", "BBB", "CCC"]);
+      await run(world);
+      const first = files();
+      CLOSED_FUNDS.push(entry);
+      try {
+        world.weightHeader = "Weight %"; // the guard would reject these holdings
+        const summary = await run(world, { TICKERS: "BBB" });
+        expect(requests().filter((url) => url.includes("portfolioId=101"))).toEqual([]);
+        expect(summary).toMatchObject({ attempted: 0, failed: 0 });
+        expect(process.exitCode).not.toBe(1);
+        const closed = files();
+        for (const path of Object.keys(first)) if (path !== "/index.json") expect([path, closed[path]]).toEqual([path, first[path]]);
+        const rows = index().funds;
+        expect(rows.map((row) => row.ticker)).toEqual(["AAA", "BBB", "CCC"]);
+        expect(rows.find((row) => row.ticker === "BBB")).toMatchObject({ status: "closed", closedDate: "2026-10-01", closedSource: entry.source, dataFile: "./funds/BBB/meta.json" });
+        expect(rows.filter((row) => row.status === "closed")).toHaveLength(1);
+        world.weightHeader = "Weight (%)";
+        await run(world);
+        expect(files()).toEqual(closed);
+        // the live catalog drops the closed fund: TICKERS still accepts it, its row and files are never pruned
+        world.catalog = ["AAA", "CCC"];
+        await run(world, { TICKERS: "BBB" });
+        await run(world);
+        expect(files()).toEqual(closed);
+      } finally {
+        CLOSED_FUNDS.splice(CLOSED_FUNDS.indexOf(entry), 1);
+      }
     });
   });
 
@@ -639,7 +699,9 @@ describe("pipeline", () => {
       expect(index().funds[0].metrics.secYield).toBeNull();
     });
   });
+});
 
+describe("pipeline 3", () => {
   test("new funds are reported, an unknown TICKERS entry is an error", async () => {
     await withFeed(async ({ run }) => {
       const world = newWorld(["AAA", "BBB", "CCC"], { catalog: ["AAA", "BBB"] });
