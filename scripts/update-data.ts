@@ -900,6 +900,12 @@ function rounded(value: number) {
   return Math.round(value * 1_000_000) / 1_000_000;
 }
 
+/** A calendar date as UTC midnight in milliseconds (NaN when unreadable): plain calendar text, never the local time zone. */
+function calendarMs(value: unknown): number {
+  const iso = calendarIso(value);
+  return iso ? Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10))) : NaN;
+}
+
 /** Infer cadence conservatively from distinct payment events, never from payout amounts.
  * Prefer Ex-Date for a consistent series; use Payable Date only if Ex-Date lacks
  * three observations. Require two intervals and 80% agreement in the most recent
@@ -914,7 +920,7 @@ export function deriveDistributionFrequency(distributions?: Sheet): string {
     if (!header) continue;
     dates = [...new Set(distributions.rows.map((row) => {
       const value = String(row[header] || "").trim();
-      return value ? Date.parse(`${value} UTC`) : NaN;
+      return calendarMs(value);
     }).filter(Number.isFinite))].sort((a, b) => b - a).slice(0, 13);
     if (dates.length >= 3) break;
   }
@@ -952,7 +958,7 @@ export function deriveReturnMetrics(performance?: Sheet): ReturnMetrics {
   >();
 
   for (const row of performance.rows) {
-    const timestamp = Date.parse(`${row[dateHeader]} UTC`);
+    const timestamp = calendarMs(row[dateHeader]);
     const value = parseDataNumber(row[valueHeader]);
     if (!Number.isFinite(timestamp) || value === null) continue;
     const date = new Date(timestamp);
@@ -1037,6 +1043,43 @@ export function deriveReturnMetrics(performance?: Sheet): ReturnMetrics {
   };
 }
 
+/**
+ * The shared "younger than one year" rule (calendar anniversary of the inception, inclusive): no 1, 3, 5 or 10-year return
+ * and no annualized since-inception return before the fund is that old; an unknown date keeps the figures.
+ */
+export function withoutYoungMetrics(returns: ReturnMetrics, inception: unknown): ReturnMetrics {
+  const horizons = { "1Y": 1, "3Y": 3, "5Y": 5, "10Y": 10 };
+  return {
+    ...withoutYoungReturns(returns, inception, returns.asOfDate, { siAnn: 1 }),
+    performance: withoutYoungReturns(returns.performance, inception, returns.asOfDate, horizons),
+    totalReturn: withoutYoungReturns(returns.totalReturn, inception, returns.asOfDate, horizons),
+  };
+}
+
+/**
+ * Holdings tickers (PS-1 rule): a bare ticker only for a security listed on a U.S. exchange; a local code of a foreign
+ * listing (`2330` is TSMC in Taiwan and another company in Saudi Arabia) and the codes of futures, options, swaps, FX and
+ * cash lines become `-`, so the Watchlist never merges two companies by ticker and Copy Tickers copies only U.S. symbols.
+ * A sheet without a Ticker or an Exchange column is returned unchanged.
+ */
+export function withUsListingTickers(sheet: Sheet): Sheet {
+  const tickerAt = sheet.headers.find((h) => h.trim().toLowerCase() === "ticker");
+  const exchangeAt = sheet.headers.find((h) => h.trim().toLowerCase() === "exchange");
+  const classAt = sheet.headers.find((h) => h.trim().toLowerCase() === "asset class");
+  if (!tickerAt || !exchangeAt) return sheet;
+  const usExchange = /^(nyse|nyse arca|nyse mkt llc|nyse american|nasdaq|cboe bzx|cboe edgx|iex|non-nms quotation service \(nnqs\))$/i;
+  const nonSecurity = /futures|derivative|swap|^fx$|cash|money market|collateral/i;
+  return {
+    ...sheet,
+    rows: sheet.rows.map((row) => {
+      const ticker = String(row[tickerAt] ?? "").trim();
+      if (!ticker || /^-+$/.test(ticker)) return row;
+      const listed = usExchange.test(String(row[exchangeAt] ?? "").trim()) && !nonSecurity.test(String((classAt && row[classAt]) ?? ""));
+      return listed ? row : { ...row, [tickerAt]: "-" };
+    }),
+  };
+}
+
 // --- Standard feed shapes (the same rows and per-fund meta in every ETF repo) ---
 export const SITE = "https://www.ishares.com";
 export const CATALOG_URL = `${SITE}/us/products/etf-investments`;
@@ -1044,7 +1087,7 @@ export const RETURNS_BASIS =
   "official iShares NAV total returns (compounded from the published monthly NAV return series, latest quarter-end)";
 const HOLDINGS_SOURCE = "iShares full holdings workbook (product-data fund download)";
 /** Funds whose holdings legitimately fail a holdingsGuard check (geared, futures, look-through, top-N lists): ticker, or '*' for every fund -> relaxed checks. */
-const HOLDINGS_GUARD_RELAX: Record<string, string[]> = {};
+export const HOLDINGS_GUARD_RELAX: Record<string, string[]> = {};
 /** Funds the issuer closed, each confirmed from an SEC filing or the issuer notice (`source`): never fetched or guarded, last published data kept, index row marked closed. */
 export const CLOSED_FUNDS: ClosedFund[] = [];
 const HISTORY_SOURCE = "iShares daily NAV per share history (same workbook; official NAV, not market price)";
@@ -1060,12 +1103,9 @@ export const FEED_SOURCE = {
 };
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-/** "Jun 30, 2026" -> "2026-06-30"; null when the text is not a date. */
+/** "Jun 30, 2026" -> "2026-06-30" as plain calendar text (shared calendar-dates block); null when the text is not a date. */
 export function isoDate(text: unknown): string | null {
-  const match = String(text ?? "").trim().match(/^([A-Z][a-z]{2}) (\d{1,2}),? (\d{4})$/);
-  const month = match ? MONTH_NAMES.indexOf(match[1]) : -1;
-  if (!match || month < 0) return null;
-  return `${match[3]}-${String(month + 1).padStart(2, "0")}-${match[2].padStart(2, "0")}`;
+  return calendarIso(text);
 }
 
 /** "Jun 30, 2026" -> "Jun 30 2026" (the display form used by the sibling feeds). */
@@ -1483,6 +1523,19 @@ async function removeStalePages(
   return changed;
 }
 
+/** The published holdings pages of a fund (array rows in header order), empty when nothing is published. */
+async function readPublishedHoldings(ticker: string, prior: Record<string, any>): Promise<{ headers: string[]; rows: unknown[][] }> {
+  const out: { headers: string[]; rows: unknown[][] } = { headers: [], rows: [] };
+  const pages: unknown[] = Array.isArray(prior?.holdings?.pages) ? prior.holdings.pages : [];
+  for (let i = 0; i < pages.length; i++) {
+    const name = String(pages[i]).slice(String(pages[i]).lastIndexOf("/") + 1);
+    const page = JSON.parse((await old(new URL(`funds/${ticker}/holdings/${name}`, ROOT))) || "{}");
+    if (!out.headers.length && Array.isArray(page.headers)) out.headers = page.headers.map(String);
+    if (Array.isArray(page.rows)) for (const row of page.rows) if (Array.isArray(row)) out.rows.push(row);
+  }
+  return out;
+}
+
 async function writePagedRows(
   ticker: string,
   folder: "holdings" | "history",
@@ -1609,7 +1662,7 @@ async function updateFund(
     }
     if (!history?.rows.length) throw Error("Holdings and history worksheets are both missing or empty");
   }
-  const holdings: Sheet = holdingsSheet ?? { headers: [], rows: [] };
+  const holdings: Sheet = holdingsSheet ? withUsListingTickers(holdingsSheet) : { headers: [], rows: [] };
 
   const distributionsName = Object.keys(worksheets).find(
     (name) => name.trim().toLowerCase() === "distributions",
@@ -1617,7 +1670,7 @@ async function updateFund(
   const distributions = { frequencyCode: deriveDistributionFrequency(
     distributionsName ? worksheets[distributionsName] : undefined,
   ) };
-  const returns = deriveReturnMetrics(worksheets.Performance);
+  const returns = withoutYoungMetrics(deriveReturnMetrics(worksheets.Performance), fund.inceptionDate);
   const returnFailures = returnFilterReasons(returns, config);
   if (config.secYieldRange) {
     const value = parseDataNumber(secYield?.value);
@@ -1634,11 +1687,13 @@ async function updateFund(
 
   // Fresh holdings that look broken (no weight column, non-numeric weights, a bad weight sum, half the rows gone)
   // never replace the published ones: the fund fails and keeps its previous complete state.
+  const published = await readPublishedHoldings(fund.ticker, prior);
   const holdingsProblem = holdingsGuard(
     holdings.headers,
     holdings.rows,
     Number(prior?.holdings?.totalRows) || 0,
     HOLDINGS_GUARD_RELAX[fund.ticker] ?? HOLDINGS_GUARD_RELAX["*"] ?? [],
+    published.rows.length ? holdingsWeightCount(published.headers, published.rows) : null,
   );
   if (holdingsProblem) {
     throw Error(`holdings guard: ${holdingsProblem}; ${prior?.ticker ? "keeping the previous state" : "no data published for this fund yet"}`);
@@ -2015,11 +2070,10 @@ export async function main(
   logTag("catalog", `${discovered.length} iShares ETFs (${usedCatalogFallback ? "previous api/ishares/index.json" : "iShares ETF product list"})`);
 
   const discoveredTickers = new Set(discovered.map((fund) => fund.ticker.toUpperCase()));
-  // A closed fund the live catalog dropped is still a valid TICKERS entry while its row is published.
-  const unknownTickers = config.tickers.filter((ticker) => !discoveredTickers.has(ticker) && !(closedFund(CLOSED_FUNDS, ticker) && previousByTicker.has(ticker)));
-  if (unknownTickers.length) {
-    throw Error(`TICKERS: not in the iShares catalog: ${unknownTickers.join(", ")}`);
-  }
+  // The live catalog (null when only the published feed is known): a catalog-only row it no longer lists is dropped, never retried.
+  const live = usedCatalogFallback ? null : discovered.map((fund) => fund.ticker.toUpperCase());
+  // Q27: a TICKERS entry outside the live catalog and the published funds (closed ones included) stops the run before any fund request
+  assertKnownTickers(config.tickers.length ? config.tickers : null, knownTickers(live, previousRows), "the iShares catalog or published feed");
 
   const tickerOrder = new Map(config.tickers.map((ticker, index) => [ticker, index]));
   // Closed funds leave the queue before any request and before the MAX_FETCHES budget is spent.
@@ -2090,7 +2144,7 @@ export async function main(
   // directory) only when a handful vanished: a partly parsed or truncated
   // catalog page must never delete funds, so then every previous row stays.
   // A closed fund is never pruned: its row and directory stay as published when the catalog drops it.
-  const vanished = previousRows.filter((row) => !discoveredTickers.has(String(row.ticker).toUpperCase()));
+  const vanished = withoutStalePlaceholders(previousRows, live).filter((row) => !discoveredTickers.has(String(row.ticker).toUpperCase()));
   const missing = vanished.filter((row) => !closedFund(CLOSED_FUNDS, row.ticker));
   index.push(...vanished.filter((row) => closedFund(CLOSED_FUNDS, row.ticker)).map(withYieldBasis));
   const cleanupSafe =
@@ -2105,15 +2159,6 @@ export async function main(
   }
   index.sort((left, right) => left.ticker.localeCompare(right.ticker));
 
-  const newFunds = previousRows.length
-    ? discovered.filter((fund) => !previousByTicker.has(fund.ticker)).map((fund) => fund.ticker).sort()
-    : [];
-  if (newFunds.length) {
-    logTag("catalog", `NEW FUNDS: ${newFunds.join(", ")}`);
-    if (env.GITHUB_STEP_SUMMARY) {
-      await appendFile(env.GITHUB_STEP_SUMMARY, `### NEW FUNDS\n\n${newFunds.map((ticker) => `- ${ticker}`).join("\n")}\n\n`);
-    }
-  }
 
   const legacyFilesChanged = await removeLegacyFundFiles();
   const orphanDirectoriesChanged = await removeOrphanFundDirectories(
@@ -2123,6 +2168,10 @@ export async function main(
   const cleanupChanged = legacyFilesChanged || orphanDirectoriesChanged;
 
   const funds = markClosedFunds(index, CLOSED_FUNDS);
+  // Q28: a fund is announced on its first successful publish (a catalog-only row is not published), new catalog-only rows as pending
+  const newFunds = newFundsLines(newFundsReport(previousRows, funds));
+  for (const line of newFunds) console.log(line);
+  if (newFunds.length && env.GITHUB_STEP_SUMMARY) await appendFile(env.GITHUB_STEP_SUMMARY, `### NEW FUNDS\n\n${newFunds.join("\n")}\n`);
   const stable = {
     source: FEED_SOURCE,
     counts: feedCounts(funds),
@@ -2223,10 +2272,12 @@ export function worksheetsProblem(
  * An empty sheet passes only when nothing was published before. Otherwise a Name and a weight column (Weight,
  * Weight (%) or Market Weight) are required, >= 80% of the rows carry a numeric weight, the weights add up to
  * 50..150 and the sheet keeps >= 50% of the previously published rows. `relax` switches off the checks a fund
- * legitimately fails: 'numeric' and 'sum' (geared, inverse, futures, look-through, top-N lists) and 'count'.
+ * legitimately fails: 'numeric' and 'sum' (geared, inverse, futures, look-through, top-N lists) and 'count'. No relax lets
+ * a sheet without a single numeric weight replace a published sheet that had numeric weights (`previousWeights`: how many
+ * rows of the published sheet carry a numeric weight, see holdingsWeightCount; open-items etfs Q24).
  * Rows are arrays in header order or objects keyed by the header text. A fund in the brand's CLOSED_FUNDS never reaches the guard.
  */
-export function holdingsGuard(headers: ReadonlyArray<string>, rows: ReadonlyArray<unknown>, previousRows: number | null | undefined, relax: ReadonlyArray<string> = []): string | null {
+export function holdingsGuard(headers: ReadonlyArray<string>, rows: ReadonlyArray<unknown>, previousRows: number | null | undefined, relax: ReadonlyArray<string> = [], previousWeights: number | null = null): string | null {
   const previous = Number(previousRows) > 0 ? Number(previousRows) : 0;
   if (!rows.length) return previous ? `no holdings rows (${previous} published)` : null;
   const names = headers.map((header) => String(header).trim().toLowerCase());
@@ -2235,20 +2286,38 @@ export function holdingsGuard(headers: ReadonlyArray<string>, rows: ReadonlyArra
   if (weightAt < 0) weightAt = names.indexOf('weight (%)');
   if (weightAt < 0) weightAt = names.indexOf('market weight');
   if (nameAt < 0 || weightAt < 0) return `no ${nameAt < 0 ? 'Name' : 'weight'} column (headers: ${headers.join(', ') || 'none'})`;
-  let numeric = 0;
+  const weights = holdingsGuardWeights(headers, rows, weightAt);
+  const numeric = weights.count;
+  const sum = weights.sum;
+  if (numeric === 0 && Number(previousWeights) > 0) return `no row has a numeric weight, the published sheet had ${Number(previousWeights)}`;
+  if (relax.indexOf('numeric') < 0 && numeric < rows.length * 0.8) return `only ${numeric} of ${rows.length} rows have a numeric weight`;
+  if (relax.indexOf('sum') < 0 && (sum < 50 || sum > 150)) return `weights add up to ${sum.toFixed(2)}, outside 50..150`;
+  if (relax.indexOf('count') < 0 && previous && rows.length < previous * 0.5) return `${rows.length} rows, less than half of the ${previous} published`;
+  return null;
+}
+
+/** How many rows carry a numeric weight (Weight, Weight (%) or Market Weight column), 0 without such a column: pass it for the published sheet as holdingsGuard's previousWeights. */
+export function holdingsWeightCount(headers: ReadonlyArray<string>, rows: ReadonlyArray<unknown>): number {
+  const names = headers.map((header) => String(header).trim().toLowerCase());
+  let weightAt = names.indexOf('weight');
+  if (weightAt < 0) weightAt = names.indexOf('weight (%)');
+  if (weightAt < 0) weightAt = names.indexOf('market weight');
+  return weightAt < 0 ? 0 : holdingsGuardWeights(headers, rows, weightAt).count;
+}
+
+/** Count and sum of the numeric weights in column weightAt; rows are arrays in header order or objects keyed by the header text. */
+function holdingsGuardWeights(headers: ReadonlyArray<string>, rows: ReadonlyArray<unknown>, weightAt: number): { count: number; sum: number } {
+  let count = 0;
   let sum = 0;
   for (let i = 0; i < rows.length; i++) {
     const row: any = rows[i];
     const weight = holdingsGuardNumber(Array.isArray(row) ? row[weightAt] : row && typeof row === 'object' ? row[headers[weightAt]] : undefined);
     if (weight !== null) {
-      numeric++;
+      count++;
       sum += weight;
     }
   }
-  if (relax.indexOf('numeric') < 0 && numeric < rows.length * 0.8) return `only ${numeric} of ${rows.length} rows have a numeric weight`;
-  if (relax.indexOf('sum') < 0 && (sum < 50 || sum > 150)) return `weights add up to ${sum.toFixed(2)}, outside 50..150`;
-  if (relax.indexOf('count') < 0 && previous && rows.length < previous * 0.5) return `${rows.length} rows, less than half of the ${previous} published`;
-  return null;
+  return { count, sum };
 }
 
 /** A weight cell as a number: %, $, commas and spaces are ignored, (x) is negative; null when it is no plain number (a zero-width character inside counts as broken). */
@@ -2300,3 +2369,131 @@ export function withoutClosedFunds<T>(queue: ReadonlyArray<T>, tickerOf: (item: 
   return open;
 }
 // </holdings-guard>
+
+// <calendar-dates> shared block of .claude/tools/etfs/etf-std/calendar-dates.block.ts, applied by apply-block.ts: never edit it in one repo
+/**
+ * A calendar date as ISO `YYYY-MM-DD`, or null. Pure text work, never `Date.parse` or local getters, so a run in Tokyo
+ * publishes the same day as CI (open-items etfs ETF-H4). Accepts ISO (`2026-10-24`, with a time the date part is kept as
+ * written), `2026/10/24`, U.S. `10/24/2026` and `10-24-26` (two-digit years up to 69 are 20xx), month names in either order
+ * (`Oct 24, 2026`, `October 24 2026`, `Sept. 30, 2026`, `24 Oct 2026`, `24-Oct-26`), an optional weekday or `as of` in front.
+ * A day that does not exist (`02/30/2026`) is null.
+ */
+export function calendarIso(value: unknown): string | null {
+  const text = String(value === null || value === undefined ? '' : value).replace(/[\s ]+/g, ' ').trim()
+    .replace(/^as of:? /i, '').replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?,? /i, '');
+  const year = (raw: string): number => (raw.length === 2 ? (Number(raw) <= 69 ? 2000 : 1900) + Number(raw) : Number(raw));
+  const month = (raw: string): number => {
+    const word = raw.toLowerCase();
+    const names = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+    for (let i = 0; i < names.length; i++) if (word.length >= 3 && names[i].indexOf(word) === 0) return i + 1;
+    return 0;
+  };
+  let y = 0, m = 0, d = 0, match: RegExpExecArray | null;
+  if ((match = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ].*)?$/.exec(text)) || (match = /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/.exec(text))) {
+    y = Number(match[1]); m = Number(match[2]); d = Number(match[3]);
+  } else if ((match = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4}|\d{2})$/.exec(text))) {
+    y = year(match[3]); m = Number(match[1]); d = Number(match[2]);
+  } else if ((match = /^([A-Za-z]{3,9})\.? (\d{1,2})(?:st|nd|rd|th)?,? (\d{4})$/.exec(text))) {
+    y = Number(match[3]); m = month(match[1]); d = Number(match[2]);
+  } else if ((match = /^(\d{1,2})(?:st|nd|rd|th)?[ -]([A-Za-z]{3,9})\.?,?[ -](\d{4}|\d{2})$/.exec(text))) {
+    y = year(match[3]); m = month(match[2]); d = Number(match[1]);
+  } else {
+    return null;
+  }
+  const days = [31, y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (y < 1900 || y > 2999 || m < 1 || m > 12 || d < 1 || d > days[m - 1]) return null;
+  return `${y}-${m < 10 ? '0' : ''}${m}-${d < 10 ? '0' : ''}${d}`;
+}
+
+/**
+ * Is the fund at least `years` old on `asOf`? Calendar anniversary, inclusive: a fund started 2025-10-24 is one year old on
+ * 2026-10-24 (a 29 February start on 1 March). Unknown or unreadable dates answer true, so a value is never dropped for want
+ * of a date. The shared "younger than one year" rule: since-inception returns are annualized only from one year on.
+ */
+export function fundAgeAtLeast(inception: unknown, asOf: unknown, years: number): boolean {
+  const start = calendarIso(inception), end = calendarIso(asOf);
+  if (!start || !end) return true;
+  return end >= `${Number(start.slice(0, 4)) + years}${start.slice(4)}`;
+}
+
+/**
+ * The returns with every horizon the fund is too young for set to null: `horizons` maps a key of `returns` to the years it
+ * needs (`{ yr1: 1, cagr3y: 3, siAnn: 1 }`). Keys that are absent or already null stay as they are; the object is copied.
+ */
+export function withoutYoungReturns<T extends object>(returns: T, inception: unknown, asOf: unknown, horizons: Record<string, number>): T {
+  const out: Record<string, unknown> = { ...(returns as Record<string, unknown>) };
+  const keys = Object.keys(horizons);
+  for (let i = 0; i < keys.length; i++) {
+    if (out[keys[i]] !== undefined && out[keys[i]] !== null && !fundAgeAtLeast(inception, asOf, horizons[keys[i]])) out[keys[i]] = null;
+  }
+  return out as T;
+}
+// </calendar-dates>
+
+// <fund-selection> shared block of .claude/tools/etfs/etf-std/fund-selection.block.ts, applied by apply-block.ts: never edit it in one repo
+/** An index row as far as these helpers read it: the ticker and whether it has published data (`dataFile`, null for a catalog-only row). */
+export type FundSelectionRow = { ticker?: unknown; dataFile?: unknown };
+
+function fundSelectionTicker(row: FundSelectionRow): string {
+  return String(row.ticker === null || row.ticker === undefined ? '' : row.ticker).trim().toUpperCase();
+}
+
+/**
+ * The tickers a TICKERS entry may name: the live catalog plus every fund with published data (closed funds included). When
+ * the live catalog could not be read (`live` null) every previous index row counts, since nothing tells a real catalog-only
+ * row from a stale one. A catalog-only row from an earlier mistyped TICKERS run is therefore not "known" (open-items etfs Q27).
+ */
+export function knownTickers(live: ReadonlyArray<string> | null, previous: ReadonlyArray<FundSelectionRow>): string[] {
+  const out: string[] = [];
+  const add = (ticker: string): void => { if (ticker && out.indexOf(ticker) < 0) out.push(ticker); };
+  if (live) for (let i = 0; i < live.length; i++) add(String(live[i]).trim().toUpperCase());
+  for (let i = 0; i < previous.length; i++) if (!live || previous[i].dataFile) add(fundSelectionTicker(previous[i]));
+  return out;
+}
+
+/** Throws before any fund request when TICKERS names a fund outside `known` (see knownTickers): a clear error, nothing fetched or written. */
+export function assertKnownTickers(selected: ReadonlyArray<string> | null, known: ReadonlyArray<string>, where: string): void {
+  const unknown = (selected || []).map((ticker) => String(ticker).trim().toUpperCase()).filter((ticker) => ticker && known.indexOf(ticker) < 0);
+  if (unknown.length) throw new Error(`TICKERS: ${unknown.join(', ')} not in ${where}; nothing was fetched or written`);
+}
+
+/**
+ * The index rows without stale catalog-only rows: a row with no published data whose ticker the live catalog no longer lists
+ * (an earlier mistyped TICKERS entry, a fund withdrawn before launch). Rows with data always stay; nothing is dropped when the
+ * live catalog could not be read (`live` null).
+ */
+export function withoutStalePlaceholders<T extends FundSelectionRow>(rows: ReadonlyArray<T>, live: ReadonlyArray<string> | null): T[] {
+  if (!live) return rows.slice();
+  const listed = live.map((ticker) => String(ticker).trim().toUpperCase());
+  return rows.filter((row) => Boolean(row.dataFile) || listed.indexOf(fundSelectionTicker(row)) >= 0);
+}
+
+/**
+ * New funds of a run (open-items etfs Q28): `published` - first published in this run (the previous index had no row for it,
+ * or only a catalog-only one), so a fund whose first read failed is announced when it finally succeeds; `pending` - new in the
+ * catalog this run but not published yet. Nothing is reported on a first run (empty previous index).
+ */
+export function newFundsReport(previous: ReadonlyArray<FundSelectionRow>, next: ReadonlyArray<FundSelectionRow>): { published: string[]; pending: string[] } {
+  const report = { published: [] as string[], pending: [] as string[] };
+  if (!previous.length) return report;
+  const before = new Map<string, boolean>();
+  for (let i = 0; i < previous.length; i++) before.set(fundSelectionTicker(previous[i]), Boolean(previous[i].dataFile));
+  for (let i = 0; i < next.length; i++) {
+    const ticker = fundSelectionTicker(next[i]);
+    if (!ticker || before.get(ticker)) continue;
+    if (next[i].dataFile) report.published.push(ticker);
+    else if (!before.has(ticker)) report.pending.push(ticker);
+  }
+  report.published.sort();
+  report.pending.sort();
+  return report;
+}
+
+/** The log and step-summary lines of a newFundsReport: `NEW FUNDS: A, B` and `NEW FUNDS (not published yet): C`; none when empty. */
+export function newFundsLines(report: { published: ReadonlyArray<string>; pending: ReadonlyArray<string> }): string[] {
+  const lines: string[] = [];
+  if (report.published.length) lines.push(`NEW FUNDS: ${report.published.join(', ')}`);
+  if (report.pending.length) lines.push(`NEW FUNDS (not published yet): ${report.pending.join(', ')}`);
+  return lines;
+}
+// </fund-selection>

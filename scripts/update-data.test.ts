@@ -1,6 +1,6 @@
 /// <reference types="bun" />
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -44,6 +44,10 @@ import {
   selectUpdateBatch,
   setRootForTests,
   setSoftDeadlineForTests,
+  HOLDINGS_GUARD_RELAX,
+  holdingsWeightCount,
+  withUsListingTickers,
+  withoutYoungMetrics,
 } from "./update-data";
 
 // --- shared setup: pinned zone, no ambient fetch/exitCode/env leaks between tests ---
@@ -432,16 +436,18 @@ type World = {
   dropSheets: Set<string>; // worksheets left out of the workbook (renamed or broken by the provider)
   secYield: string;
   delayMs: number;
+  inception?: string; // catalog inception date, May 15, 2000 by default
+  weight?: string; // the weight cell of every holdings row, 100 by default
 };
 
 const cell = (value: string) => `<ss:Cell><ss:Data ss:Type="String">${value}</ss:Data></ss:Cell>`;
 const sheetXml = (name: string, rows: string[][]) =>
   `<ss:Worksheet ss:Name="${name}"><ss:Table>${rows.map((row) => `<ss:Row>${row.map(cell).join("")}</ss:Row>`).join("")}</ss:Table></ss:Worksheet>`;
 
-function workbook(ticker: string, metal: boolean, weightHeader = "Weight (%)", distributions = false, dropSheets: Set<string> = new Set()): string {
+function workbook(ticker: string, metal: boolean, weightHeader = "Weight (%)", distributions = false, dropSheets: Set<string> = new Set(), weight = "100"): string {
   const performance = [["Date", "Return"], ...monthly(2023, 2024).rows.map((r) => [r.Date, r.Return])];
   const head = ["Ticker", "Name", "Asset Class", "Market Value", weightHeader, "As Of Date"];
-  const holdings = metal ? [head] : [head, [ticker, `${ticker} Corp`, "Equity", "100", "100", "Sep 25, 2026"]];
+  const holdings = metal ? [head] : [head, [ticker, `${ticker} Corp`, "Equity", "100", weight, "Sep 25, 2026"]];
   const sheets: Array<[string, string[][]]> = [
     ["Holdings", holdings],
     ["Historical", [["As Of", "NAV per Share"], ["Sep 25, 2026", "50.25"], ["Sep 24, 2026", "50.00"]]],
@@ -465,7 +471,7 @@ function installIsharesMock(world: World) {
       if (url.includes("etf-investments")) {
         const rows = world.catalog.map((ticker) => {
           const id = 100 + world.all.indexOf(ticker);
-          return `<tr><td><a href="/us/products/${id}/${ticker.toLowerCase()}-fund">${ticker}</a></td><td>iShares ${ticker} ETF</td><td>1.25</td><td>Jun 30, 2026</td><td>10.00</td><td>Jun 30, 2026</td><td>May 15, 2000</td><td>0.03</td><td>0.03</td><td>700,000,000</td></tr>`;
+          return `<tr><td><a href="/us/products/${id}/${ticker.toLowerCase()}-fund">${ticker}</a></td><td>iShares ${ticker} ETF</td><td>1.25</td><td>Jun 30, 2026</td><td>10.00</td><td>Jun 30, 2026</td><td>${world.inception ?? "May 15, 2000"}</td><td>0.03</td><td>0.03</td><td>700,000,000</td></tr>`;
         });
         return new Response(`<table>${rows.join("")}</table>`);
       }
@@ -480,7 +486,7 @@ function installIsharesMock(world: World) {
       }
       if (url.includes("component=fundDownload")) {
         if (world.failDownload.has(ticker)) return new Response("nope", { status: 404 });
-        return new Response(workbook(ticker, world.metal.has(ticker), world.weightHeader, world.distributions, world.dropSheets));
+        return new Response(workbook(ticker, world.metal.has(ticker), world.weightHeader, world.distributions, world.dropSheets, world.weight));
       }
       return new Response("unexpected", { status: 500 });
     } finally {
@@ -616,7 +622,7 @@ describe("pipeline", () => {
       // a new fund whose holdings the guard rejects is failed too and gets the same catalog-only row
       world.catalog = ["AAA", "BBB", "CCC"];
       world.weightHeader = "Weight %";
-      expect(await run(world, { TICKERS: "CCC" })).toMatchObject({ failed: 1, updated: 0, newFunds: ["CCC"] });
+      expect(await run(world, { TICKERS: "CCC" })).toMatchObject({ failed: 1, updated: 0, newFunds: ["NEW FUNDS (not published yet): CCC"] });
       const guarded = index().funds.find((f) => f.ticker === "CCC")!;
       expect(guarded).toMatchObject({ dataFile: null, holdings: 0 });
       expect(Object.keys(guarded.metrics)).toEqual(Object.keys(ok.metrics));
@@ -625,7 +631,7 @@ describe("pipeline", () => {
       // a catalog-only row is never the published state: the next good run publishes both funds in full
       world.weightHeader = "Weight (%)";
       world.failDownload = new Set();
-      expect(await run(world, { TICKERS: "BBB,CCC" })).toMatchObject({ failed: 0, updated: 2 });
+      expect(await run(world, { TICKERS: "BBB,CCC" })).toMatchObject({ failed: 0, updated: 2, newFunds: ["NEW FUNDS: BBB, CCC"] });
       expect(index().funds.map((f) => f.dataFile)).toEqual(["./funds/AAA/meta.json", "./funds/BBB/meta.json", "./funds/CCC/meta.json"]);
     });
   });
@@ -736,8 +742,8 @@ describe("pipeline 3", () => {
       const world = newWorld(["AAA", "BBB", "CCC"], { catalog: ["AAA", "BBB"] });
       await run(world);
       world.catalog = ["AAA", "BBB", "CCC"];
-      expect((await run(world))?.newFunds).toEqual(["CCC"]);
-      await expect(run(world, { TICKERS: "ZZZ" })).rejects.toThrow("not in the iShares catalog: ZZZ");
+      expect((await run(world))?.newFunds).toEqual(["NEW FUNDS: CCC"]);
+      await expect(run(world, { TICKERS: "ZZZ" })).rejects.toThrow("TICKERS: ZZZ not in the iShares catalog or published feed; nothing was fetched or written");
     });
   });
 
@@ -792,6 +798,74 @@ describe("pipeline 3", () => {
 });
 
 // --- network: concurrency, request pacing, timeout, retries, certificates ---
+
+describe("pipeline 4", () => {
+  test("a fund younger than one year publishes no 1y or since-inception return (shared calendar-anniversary rule)", async () => {
+    await withFeed(async ({ run, index }) => {
+      // the monthly series runs through 2024, the fund started in March 2024: no full year on its Dec 2024 as-of date
+      expect(await run(newWorld(["AAA"], { inception: "Mar 15, 2024" }))).toMatchObject({ failed: 0, updated: 1 });
+      const metrics = index().funds[0].metrics;
+      expect([metrics.ytd, metrics.tr1y, metrics.cagr3y, metrics.siAnn]).toEqual([expect.any(Number), null, null, null]);
+      const old = withoutYoungMetrics(returns, "May 15, 2000");
+      expect([old.totalReturn["1Y"], old.performance["10Y"], old.siAnn]).toEqual([returns.totalReturn["1Y"], returns.performance["10Y"], returns.siAnn]);
+    });
+  });
+
+  test("dates: month-name and U.S. dates are the same calendar day in every time zone", () => {
+    for (const tz of ["Asia/Tokyo", "America/Los_Angeles", "UTC"]) {
+      process.env.TZ = tz;
+      expect(["Oct 24, 2026", "October 24 2026", "24 Oct 2026", "10/24/2026", "10/24/26", "2026-10-24"].map((raw) => isoDate(raw))).toEqual(Array(6).fill("2026-10-24"));
+      expect(isoDate("not a date")).toBeNull();
+      expect(deriveDistributionFrequency({ headers: ["Ex-Date"], rows: ["Mar 2, 2026", "Jun 1, 2026", "Sep 1, 2026", "Dec 1, 2026"].map((date) => ({ "Ex-Date": date })) })).toBe("04 - Quarterly");
+    }
+  });
+
+  test("holdings tickers: a bare ticker only on a U.S. exchange, local codes and derivative or cash lines become - (PS-1)", () => {
+    const sheet = { headers: ["Ticker", "Name", "Asset Class", "Exchange"], rows: [
+      ["NVDA", "NVIDIA", "Equity", "NASDAQ"], ["2330", "TAIWAN SEMICONDUCTOR MANUFACTURING", "Equity", "Taiwan Stock Exchange"],
+      ["2330", "SAUDI COMPANY", "Equity", "Saudi Stock Exchange"], ["ESZ6", "S&P500 EMINI DEC 26", "Futures", "Chicago Mercantile Exchange"],
+      ["SRLN", "SPDR BLACKSTONE SENIOR LOAN", "Fixed Income", "NYSE Arca"], ["USD", "USD CASH", "Cash", "--"], ["--", "UNLISTED", "Equity", "NO MARKET (E.G. UNLISTED)"],
+    ].map(([Ticker, Name, cls, Exchange]) => ({ Ticker, Name, "Asset Class": cls, Exchange })) };
+    expect(withUsListingTickers(sheet).rows.map((row) => row.Ticker)).toEqual(["NVDA", "-", "-", "-", "SRLN", "-", "--"]);
+    const bonds = { headers: ["Name", "Exchange"], rows: [{ Name: "T 4 08/15/2034", Exchange: "--" }] };
+    expect(withUsListingTickers(bonds)).toBe(bonds);
+  });
+});
+
+describe("pipeline 5", () => {
+  test("a relaxed guard still keeps numeric published weights from an all-dash sheet (Q24)", async () => {
+    await withFeed(async ({ run, files }) => {
+      const world = newWorld(["AAA", "BBB"]);
+      await run(world);
+      const before = files();
+      HOLDINGS_GUARD_RELAX["*"] = ["numeric", "sum"];
+      try {
+        world.weight = "-";
+        expect(await run(world, { TICKERS: "AAA" })).toMatchObject({ failed: 1, updated: 0 });
+      } finally {
+        delete HOLDINGS_GUARD_RELAX["*"];
+      }
+      expect(files()).toEqual(before);
+      expect(holdingsWeightCount(["Name", "Weight"], [["A", "-"], ["B", "2"]])).toBe(1);
+    });
+  });
+
+  test("TICKERS outside the live catalog stops the run before any fund request; a stale catalog-only row is dropped (Q27)", async () => {
+    await withFeed(async ({ run, files, index, dir, requests }) => {
+      const world = newWorld(["AAA", "BBB"]);
+      await run(world);
+      const published = index();
+      published.funds.push({ ...published.funds[0], ticker: "NOPE", name: "NOPE", dataFile: null });
+      writeFileSync(join(dir, "index.json"), JSON.stringify(published));
+      const before = files();
+      await expect(run(world, { TICKERS: "NOPE" })).rejects.toThrow("TICKERS: NOPE not in the iShares catalog or published feed; nothing was fetched or written");
+      expect(requests().filter((url) => !url.includes("etf-investments"))).toEqual([]);
+      expect(files()).toEqual(before);
+      await run(world);
+      expect(index().funds.map((row) => row.ticker)).toEqual(["AAA", "BBB"]);
+    });
+  });
+});
 
 describe("network", () => {
   test("CONCURRENCY really runs funds in parallel: peak in-flight 1 at c=1, N at c=N", async () => {
