@@ -1906,7 +1906,8 @@ async function fetchPage(ticker: string, pagePath: string): Promise<{ headers: s
   const page = await fetchJson(`./api/ishares/funds/${encodeURIComponent(ticker)}/${path}`);
   const headers: string[] = Array.isArray(page.headers) ? page.headers : [];
   const rows: any[] = Array.isArray(page.rows) ? page.rows : [];
-  return { headers, rows: rows.map(row => headers.map(header => String(row[header] ?? ''))) };
+  // Pages carry rows as arrays in header order; rows as objects keyed by the header (the format before 2026-10-26) still read
+  return { headers, rows: rows.map(row => headers.map((header, index) => String((Array.isArray(row) ? row[index] : row && row[header]) ?? ''))) };
 }
 
 /** Loads the first page of a paginated sheet and prepares lazy appending. */

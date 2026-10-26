@@ -701,6 +701,19 @@ async function old(url: URL) {
   }
 }
 
+/**
+ * Every feed file is compact JSON (no indentation) plus a trailing newline: the feed is close to the
+ * 1 GB GitHub Pages site limit and the indentation alone was 28% of it.
+ */
+export function feedJson(value: unknown): string {
+  return JSON.stringify(value) + "\n";
+}
+
+/** Rows of a holdings or history page as arrays in header order (an object per row repeated every header text: 68% of the feed). */
+export function pageRows(headers: ReadonlyArray<string>, rows: ReadonlyArray<Record<string, string>>): string[][] {
+  return rows.map((row) => headers.map((header) => row[header] ?? ""));
+}
+
 let temporaryCounter = 0;
 async function put(url: URL, contents: string) {
   if ((await old(url)) === contents) return false;
@@ -1487,18 +1500,14 @@ async function writePagedRows(
     changed =
       (await put(
         new URL(`funds/${ticker}/${folder}/${pageName}`, ROOT),
-        JSON.stringify(
-          {
-            ticker,
-            page,
-            pageSize,
-            totalRows: rows.length,
-            headers,
-            rows: rows.slice(index * pageSize, (index + 1) * pageSize),
-          },
-          null,
-          2,
-        ) + "\n",
+        feedJson({
+          ticker,
+          page,
+          pageSize,
+          totalRows: rows.length,
+          headers,
+          rows: pageRows(headers, rows.slice(index * pageSize, (index + 1) * pageSize)),
+        }),
       )) || changed;
   }
 
@@ -1682,7 +1691,7 @@ async function updateFund(
   changed =
     (await put(
       new URL(`funds/${fund.ticker}/meta.json`, ROOT),
-      JSON.stringify(meta, null, 2) + "\n",
+      feedJson(meta),
     )) || changed;
 
   // Stale pages go only after the new meta.json (which lists the live pages) is in place.
@@ -2126,7 +2135,7 @@ export async function main(
   };
   const indexChanged = await put(
     new URL("index.json", ROOT),
-    JSON.stringify(next, null, 2) + "\n",
+    feedJson(next),
   );
 
   let progressChanged = false;
@@ -2136,15 +2145,11 @@ export async function main(
   if (config.maxFetches && processedThrough) {
     progressChanged = await put(
       UPDATE_STATE,
-      JSON.stringify(
-        {
-          version: 1,
-          scope,
-          lastProcessedTicker: processedThrough,
-        } satisfies UpdateProgress,
-        null,
-        2,
-      ) + "\n",
+      feedJson({
+        version: 1,
+        scope,
+        lastProcessedTicker: processedThrough,
+      } satisfies UpdateProgress),
     );
     logTag(
       "progress",

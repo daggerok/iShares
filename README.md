@@ -64,7 +64,8 @@ All data comes from iShares and BlackRock; there is no Yahoo Finance or SEC EDGA
 
 - `index.json` has `generatedAt`, `source`, `counts` (`funds`, `holdings`, `history`) and one row per fund: `ticker`, `name`, `category`, `fundPage`, `dataFile`, `cusip`, `isin`, `ter` / `terValue` (plus `terGross` / `terGrossValue`), `nav` / `navValue`, `aum` / `aumValue` (net assets), `asOfDate`, `inceptionDate`, `distributions`, `returns` (`monthEnd`, `quarterEnd`), `metrics`, `holdings` and `history` row counts
 - `meta.json` holds `providerIds`, `source`, `identifiers`, `inception`, `expenseRatio`, `nav`, `aum`, `yields`, `returns`, `officialReturns`, `distributions` (frequency plus the full distribution table), the `holdings` and `history` page manifests and the monthly `Performance` worksheet
-- holdings and history stay as paged files in the iShares column layout (`Weight (%)`, `NAV per Share`, ...)
+- holdings and history stay as paged files in the iShares column layout (`Weight (%)`, `NAV per Share`, ...): each page (`holdings/001.json`, `history/001.json`, ...) has `ticker`, `page`, `pageSize`, `totalRows`, `headers` and `rows`, every row an array of strings in `headers` order (`["2330", "TAIWAN SEMICONDUCTOR MANUFACTURING", ...]`)
+- every file is compact JSON (no indentation) with a trailing newline: the feed is close to the 1 GB GitHub Pages site limit, and indentation plus row objects that repeat every header were two thirds of it
 - `category` is the iShares asset class from the product header (Equity, Fixed Income, Commodity, Multi-asset, Real Estate, Digital Assets); when the header gives none it is derived from the holdings market-value mix, and `meta.source.categorySource` says which one was used
 - `cusip` is taken from a US `isin`; both are `null` until the updater has read the product header of the fund
 - the exchange, closing price and premium/discount are `null` or `—`: iShares publishes NAV history only

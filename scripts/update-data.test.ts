@@ -542,11 +542,18 @@ describe("pipeline", () => {
     });
   });
 
-  test("a second identical run writes nothing, stamps included, and leaves no temp files", async () => {
+  test("a second identical run writes nothing, stamps included, and leaves no temp files; pages are compact with array rows", async () => {
     await withFeed(async ({ run, files, index }) => {
       const world = newWorld(["AAA", "BBB", "GAU"], { metal: new Set(["GAU"]) });
       await run(world);
       const before = files();
+      // The feed is near the 1 GB Pages limit: one line per file, rows as arrays in header order
+      for (const text of Object.values(before)) expect(text.indexOf("\n")).toBe(text.length - 1);
+      expect(JSON.parse(before["/funds/AAA/holdings/001.json"])).toMatchObject({
+        headers: ["Ticker", "Name", "Asset Class", "Market Value", "Weight (%)", "As Of Date"],
+        rows: [["AAA", "AAA Corp", "Equity", "100", "100", "Sep 25, 2026"]],
+      });
+      expect(JSON.parse(before["/funds/AAA/history/001.json"]).rows).toEqual([["Sep 25, 2026", "50.25"], ["Sep 24, 2026", "50.00"]]);
       const summary = await run(world);
       expect(summary).toMatchObject({ updated: 0, unchanged: 3, failed: 0 });
       expect(files()).toEqual(before);
