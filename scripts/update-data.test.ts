@@ -459,7 +459,7 @@ function workbook(ticker: string, metal: boolean, weightHeader = "Weight (%)", d
 
 // the swing block's daily chart (period1=0): 300 closes rising 0.1 a day from 2025-01-02
 const SWING_CHART_URL = /query1\.finance\.yahoo\.com\/v8\/finance\/chart\/[^?]+\?period1=0&period2=\d+&interval=1d&includePrePost=false/;
-const swingChart = () => ({ chart: { result: [{ meta: { dataGranularity: "1d", firstTradeDate: Date.UTC(2025, 0, 2) / 1000 }, events: { dividends: { [Date.UTC(2025, 9, 20) / 1000]: { amount: 0.25, date: Date.UTC(2025, 9, 20) / 1000 } } }, timestamp: Array.from({ length: 300 }, (_, i) => Date.UTC(2025, 0, 2) / 1000 + i * 86_400), indicators: { quote: [{ close: Array.from({ length: 300 }, (_, i) => Math.round((40 + i / 10) * 100) / 100) }] } }] } });
+const swingChart = () => ({ chart: { result: [{ meta: { dataGranularity: "1d", firstTradeDate: Date.UTC(2025, 0, 2) / 1000 }, events: { dividends: { [Date.UTC(2025, 9, 20) / 1000]: { amount: 0.25, date: Date.UTC(2025, 9, 20) / 1000 } } }, timestamp: Array.from({ length: 300 }, (_, i) => Date.UTC(2025, 0, 2) / 1000 + i * 86_400), indicators: { quote: [{ close: Array.from({ length: 300 }, (_, i) => Math.round((40 + i / 10) * 100) / 100) }], adjclose: [{ adjclose: Array.from({ length: 300 }, (_, i) => Math.round((40 + i / 10) * 100) / 100) }] } }] } });
 
 function installIsharesMock(world: World) {
   const requests: string[] = [];
@@ -557,13 +557,23 @@ describe("pipeline", () => {
       for (const fund of index().funds) expect(Object.keys(fund.metrics)).toEqual(expect.arrayContaining(RANGE_KEYS));
       // the swing keys from the Yahoo daily closes (period1=0) of the funds the run refreshed (swing block)
       const SWING_KEYS = ["pctFrom52wHigh", "athPrice", "athDate", "athBasis", "pctFromAth", "volatility1y", "sigmaFromMean60d", "high60d", "low60d"];
-      for (const fund of index().funds) expect(Object.keys(fund.metrics).slice(-17, -8)).toEqual(SWING_KEYS);
+      for (const fund of index().funds) expect(Object.keys(fund.metrics).slice(-51, -42)).toEqual(SWING_KEYS);
       // the dividend keys from the same Yahoo request (dividends block, no extra request)
-      for (const fund of index().funds) expect(Object.keys(fund.metrics).slice(-8, -2)).toEqual(["dividendRate", "dividendGrowth", "dividendGrowth3y", "dividendGrowth5y", "dividendStreak", "dividendCut10y"]);
-      expect(requests().filter((url) => SWING_CHART_URL.test(url)).map((url) => /chart\/([^?]+)/.exec(url)?.[1]).sort()).toEqual(["AAA", "BBB", "CCC"]);
+      const DIVIDEND_KEYS = ["dividendRate", "dividendGrowth", "dividendGrowth3y", "dividendGrowth5y", "dividendStreak", "dividendCut10y", "paymentsPerYear", "payFrequency"];
+      for (const fund of index().funds) expect(Object.keys(fund.metrics).slice(-42, -34)).toEqual(DIVIDEND_KEYS);
+      // the 32 keys of the benchmark block (SPY and QQQ), read from the same chart request, in front of returnsBasis and performanceAsOf
+      const BENCHMARK_KEYS = ["perf1y", "perf3y", "perf5y", "perf10y", "perfSi", "maxDrawdown1y", "maxDrawdown3y", "maxDrawdown5y", "maxDrawdown10y",
+        "vsSpy1y", "vsSpy3y", "vsSpy5y", "vsSpy10y", "beta1ySpy", "corr1ySpy", "upCapture3ySpy", "downCapture3ySpy", "relStrength3mSpy", "stressReturnSpy", "stressBasisSpy",
+        "vsQqq1y", "vsQqq3y", "vsQqq5y", "vsQqq10y", "beta1yQqq", "corr1yQqq", "upCapture3yQqq", "downCapture3yQqq", "relStrength3mQqq", "stressReturnQqq", "stressBasisQqq", "benchmarkAsOf"];
+      for (const fund of index().funds) expect(Object.keys(fund.metrics).slice(-34, -2)).toEqual(BENCHMARK_KEYS);
+      // exactly two more chart requests than funds (SPY and QQQ), no request per fund beyond the one chart
+      expect(requests().filter((url) => SWING_CHART_URL.test(url)).map((url) => /chart\/([^?]+)/.exec(url)?.[1]).sort()).toEqual(["AAA", "BBB", "CCC", "QQQ", "SPY"]);
       const bbb = index().funds[1].metrics;
       expect([bbb.athBasis, bbb.athPrice, bbb.high60d, bbb.volatility1y]).toEqual(["daily closes since 2025-01-02", 69.9, 69.9, expect.any(Number)]);
-      expect([bbb.dividendRate, bbb.dividendGrowth, bbb.dividendGrowth3y, bbb.dividendGrowth5y, bbb.dividendStreak, bbb.dividendCut10y]).toEqual([0.25, null, null, null, null, null]);
+      // 300 mocked daily bars (under a year) and one event: payFrequency is null (rule 4), paymentsPerYear 1
+      expect(DIVIDEND_KEYS.map((key) => (bbb as Record<string, unknown>)[key])).toEqual([0.25, null, null, null, null, null, 1, null]);
+      // the benchmarks answer the same 300 bars as the fund: beta and correlation 1, relStrength3m 0, the horizons (a year and more) null
+      expect([bbb.beta1ySpy, bbb.corr1yQqq, bbb.relStrength3mSpy, bbb.vsSpy1y, bbb.perf1y, bbb.benchmarkAsOf]).toEqual([1, 1, 0, null, null, "2025-10-28"]);
       await run(world, { TICKERS: "BBB" });
       expect(index().funds.map((f) => f.ticker)).toEqual(["AAA", "BBB", "CCC"]);
       expect(files()).toEqual(before);
